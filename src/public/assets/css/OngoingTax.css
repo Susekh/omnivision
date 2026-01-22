@@ -50,7 +50,7 @@ section {
 }
 
 section.main {
-    min-height: 100vh;
+    height: 100vh;
     background: #e0f6ff;
     display: flex;
     flex-direction: column;
@@ -59,7 +59,7 @@ section.main {
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: bottom;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
 }
 .pag-1-wrapper {

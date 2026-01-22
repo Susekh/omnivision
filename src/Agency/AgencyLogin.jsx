@@ -91,7 +91,7 @@ const AgencyLogin = () => {
   };
 
   return (
-    <section className="main dashboard-hospital">
+    <section className="main dashboard-hospital" style={{backgroundColor: "#b3d9ff"}}>
       <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
           <span className="navbar-brand fw-bold" style={{ color: "#0d6efd" }}>

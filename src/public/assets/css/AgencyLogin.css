@@ -50,8 +50,8 @@ section {
 }
 
 section.main {
-    min-height: 100vh;
-    background: #e0f6ff;
+    height: 100vh;
+    background: linear-gradient(135deg, #cce7ff 0%, #b3d9ff 50%, #99ccff 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -59,7 +59,7 @@ section.main {
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: bottom;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
 }
 .pag-1-wrapper {
@@ -68,6 +68,7 @@ section.main {
     flex-direction: column;
     text-align: center;
     height: max-content;
+    background: rgba(255, 255, 255, 0.02);
 }
 section.pag-1-wrapper-sec-1 {
     position: relative;
@@ -78,20 +79,31 @@ section.pag-1-wrapper-sec-1>figure {
     width: 100%;
     margin: auto;
     max-width: 400px;
+    filter: brightness(1.05) contrast(1.1) saturate(0.95);
+}
+
+figure.logo-con img {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.pag-1-wrapper {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 
 .pag-1-wrapper-sec-2-wrapper h4 {
     font-size: 32px;
-    color: #4db8ff;
-    font-weight: 400;
+    color: #0066cc;
+    font-weight: 600;
     max-width: 453px;
     display: inline-block;
     margin-bottom: 30px;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
 .pag-1-wrapper-sec-2-wrapper h4 a{
-    color: #4db8ff;
+    color: #0066cc;
+    text-decoration: underline;
 }
  ul {
     display: flex;
@@ -167,7 +179,8 @@ section.sign-up-form .container form  input::placeholder,
 section.sign-up-form .container form  optgroup::placeholder, 
 section.sign-up-form .container form  select::placeholder, 
 section.sign-up-form .container form  textarea::placeholder {
-color: #909090;
+color: #666;
+font-weight: 500;
 }
 
 .heading-1 {
@@ -175,13 +188,15 @@ color: #909090;
     position: relative;
     padding-bottom: 3px;
     margin-bottom: 25px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    font-weight: 600;
 }
 .heading-1::before {
     content: '';
     position: absolute;
     width: 115px;
     height: 6px;
-    background: #264763;
+    background: rgba(38, 71, 99, 0.8);
     bottom: 0;
     left: 0;
     right: 0;
@@ -189,7 +204,8 @@ color: #909090;
     border-radius: 5px;
 }
 .heading-1 h4 {
-    font-weight: 200;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .footer-logo-1 {

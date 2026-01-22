@@ -21,6 +21,17 @@ body {
     line-height: 32px;
 }
 
+/* Navbar Responsive */
+.navbar {
+    padding: 15px 20px !important;
+}
+
+.navbar-brand {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px;
+}
+
 
 a {
     text-decoration: none;
@@ -57,16 +68,15 @@ section {
 
 section.main {
     height: 100vh;
-    background: #e0f6ff;
+    background: linear-gradient(135deg, #cce7ff 0%, #b3d9ff 50%, #99ccff 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     /* background-image: url(../images/bg-1.png); */
     background-repeat: no-repeat;
-    background-size: 100%;
-    background-position: bottom;
-    
-    overflow: auto;
+    background-size: cover;
+    background-position: center bottom;
+    overflow: hidden;
     position: relative;
 }
 .pag-1-wrapper {
@@ -75,16 +85,57 @@ section.main {
     flex-direction: column;
     text-align: center;
     height: max-content;
+    background: rgba(255, 255, 255, 0.02);
 }
 section.pag-1-wrapper-sec-1 {
     position: relative;
-    padding-top: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     margin-bottom: 0;
 }
 section.pag-1-wrapper-sec-1>figure {
     width: 100%;
     margin: auto;
     max-width: 400px;
+    filter: brightness(1.05) contrast(1.1) saturate(0.95);
+}
+
+figure.logo-con img {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Emergency Section and Button Styling */
+.emergency-section {
+    position: relative;
+    z-index: 1;
+    padding: 30px 20px;
+}
+
+.emergency-section .btn {
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: #a22425;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(162, 36, 37, 0.3);
+}
+
+.emergency-section .btn:hover {
+    background: #5e0e0f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(162, 36, 37, 0.4);
+}
+
+.emergency-section .btn i {
+    font-size: 18px;
 }
 
 
@@ -110,15 +161,15 @@ section.pag-1-wrapper-sec-1>figure {
 }
 
 figure.logo-con {
-    position: absolute;
-    top: 0;
+    position: relative;
     width: 100%;
-    left: 0;
-    right: 0;
-    height: max-content;
-    bottom: 0;
+    left: auto;
+    right: auto;
+    height: auto;
+    bottom: auto;
     margin: auto;
-    max-width: 239px;
+    max-width: 280px;
+    padding: 20px 0;
 }
 
 /**/
@@ -167,8 +218,8 @@ section.pag-2-wrapper-sec-1 {
 
 
 .camera {
-    min-height: 100vh;
-    overflow: auto;
+    height: 100vh;
+    overflow: hidden;
     background: #000;
     text-align: center;
     padding-bottom: 118px;
@@ -469,6 +520,44 @@ section.dashboard-report-img figure {
 
 /* On screens that are 992px or less, set the background color to blue */
 @media screen and (max-width: 768px) {
+    section.main {
+        background-attachment: scroll;
+    }
+
+    .pag-1-wrapper {
+        padding-top: 30px !important;
+        padding-bottom: 30px !important;
+    }
+
+    .navbar {
+        padding: 12px 20px !important;
+    }
+
+    .navbar-brand {
+        font-size: 20px !important;
+    }
+
+    section.pag-1-wrapper-sec-1 {
+        padding-top: 20px;
+    }
+
+    section.pag-1-wrapper-sec-1>figure {
+        max-width: 320px;
+    }
+
+    figure.logo-con {
+        max-width: 200px;
+    }
+
+    .emergency-section {
+        padding: 25px 20px;
+    }
+
+    .emergency-section .btn {
+        padding: 13px 28px;
+        font-size: 15px;
+    }
+
     section.sign-up-form {
         margin-top: -85px;
         position: relative;
@@ -508,6 +597,7 @@ section.dashboard-report-img figure {
         height: 39px;
     }
     section.dashboard-map iframe {
+
         height: 310px;
     }
     .table-con .table>tbody tr td {
@@ -545,7 +635,53 @@ section.dashboard-report-img figure {
     }
   }
 
-  @media screen and (max-width: 576px) {
+@media screen and (max-width: 576px) {
+    section.main {
+        overflow: hidden;
+    }
+
+    .pag-1-wrapper {
+        padding-top: 20px !important;
+        padding-bottom: 20px !important;
+    }
+
+    .navbar {
+        padding: 12px 15px !important;
+    }
+
+    .navbar-brand {
+        font-size: 18px !important;
+    }
+
+    section.pag-1-wrapper-sec-1>figure {
+        max-width: 280px;
+        padding: 0 20px;
+    }
+
+    figure.logo-con {
+        max-width: 150px;
+        padding: 15px 0;
+    }
+
+    .emergency-section {
+        padding: 20px 15px;
+    }
+
+    .emergency-section .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .emergency-section .btn i {
+        font-size: 16px;
+    }
+
+    footer {
+        padding: 10px 15px !important;
+        font-size: 12px !important;
+    }
 
     .pag-1-wrapper-sec-2-wrapper h4 {
            max-width: 341px;
