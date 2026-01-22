@@ -52,12 +52,12 @@ section {
 ::-webkit-scrollbar-thumb {
     border-radius: 20px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-    background: #00048c;
+    background: #87CEEB;
 }
 
 section.main {
     height: 100vh;
-    background: #061435;
+    background: #e0f6ff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -66,7 +66,7 @@ section.main {
     background-size: 100%;
     background-position: bottom;
     
-    overflow: hidden;
+    overflow: auto;
     position: relative;
 }
 .pag-1-wrapper {
@@ -90,7 +90,7 @@ section.pag-1-wrapper-sec-1>figure {
 
 .pag-1-wrapper-sec-2-wrapper h4 {
     font-size: 32px;
-    color: #5bb3cc;
+    color: #4db8ff;
     font-weight: 400;
     max-width: 453px;
     display: inline-block;
@@ -98,7 +98,7 @@ section.pag-1-wrapper-sec-1>figure {
 }
 
 .pag-1-wrapper-sec-2-wrapper h4 a{
-    color: #5bb3cc;
+    color: #4db8ff;
 }
 .footer-logo-1 ul {
     display: flex;
@@ -167,8 +167,8 @@ section.pag-2-wrapper-sec-1 {
 
 
 .camera {
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow: auto;
     background: #000;
     text-align: center;
     padding-bottom: 118px;
@@ -416,8 +416,8 @@ section.sign-up-form.dashboard-hospital-sign-up .container form  input, section.
     box-shadow: 0 7px 8px #4cc8ff42;
 }
 section.sign-up-form.dashboard-hospital-sign-up .container form  button {
-    background: #0e346d;
-    border-color: #0e346d;
+    background: #4db8ff;
+    border-color: #4db8ff;
 }
 section.sign-up-form.dashboard-hospital-sign-up .container form  input::placeholder, 
 section.sign-up-form.dashboard-hospital-sign-up .container form  optgroup::placeholder, 
@@ -533,15 +533,15 @@ section.dashboard-report-img figure {
     }
     section.main.dashboard-main {
         padding-top: 10px;
-        height: 100vh;
+        min-height: 100vh;
         position: relative;
-        overflow: hidden;
+        overflow: auto;
     }
 
     footer {
-        position: absolute;
+        position: relative;
         width: 100%;
-        bottom: 0;
+        bottom: auto;
     }
   }
 

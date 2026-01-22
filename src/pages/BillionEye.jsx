@@ -16,12 +16,12 @@ const BillionEye = () => {
   return (
     <section
       className="bg-cover main home-page"
-      style={{ backgroundImage: "url(/billioneye/images/bg-1.png)" }}
+      style={{ backgroundImage: "url(/images/bg-1.png)" }}
     >
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
-          <span className="navbar-brand fw-bold text-white">BILLIONEYE</span>
+          <span className="navbar-brand fw-bold text-white">OMNIVISION</span>
           <div className="ms-auto">
             <Link to={"/login"}>
               <button
@@ -44,41 +44,16 @@ const BillionEye = () => {
       <div className="pag-1-wrapper">
         <section className="pag-1-wrapper-sec-1">
           <figure>
-            <img src="/billioneye/images/pag-1-logo-bg.png" alt="Background Logo" />
+            <img src="/images/pag-1-logo-bg.png" alt="Background Logo" />
           </figure>
           <div className="container">
             <div className="row">
               <div className="col-md-12">
                 <figure className="logo-con">
                   <Link to="/signup">
-                    <img src="/billioneye/images/logo.png" alt="Logo" />
+                    <img src="/images/omnivision-logo.png" alt="Logo" />
                   </Link>
                 </figure>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="pag-1-wrapper-sec-2">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <div className="pag-1-wrapper-sec-2-wrapper text-center">
-                  <h4>
-                    <p>Your voice, Your Impact direct to the Government.</p>
-                  </h4>
-                  <div className="footer-logo-1">
-                    <ul>
-                      <li>
-                        <img
-                          src="/billioneye/images/odisha-logo-white.png"
-                          alt="Odisha"
-                          title="Odisha"
-                        />
-                      </li>
-                    </ul>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

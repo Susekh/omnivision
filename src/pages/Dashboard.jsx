@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const flagIconUrl = "/billioneye/images/map-pin.png"; // 🇮🇳 India flag
+const flagIconUrl = "/images/map-pin.png"; // 🇮🇳 India flag
 const FlyToLocation = ({ targetLocation }) => {
   const map = useMap(); // Access the Leaflet map instance
 
@@ -335,14 +335,14 @@ const Dashboard = () => {
 
   return (
     <>
-      <header>
-        <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="d-flex align-items-center justify-content-between">
+      <header style={{margin: 0, padding: 0, width: "100%"}}>
+        <div className="container-fluid" style={{padding: 0, margin: 0}}>
+          <div className="row" style={{margin: 0}}>
+            <div className="col-md-12" style={{padding: 0}}>
+              <div className="d-flex align-items-center justify-content-between" style={{padding: "15px 20px"}}>
                 <div className="logo">
                   <img
-                    src="/billioneye/images/logo-small.png"
+                    src="/images/omnivision-logo-small.png"
                     alt="Logo"
                     onClick={() => navigate(`/dashboard/${agencyId}`)}
                     style={{ cursor: "pointer" }}
@@ -358,7 +358,7 @@ const Dashboard = () => {
                   }}
                   onClick={() => setIsOpen(true)}
                 >
-                  <img src="/billioneye/images/menu-bar.svg" alt="" />
+                  <img src="/images/menu-bar.svg" alt="" />
                 </div>
               </div>
             </div>
@@ -498,9 +498,9 @@ const Dashboard = () => {
             display: "flex",
             flexDirection: "row",
             width: "100%",
-            height: "100vh",
+            minHeight: "100vh",
             boxSizing: "border-box",
-            overflow: "hidden",
+            overflow: "auto",
           }}
         >
           {/* Table Section (Now on the Left - 70%) */}
@@ -521,7 +521,7 @@ const Dashboard = () => {
                     <div className="table-card-heading">
                       <div className="table-card-heading-icon">
                         <img
-                          src="/billioneye/images/dashboard-icon.png"
+                          src="/images/dashboard-icon.png"
                           alt="Dashboard Icon"
                           title="Dashboard Icon"
                         />
@@ -983,7 +983,7 @@ const Dashboard = () => {
         </div> /* End Zoom Overlay */
       )}{" "}
       {/* End Zoomed Image Section */}
-      <footer className="footer"  style={{marginTop:"-190px"}}>
+      <footer className="footer"  style={{marginTop: 0, width: "100%"}}>
         <div className="footer-container">
           <div className="row">
             <div
@@ -1132,6 +1132,10 @@ const Dashboard = () => {
         </div>
       )}
       {/* End Events Popup Section */}
+      {/* Footer */}
+      <footer style={{backgroundColor: "#f8f9fa", borderTop: "1px solid #dee2e6", padding: "15px 0", textAlign: "center", margin: 0, width: "100%"}}>
+        <p style={{margin: 0, fontSize: "14px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
+      </footer>
     </>
   );
 };

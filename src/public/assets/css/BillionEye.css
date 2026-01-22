@@ -52,12 +52,12 @@ section {
 ::-webkit-scrollbar-thumb {
     border-radius: 20px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-    background: #00048c;
+    background: #87CEEB;
 }
 
 section.main {
     height: 100vh;
-    background: #061435;
+    background: #e0f6ff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -90,7 +90,7 @@ section.pag-1-wrapper-sec-1>figure {
 
 .pag-1-wrapper-sec-2-wrapper h4 {
     font-size: 32px;
-    color: #5bb3cc;
+    color: #4db8ff;
     font-weight: 400;
     max-width: 453px;
     display: inline-block;
@@ -98,7 +98,7 @@ section.pag-1-wrapper-sec-1>figure {
 }
 
 .pag-1-wrapper-sec-2-wrapper h4 a{
-    color: #5bb3cc;
+    color: #4db8ff;
 }
 .footer-logo-1 ul {
     display: flex;
@@ -124,7 +124,7 @@ figure.logo-con {
 /**/
 
 section.main.sign-up {
-    background: #061738;
+    background: #f0fbff;
     background-image: none;
 }
 
@@ -150,7 +150,7 @@ section.pag-2-wrapper-sec-1 {
     position: absolute;
     width: 115px;
     height: 6px;
-    background: #264763;
+    background: #b3d9ff;
     bottom: 0;
     left: 0;
     right: 0;
@@ -211,7 +211,7 @@ section.pag-2-wrapper-sec-1 {
 
 section.main.dashboard-main {
     padding-top: 40px;
-    background: #eaf8ff;
+    background: #f0fbff;
 }
 .top-1 {
     display: flex;
@@ -238,7 +238,7 @@ section.main.dashboard-main {
 }
 
 section.page-heading {
-    background: linear-gradient(45deg, #113c75, #2672a7,  #113c75);
+    background: linear-gradient(45deg, #87CEEB, #b3d9ff,  #87CEEB);
     color: #ffffff;
     padding: 10px 0;
     text-align: center;
@@ -284,7 +284,7 @@ section.dashboard-table-con {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: #1c7cd3;
+    background: #4db8ff;
     border-radius: 16px;
 }
 .table-con thead div{
@@ -327,7 +327,7 @@ section.dashboard-table-con {
 
 
 .table-card-btn:hover i, .table-card-btn:hover{
-    color: #1c7cd3;
+    color: #4db8ff;
 }
 
 
@@ -351,7 +351,7 @@ section.dashboard-table-con {
 }
 
 .table-con .table-heading table thead {
-    background: #1c7cd3;
+    background: #4db8ff;
 }
 .table-con table tr td div {
     word-wrap: break-word;
@@ -402,7 +402,7 @@ footer img {
 
 
 section.main.dashboard-hospital {
-    background: linear-gradient(177deg, #eefffd, #f7faff);
+    background: linear-gradient(177deg, #f5fbff, #f9fdff);
 }
 
 
@@ -416,8 +416,8 @@ section.sign-up-form.dashboard-hospital-sign-up .container form  input, section.
     box-shadow: 0 7px 8px #4cc8ff42;
 }
 section.sign-up-form.dashboard-hospital-sign-up .container form  button {
-    background: #0e346d;
-    border-color: #0e346d;
+    background: #4db8ff;
+    border-color: #4db8ff;
 }
 section.sign-up-form.dashboard-hospital-sign-up .container form  input::placeholder, 
 section.sign-up-form.dashboard-hospital-sign-up .container form  optgroup::placeholder, 
@@ -446,8 +446,8 @@ section.dashboard-report-map iframe {
 }
 
 .table-con-2 table td {
-    border-bottom: 6px solid #eaf8ff !important;
-    background: #deecf2;
+    border-bottom: 6px solid #f0fbff !important;
+    background: #e6f2ff;
 }
 section.dashboard-report-img {
     padding-top: 30px;

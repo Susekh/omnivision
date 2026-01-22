@@ -131,7 +131,7 @@ const PublicRegister = () => {
     <section className="main sign-up">
       <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
-          <span className="navbar-brand fw-bold text-white">BILLIONEYE</span>
+          <span className="navbar-brand fw-bold text-white">OMNIVISION</span>
           <div className="ms-auto">
             {/* <Link to={"/dashboard"}>
               <button className="btn btn-outline-light me-2">Dashboard</button>
@@ -146,7 +146,7 @@ const PublicRegister = () => {
               <div className="col-md-12">
                 <figure className="logo-con">
                   <Link to="/">
-                    <img src="./billioneye/images/logo.png" alt="Logo" />
+                    <img src="/images/omnivision-logo.png" alt="Logo" />
                   </Link>
                 </figure>
               </div>

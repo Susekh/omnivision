@@ -2,9 +2,9 @@ body {
     margin: 0;
     padding: 0;
     font-family: sans-serif;
-    overflow: hidden; /* Disable scrolling */
-    height: 100vh; /* Ensure it fits the viewport */
-    width: 100vw;
+    overflow: auto; /* Enable scrolling */
+    height: auto;
+    width: 100%;
 }
 
 /* Large, centered popup */
@@ -53,7 +53,7 @@ body {
 
 
 .main.dashboard-main {
-    overflow: hidden; /* Disable scrolling inside the main container */
+    overflow: auto; /* Enable scrolling inside the main container */
     height: 100vh; /* Full height of the viewport */
     padding: 0; /* Remove padding */
     box-sizing: border-box; /* Include padding and border in height/width */
@@ -150,7 +150,7 @@ header {
 
 /* Page heading styles */
 .page-heading {
-    background-color: #00048c;
+    background-color: #4db8ff;
     padding: 10px;
     text-align: center;
 }
@@ -164,7 +164,7 @@ header {
 /* Table styles */
 .table-container {
     margin-top: 20px;
-    overflow: hidden; /* Prevent horizontal scrolling */
+    overflow: auto; /* Allow horizontal scrolling */
 }
 
 .table {

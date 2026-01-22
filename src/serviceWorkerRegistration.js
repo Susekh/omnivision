@@ -33,7 +33,7 @@
   
 //   function registerValidSW(swUrl, config) {
 //     navigator.serviceWorker
-//       .register(swUrl, { scope: '/billioneye/' })
+//       .register(swUrl, { scope: '/' })
 //       .then((registration) => {
 //         console.log('Service Worker registered with scope:', registration.scope);
 //         registration.onupdatefound = () => {

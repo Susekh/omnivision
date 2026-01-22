@@ -17,7 +17,7 @@ const BmcDashboard = () => {
                 <div className="top-1">
                   <div className="logo">
                     <button onClick={() => handleNavigation("/")}>
-                      <img src="./billioneye/images/logo-small.png" alt="Company Logo" title="Company Logo" />
+                      <img src="/images/omnivision-logo-small.png" alt="Company Logo" title="Company Logo" />
                     </button>
                   </div>
                   <div className="menu-con">
@@ -57,7 +57,7 @@ const BmcDashboard = () => {
                 <div className="table-card-2">
                   <div className="table-card-heading">
                     <div className="table-card-heading-icon">
-                      <img src="./billioneye/images/dashboard-icon.png" alt="Dashboard" title="Dashboard" />
+                      <img src="/images/dashboard-icon.png" alt="Dashboard" title="Dashboard" />
                     </div>
                     <h4 className="text-uppercase">Report</h4>
                   </div>
@@ -95,7 +95,7 @@ const BmcDashboard = () => {
               <div className="col-md-12">
                 <div className="table-card-heading">
                   <div className="table-card-heading-icon">
-                    <img src="./billioneye/images/location.png" alt="Location" title="Location" />
+                    <img src="/images/location.png" alt="Location" title="Location" />
                   </div>
                   <h4 className="text-uppercase">LOCATION</h4>
                 </div>

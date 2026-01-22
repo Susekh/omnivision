@@ -45,20 +45,20 @@
   ::-webkit-scrollbar-thumb {
     border-radius: 20px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-    background: #00048c;
+    background: #87CEEB;
   }
   
   /* Main Section */
   section.main {
-    height: 100vh;
-    background: #061435;
+    min-height: 100vh;
+    background: #e0f6ff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     background-repeat: no-repeat;
     background-size: 100%;
     background-position: bottom;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
   }
   
@@ -159,7 +159,7 @@
   }
   
   section.sign-up-form .btn-primary {
-    background: #00048c;
+    background: #4db8ff;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;

@@ -34,7 +34,7 @@ const ProtectedRoute = ({ element: Element }) => {
 
 function App() {
   return (
-    <BrowserRouter basename="/billioneye">
+    <BrowserRouter basename="/">
       <Routes>
         {/* Public Routes */}
         <Route path="/Agency" element={<BillionEye />} />

@@ -10,22 +10,29 @@ const BillionEyePublic = () => {
   return (
     <section
       className="bg-cover main home-page"
-      style={{ backgroundImage: "url(/billioneye/images/bg-1.png)" }}
+      style={{ backgroundImage: "url(/images/bg-1.png)" }}
     >
-      
+      {/* Header with OmniVision Name */}
+      <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: "rgba(0,0,0,0.3)", margin: 0, padding: "15px 0", width: "100%"}}>
+        <div className="container-fluid" style={{padding: "0 20px"}}>
+          <span className="navbar-brand fw-bold text-white" style={{fontSize: "24px"}}>
+            OMNIVISION
+          </span>
+        </div>
+      </nav>
 
       {/* Page Content */}
-      <div className="pag-1-wrapper">
+      <div className="pag-1-wrapper" style={{paddingTop: "40px", paddingBottom: "40px"}}>
         <section className="pag-1-wrapper-sec-1">
           <figure>
-            <img src="/billioneye/images/pag-1-logo-bg.png" alt="Background Logo" />
+            <img src="/images/pag-1-logo-bg.png" alt="Background Logo" />
           </figure>
           <div className="container">
             <div className="row">
               <div className="col-md-12">
                 <figure className="logo-con">
                   
-                    <img src="/billioneye/images/logo.png" alt="Logo" />
+                    <img src="/images/omnivision-logo.png" alt="Logo" />
                  
                 </figure>
               </div>
@@ -45,32 +52,12 @@ const BillionEyePublic = () => {
        
         </section>
           
-
-        <section className="pag-1-wrapper-sec-2">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <div className="pag-1-wrapper-sec-2-wrapper text-center">
-                  <h4>
-                    <p>Your voice, Your Impact direct to the Government.</p>
-                  </h4>
-                  <div className="footer-logo-1">
-                    <ul>
-                      <li>
-                        <img
-                          src="/billioneye/images/odisha-logo-white.png"
-                          alt="Odisha"
-                          title="Odisha"
-                        />
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
+
+      {/* Footer */}
+      <footer style={{backgroundColor: "rgba(0,0,0,0.5)", color: "#fff", textAlign: "center", padding: "15px 0", margin: 0, width: "100%"}}>
+        <p style={{margin: 0, fontSize: "14px"}}>© 2025 OmniVision. All rights reserved.</p>
+      </footer>
     </section>
   );
 };

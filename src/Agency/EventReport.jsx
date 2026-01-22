@@ -249,7 +249,7 @@ const EventReport = () => {
                   style={{ cursor: "pointer" }}
                   onClick={() => navigate(`/dashboard/agencyId=${agencyId}`)}
                 >
-                  <img src="/billioneye/images/logo-small.png" alt="Logo" />
+                  <img src="/images/omnivision-logo-small.png" alt="Logo" />
                 </div>
 
                 <React.Fragment>
@@ -271,7 +271,7 @@ const EventReport = () => {
                       >
                         <Avatar sx={{ width: 52, height: 52 }}>
                           <img
-                            src="/billioneye/images/adminlogo.ico"
+                            src="/images/adminlogo.ico"
                             alt="image-logo"
                           />
                         </Avatar>
@@ -287,7 +287,7 @@ const EventReport = () => {
                   >
                     <MenuItem onClick={handleClose}>
                       <img
-                        src="/billioneye/images/enterprise.png"
+                        src="/images/enterprise.png"
                         style={{ width: 42, height: 42 }}
                         alt=""
                       />{" "}
@@ -307,7 +307,7 @@ const EventReport = () => {
                       </div>
                     </MenuItem>
                     {/* <MenuItem onClick={handleClose}>
-                       <img src="/billioneye/images/enterprise.png" style={{ width: 42, height: 42 }} alt=""/> Agency       
+                       <img src="/images/enterprise.png" style={{ width: 42, height: 42 }} alt=""/> Agency       
                     </MenuItem> */}
 
                     <Divider />
@@ -365,7 +365,7 @@ const EventReport = () => {
                 >
                   <div className="table-card-heading-icon">
                     <img
-                      src="/billioneye/images/dashboard-icon.png"
+                      src="/images/dashboard-icon.png"
                       alt="Report "
                     />
                   </div>
@@ -408,7 +408,7 @@ const EventReport = () => {
               <div className="dashboard-report-map">
                 <div className="table-card-heading">
                   <div className="table-card-heading-icon">
-                    <img src="/billioneye/images/location.png" alt="Location" />
+                    <img src="/images/location.png" alt="Location" />
                     {/* <h4 className="text-uppercase">LOCATION</h4> */}
                   </div>
                 </div>
@@ -472,7 +472,7 @@ const EventReport = () => {
                 <div className="table-card-heading">
                   <div className="table-card-heading-icon">
                     <img
-                      src="/billioneye/images/image-icon.png"
+                      src="/images/image-icon.png"
                       alt="Incident"
                     />
                   </div>
@@ -632,8 +632,9 @@ const EventReport = () => {
           </div>
         </div>
       </section>
-      <footer>
-        <img src="/billioneye/images/footer-bg.png" alt="" />
+      <footer style={{ textAlign: "center", paddingBottom: "20px", backgroundColor: "#f8f9fa" }}>
+        <img src="/images/footer-bg.png" alt="" style={{marginBottom: "10px"}} />
+        <p style={{margin: 0, fontSize: "13px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
       </footer>
     </section>
   );
