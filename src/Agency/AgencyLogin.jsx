@@ -91,17 +91,17 @@ const AgencyLogin = () => {
   };
 
   return (
-    <section className="main dashboard-hospital" style={{backgroundColor: "#b3d9ff"}}>
-      <nav className="navbar navbar-expand-lg navbar-dark">
-        <div className="container-fluid">
-          <span className="navbar-brand fw-bold" style={{ color: "#0d6efd" }}>
-            OMNIVISION- AGENCY
+    <section className="main dashboard-hospital" style={{backgroundColor: "#b3d9ff", backgroundImage: "url(/images/bg-1.png)", backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundPosition: "center bottom"}}>
+      <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: "rgba(0,0,0,0.3)", margin: 0, padding: "15px 20px", width: "100%"}}>
+        <div className="container-fluid" style={{padding: "0", display: "flex", alignItems: "center"}}>
+          <span className="navbar-brand fw-bold text-white" style={{fontSize: "24px", margin: 0}}>
+            OMNIVISION
           </span>
           <div className="ms-auto">
             <Link to={"/agencyRegister"}>
               <button
                 className="btn btn-outline-light me-2"
-                style={{ backgroundColor: "#0d6efd" }}
+                style={{ backgroundColor: "rgba(255,255,255,0.2)", borderColor: "white", color: "white" }}
               >
                 Register
               </button>
@@ -111,29 +111,16 @@ const AgencyLogin = () => {
       </nav>
       <div className="pag-1-wrapper">
         {/* Background Images Section */}
-        <section className="pag-2-wrapper-sec-1">
-          <div className="pag-2-wrapper-sec-1-bgimg dashboard-hospital-logo-bg">
-            <figure>
-              <img
-                src="/images/pag-2-logo-bg.png"
-                alt="Background Left"
-              />
-            </figure>
-            <figure>
-              <img
-                src="/images/pag-2-logo-bg-right.png"
-                alt="Background Right"
-              />
-            </figure>
-          </div>
-
-          {/* Logo */}
-          <div className="container">
+        <section className="pag-1-wrapper-sec-1" style={{width: "100%"}}>
+          <figure style={{width: "100%", maxWidth: "400px", margin: "0 auto 20px"}}>
+            <img src="/images/pag-1-logo-bg.png" alt="Background Logo" style={{width: "100%", height: "auto"}} />
+          </figure>
+          <div className="container" style={{width: "100%", padding: "0 20px"}}>
             <div className="row">
-              <div className="col-md-12">
+              <div className="col-md-12" style={{display: "flex", justifyContent: "center"}}>
                 <figure className="logo-con">
                   <Link>
-                    <img src="/images/omnivision-logo.png" alt="Logo" />
+                    <img src="/images/omnivision-logo.png" alt="Logo" style={{width: "100%", height: "auto"}} />
                   </Link>
                 </figure>
               </div>
@@ -223,9 +210,8 @@ const AgencyLogin = () => {
       </div>
 
       {/* Footer */}
-      <footer style={{ marginTop: "-50px", textAlign: "center", paddingBottom: "20px", backgroundColor: "#f8f9fa" }}>
-        <img src="/images/footer-bg.png" alt="Footer Background" style={{marginBottom: "10px"}} />
-        <p style={{margin: 0, fontSize: "13px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
+      <footer style={{backgroundColor: "rgba(0,0,0,0.5)", color: "#fff", textAlign: "center", padding: "15px 20px", margin: 0, width: "100%", fontSize: "14px"}}>
+        <p style={{margin: 0}}>© 2025 OmniVision. All rights reserved.</p>
       </footer>
     </section>
   );
