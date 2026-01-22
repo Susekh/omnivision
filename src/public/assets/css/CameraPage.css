@@ -1,0 +1,159 @@
+/* Ensure the entire page is transparent */
+body, html {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Full-screen camera layout */
+.camera-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  background: none !important;
+}
+
+/* Camera feed to cover full screen */
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Container for camera buttons */
+.camera-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: none !important; /* Ensures no background */
+}
+
+/* Capture button styling */
+.capture-button {
+  width: 60px;
+  height: 60px;
+  left: 150px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid red;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+/* Switch Camera Button */
+.switch-camera-button {
+  width: 50px;
+  height: 50px;
+  left: 170px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s ease;
+}
+
+/* Hover effect */
+.capture-button:hover,
+.switch-camera-button:hover {
+  background-color: transparent;
+  opacity: 0.8;
+}
+
+/* Click effect */
+.switch-camera-button:active {
+  transform: scale(0.9);
+}
+
+/* Captured Image */
+.captured-image img {
+  max-width: 80%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 2px solid white;
+}
+
+/* Download button */
+.download-button {
+  display: block;
+  margin-top: 5px;
+  text-align: center;
+  padding: 8px 12px;
+  background-color: transparent;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  border: 1px solid white;
+}
+
+/* Error Messages */
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* background: rgba(0, 0, 0, 0.85); */
+  background:  #00048c;;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+  width: 80%;
+  max-width: 400px;
+  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.checkmark {
+  font-size: 40px;
+  color: #2ECC71;
+  background: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  animation: bounce 1s infinite;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -55%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
