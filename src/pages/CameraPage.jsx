@@ -62,14 +62,14 @@ const CameraPage = () => {
         // Try to use deviceId if devices are available and we have a preference
         if (devices.length > 0) {
           if (cameraType === "environment") {
-            // Try to find rear camera
-            const rearCamera = devices.find(device => 
+            // Try to find rear/back camera
+            const backCamera = devices.find(device => 
               device.label.toLowerCase().includes('back') || 
               device.label.toLowerCase().includes('rear') ||
               device.label.toLowerCase().includes('environment')
             );
-            if (rearCamera) {
-              videoConstraints = { deviceId: { exact: rearCamera.deviceId } };
+            if (backCamera) {
+              videoConstraints = { deviceId: { exact: backCamera.deviceId } };
             } else if (devices.length > 1) {
               videoConstraints = { deviceId: { exact: devices[1].deviceId } };
             } else {
