@@ -14,7 +14,7 @@ const CameraPage = () => {
   const [locationError, setLocationError] = useState(null); // State to store location errors
   const [cameraError, setCameraError] = useState(null); // State to store camera errors
   const [devices, setDevices] = useState([]); // State to store available camera devices
-  const [cameraType, setCameraType] = useState("user");
+  const [cameraType, setCameraType] = useState("environment");
   const [imageId, setImageId] = useState(null); //store uplaoded imageid
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
