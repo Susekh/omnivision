@@ -67,25 +67,25 @@ section {
 }
 
 section.main {
-    height: 100vh;
-    background: linear-gradient(135deg, #cce7ff 0%, #b3d9ff 50%, #99ccff 100%);
+    min-height: 100vh;
+    background: #b3d9ff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* background-image: url(../images/bg-1.png); */
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center bottom;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
+}
+
+section.main.home-page {
+    background: #b3d9ff !important;
 }
 .pag-1-wrapper {
     display: flex;
     justify-content: center;
     flex-direction: column;
     text-align: center;
-    height: max-content;
-    background: rgba(255, 255, 255, 0.02);
+    height: auto;
+    background: #b3d9ff;
 }
 section.pag-1-wrapper-sec-1 {
     position: relative;
@@ -104,14 +104,46 @@ figure.logo-con img {
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
+/* Logo Container */
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.home-logo {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+/* OMNIVISION Title */
+.omnivision-title {
+    color: #000000;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    letter-spacing: 2px;
+    margin: 20px 0 0 0;
+    text-align: center;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
 /* Emergency Section and Button Styling */
 .emergency-section {
     position: relative;
     z-index: 1;
     padding: 30px 20px;
+    width: 100%;
 }
 
-.emergency-section .btn {
+.emergency-section .btn,
+.emergency-btn {
     padding: 15px 30px;
     font-size: 16px;
     font-weight: 600;
@@ -126,9 +158,12 @@ figure.logo-con img {
     gap: 10px;
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(162, 36, 37, 0.3);
+    min-width: 220px;
+    max-width: 100%;
 }
 
-.emergency-section .btn:hover {
+.emergency-section .btn:hover,
+.emergency-btn:hover {
     background: #5e0e0f;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(162, 36, 37, 0.4);
@@ -136,6 +171,98 @@ figure.logo-con img {
 
 .emergency-section .btn i {
     font-size: 18px;
+}
+
+/* Responsive Design - Mobile */
+@media screen and (max-width: 768px) {
+    .home-logo {
+        max-width: 200px;
+    }
+    
+    .logo-container {
+        margin-bottom: 30px;
+    }
+    
+    .omnivision-title {
+        font-size: 24px;
+        letter-spacing: 1.5px;
+        margin-top: 5px;
+    }
+    
+    .emergency-section {
+        padding: 20px 15px;
+    }
+    
+    .emergency-section .btn,
+    .emergency-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        min-width: 180px;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .pag-1-wrapper {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        min-height: 100vh !important;
+    }
+    
+    footer {
+        font-size: 12px;
+        padding: 12px 15px;
+    }
+}
+
+/* Responsive Design - Tablet */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .home-logo {
+        max-width: 250px;
+    }
+    
+    .logo-container {
+        margin-bottom: 35px;
+    }
+    
+    .omnivision-title {
+        font-size: 28px;
+        letter-spacing: 1.8px;
+        margin-top: 18px;
+    }
+    
+    .emergency-section .btn,
+    .emergency-btn {
+        padding: 14px 28px;
+        font-size: 15px;
+    }
+}
+
+/* Responsive Design - Desktop */
+@media screen and (min-width: 1025px) {
+    .home-logo {
+        max-width: 350px;
+    }
+    
+    .logo-container {
+        margin-bottom: 50px;
+    }
+    
+    .omnivision-title {
+        font-size: 36px;
+        letter-spacing: 2.5px;
+        margin-top: 25px;
+    }
+    
+    .emergency-section .btn,
+    .emergency-btn {
+        padding: 16px 32px;
+        font-size: 17px;
+        min-width: 240px;
+    }
+    
+    .home-logo:hover {
+        transform: scale(1.05);
+    }
 }
 
 
@@ -435,6 +562,9 @@ section.dashboard-table-con {
 }
 footer {
     width: 100%;
+    flex-shrink: 0;
+    background: #b3d9ff;
+    display: block;
 }
 footer img {
     width: 100%;
@@ -640,9 +770,14 @@ section.dashboard-report-img figure {
         overflow: hidden;
     }
 
+    section.main.home-page {
+        background: #b3d9ff !important;
+    }
+
     .pag-1-wrapper {
         padding-top: 20px !important;
         padding-bottom: 20px !important;
+        background: #b3d9ff !important;
     }
 
     .navbar {
@@ -653,25 +788,31 @@ section.dashboard-report-img figure {
         font-size: 18px !important;
     }
 
-    section.pag-1-wrapper-sec-1>figure {
-        max-width: 280px;
-        padding: 0 20px;
+    .home-logo {
+        max-width: 180px !important;
     }
 
-    figure.logo-con {
-        max-width: 150px;
-        padding: 15px 0;
+    .logo-container {
+        margin-bottom: 25px !important;
+    }
+    
+    .omnivision-title {
+        font-size: 20px !important;
+        letter-spacing: 1px !important;
+        margin-top: 12px !important;
     }
 
     .emergency-section {
         padding: 20px 15px;
     }
 
-    .emergency-section .btn {
+    .emergency-section .btn,
+    .emergency-btn {
         padding: 12px 24px;
         font-size: 14px;
         width: 100%;
         max-width: 280px;
+        min-width: auto;
     }
 
     .emergency-section .btn i {
@@ -679,8 +820,9 @@ section.dashboard-report-img figure {
     }
 
     footer {
-        padding: 10px 15px !important;
+        /* padding: 10px 15px !important; */
         font-size: 12px !important;
+        background: #b3d9ff !important;
     }
 
     .pag-1-wrapper-sec-2-wrapper h4 {

@@ -58,62 +58,148 @@ const LoginPage = () => {
 
   
 
+  const isMobile = window.innerWidth <= 768;
+
+  const sectionStyle = {
+    backgroundColor: "#b3d9ff",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+  };
+
+  const wrapperStyle = {
+    flex: 1,
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: isMobile ? "15px" : "20px",
+    backgroundColor: "#b3d9ff",
+  };
+
+  const logoStyle = {
+    maxWidth: isMobile ? "150px" : "250px",
+    marginBottom: isMobile ? "12px" : "15px",
+  };
+
+  const titleStyle = {
+    fontSize: isMobile ? "22px" : "32px",
+    fontWeight: "700",
+    color: "#000",
+    textAlign: "center",
+    marginBottom: isMobile ? "18px" : "25px",
+    letterSpacing: isMobile ? "1px" : "2px",
+    fontFamily: "'Poppins Bold', sans-serif",
+    textTransform: "none",
+    margin: `0 0 ${isMobile ? "18px" : "25px"} 0`,
+  };
+
+  const formContainerStyle = {
+    backgroundColor: "#b3d9ff",
+    padding: "0",
+    margin: "0",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+  };
+
+  const containerStyle = {
+    padding: "0",
+    maxWidth: isMobile ? "100%" : "500px",
+    width: "100%",
+  };
+
+  const colStyle = {
+    padding: isMobile ? "0 15px" : "0",
+  };
+
+  const formStyle = {
+    margin: "0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  };
+
+  const inputStyle = {
+    marginBottom: "12px",
+    width: "calc(100% - 48px)",
+  };
+
+  const buttonStyle = {
+    backgroundColor: "#000",
+    borderColor: "#000",
+    padding: "12px 24px",
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#fff",
+    textDecoration: "none",
+    display: "block",
+    margin: "20px auto 0",
+    width: "calc(100% - 48px)",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+  };
+
+  const linkStyle = {
+    textAlign: "center",
+    margin: "15px 0 0 0",
+  };
+
+  const linkTextStyle = {
+    color: "#333",
+    fontSize: "12px",
+  };
+
+  const linkAnchorStyle = {
+    color: "#0d6efd",
+    textDecoration: "none",
+    fontWeight: "600",
+  };
+
+  const footerStyle = {
+    backgroundColor: "#b3d9ff",
+    color: "#333",
+    textAlign: "center",
+    padding: isMobile ? "10px 15px" : "12px 20px",
+    margin: 0,
+    marginTop: "auto",
+    width: "100%",
+    fontSize: isMobile ? "11px" : "14px",
+  };
+
   return (
-    <section className="main sign-up">
-      <nav className="navbar navbar-expand-lg navbar-dark">
-        <div className="container-fluid">
-          <span className="navbar-brand fw-bold text-white">OMNIVISION</span>
-          <div className="ms-auto">
-            <Link to={"/register"}>
-              <button
-                className="btn btn-outline-light me-2"
-                onClick={handleLogin}
-              >
-                Register
-              </button>
-            </Link>
-            {/* <Link to={"/register"}>
-                    <button className="btn btn-primary" onClick={handleSignUp}>
-                      Sign Up
-                    </button>
-                  </Link> */}
-          </div>
+    <section style={sectionStyle}>
+      <div style={wrapperStyle}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: isMobile ? "12px" : "15px" }}>
+          <img
+            src="/images/omnivision-logo.png"
+            alt="Logo"
+            style={logoStyle}
+          />
         </div>
-      </nav>
-      <div className="pag-1-wrapper">
-        <section className="pag-2-wrapper-sec-1">
-          <div className="pag-2-wrapper-sec-1-bgimg">
-            <figure>
-              <img src="/images/pag-2-logo-bg.png" alt="Background" />
-            </figure>
-            <figure>
-              <img
-                src="/images/pag-2-logo-bg-right.png"
-                alt="Background Right"
-              />
-            </figure>
-          </div>
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <figure className="logo-con">
-                  <Link>
-                    <img src="/images/omnivision-logo.png" alt="Logo" />
-                  </Link>
-                </figure>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="sign-up-form">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                {error && <p className="error-message">{error}</p>}
-                {success && <p className="success-message">{success}</p>}
-                {/* <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
+        <h1 style={titleStyle}>Welcome to OmniVision</h1>
+
+        <section style={formContainerStyle}>
+          <div style={containerStyle}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr" }}>
+              <div style={colStyle}>
+                {error && (
+                  <div className="alert alert-danger" role="alert">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="alert alert-success" role="alert">
+                    {success}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} style={formStyle}>
+                  <div style={inputStyle}>
                     <input
                       type="email"
                       className="form-control"
@@ -122,42 +208,10 @@ const LoginPage = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      style={{ color: "black", fontSize: "14px", width: "100%" }}
                     />
                   </div>
-                  <div className="mb-3">
-                    <input
-                      type="password" // Changed from "tel" to "password"
-                      className="form-control"
-                      placeholder="Password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary">
-                    Login
-                  </button>
-                  <Link to={"/register"}>
-                    <button type="submit" className="btn btn-primary">
-                      Register
-                    </button>
-                  </Link>
-                </form> */}
-
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <input
-                      type="email"
-                      className="form-control"
-                      placeholder="Email Id"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
+                  <div style={inputStyle}>
                     <input
                       type="password"
                       className="form-control"
@@ -166,24 +220,30 @@ const LoginPage = () => {
                       value={formData.password}
                       onChange={handleChange}
                       required
+                      style={{ color: "black", fontSize: "14px", width: "100%" }}
                     />
                   </div>
 
-                  {/* Login Button (Form Submit) */}
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-primary" style={buttonStyle}>
                     Login
                   </button>
-
-                 
+                  <p style={linkStyle}>
+                    <span style={linkTextStyle}>
+                      Don't have an account?{" "}
+                      <Link to="/register" style={linkAnchorStyle}>
+                        Sign Up
+                      </Link>
+                    </span>
+                  </p>
                 </form>
               </div>
             </div>
           </div>
         </section>
       </div>
-      <footer style={{ textAlign: "center", paddingBottom: "20px", backgroundColor: "#f8f9fa" }}>
-        <img src="/images/footer-bg.png" alt="Footer" style={{marginBottom: "10px"}} />
-        <p style={{margin: 0, fontSize: "13px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
+
+      <footer style={footerStyle}>
+        <p style={{ margin: 0 }}>© 2025 OmniVision. All rights reserved.</p>
       </footer>
     </section>
   );

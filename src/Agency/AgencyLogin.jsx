@@ -91,48 +91,71 @@ const AgencyLogin = () => {
   };
 
   return (
-    <section className="main dashboard-hospital" style={{backgroundColor: "#b3d9ff", backgroundImage: "url(/images/bg-1.png)", backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundPosition: "center bottom"}}>
-      <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: "rgba(0,0,0,0.3)", margin: 0, padding: "15px 20px", width: "100%"}}>
-        <div className="container-fluid" style={{padding: "0", display: "flex", alignItems: "center"}}>
-          <span className="navbar-brand fw-bold text-white" style={{fontSize: "24px", margin: 0}}>
-            OMNIVISION
-          </span>
-          <div className="ms-auto">
-            <Link to={"/agencyRegister"}>
-              <button
-                className="btn btn-outline-light me-2"
-                style={{ backgroundColor: "rgba(255,255,255,0.2)", borderColor: "white", color: "white" }}
-              >
-                Register
-              </button>
-            </Link>
+    <section className="main dashboard-hospital" style={{
+      backgroundColor: "#b3d9ff", 
+      minHeight: "100vh", 
+      display: "flex", 
+      flexDirection: "column",
+      flex: 1
+    }}>
+      <div className="pag-1-wrapper" style={{
+        backgroundColor: "#b3d9ff", 
+        paddingTop: window.innerWidth <= 768 ? "15px" : "20px", 
+        paddingBottom: window.innerWidth <= 768 ? "15px" : "20px",
+        paddingLeft: window.innerWidth <= 768 ? "15px" : "0px",
+        paddingRight: window.innerWidth <= 768 ? "15px" : "0px",
+        display: "flex", 
+        flexDirection: "column", 
+        justifyContent: "center", 
+        alignItems: "center",
+        flex: 1,
+        width: "100%"
+      }}>
+        {/* Logo Section - Centered in middle */}
+        <div style={{
+          display: "flex", 
+          justifyContent: "center", 
+          alignItems: "center", 
+          width: "100%", 
+          marginBottom: window.innerWidth <= 768 ? "12px" : "15px"
+        }}>
+          <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
+            <img 
+              src="/images/omnivision-logo.png" 
+              alt="Logo" 
+              style={{
+                maxWidth: window.innerWidth <= 768 ? "150px" : "250px", 
+                width: "100%", 
+                height: "auto"
+              }} 
+            />
           </div>
         </div>
-      </nav>
-      <div className="pag-1-wrapper">
-        {/* Background Images Section */}
-        <section className="pag-1-wrapper-sec-1" style={{width: "100%"}}>
-          <figure style={{width: "100%", maxWidth: "400px", margin: "0 auto 20px"}}>
-            <img src="/images/pag-1-logo-bg.png" alt="Background Logo" style={{width: "100%", height: "auto"}} />
-          </figure>
-          <div className="container" style={{width: "100%", padding: "0 20px"}}>
-            <div className="row">
-              <div className="col-md-12" style={{display: "flex", justifyContent: "center"}}>
-                <figure className="logo-con">
-                  <Link>
-                    <img src="/images/omnivision-logo.png" alt="Logo" style={{width: "100%", height: "auto"}} />
-                  </Link>
-                </figure>
-              </div>
-            </div>
-          </div>
-        </section>
+
+        {/* Welcome Title */}
+        <h1 style={{
+          color: "#000000",
+          fontFamily: "'Poppins Bold', sans-serif",
+          textTransform: "none",
+          fontWeight: 700,
+          fontSize: window.innerWidth <= 768 ? "22px" : "32px",
+          letterSpacing: window.innerWidth <= 768 ? "1px" : "2px",
+          margin: `0 0 ${window.innerWidth <= 768 ? "18px" : "25px"} 0`,
+          textAlign: "center"
+        }}>
+          Welcome to OmniVision
+        </h1>
 
         {/* Login Form Section */}
-        <section className="sign-up-form dashboard-hospital-sign-up">
-          <div className="container">
+        <section className="sign-up-form dashboard-hospital-sign-up" style={{
+          backgroundColor: "#b3d9ff",
+          padding: "0",
+          margin: "0",
+          width: "100%"
+        }}>
+          <div className="container" style={{padding: "0", maxWidth: window.innerWidth <= 768 ? "100%" : "500px"}}>
             <div className="row">
-              <div className="col-md-12">
+              <div className="col-md-12" style={{padding: window.innerWidth <= 768 ? "0 15px" : "0"}}>
                 {/* Show error or success messages */}
                 {errorMessage && (
                   <div className="alert alert-danger" role="alert">
@@ -144,8 +167,8 @@ const AgencyLogin = () => {
                     {successMessage}
                   </div>
                 )}
-                <form onSubmit={handleSubmit} style={{ marginTop: "-150px" }}>
-                  <div className="mb-3">
+                <form onSubmit={handleSubmit} style={{margin: "0", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
                     <input
                       type="text"
                       className="form-control"
@@ -169,11 +192,11 @@ const AgencyLogin = () => {
                       required
                       pattern="\d{10}"
                       title="Please enter a valid 10-digit mobile number"
-                      style={{ color: "black" }}
+                      style={{ color: "black", fontSize: "14px", width: "100%" }}
                     />
                   </div>
 
-                  <div className="mb-3">
+                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
                     <input
                       type="password"
                       className="form-control"
@@ -181,7 +204,7 @@ const AgencyLogin = () => {
                       name="password"
                       onChange={handleChange}
                       value={formData.password}
-                      style={{ color: "black" }}
+                      style={{ color: "black", fontSize: "14px", width: "100%" }}
                       required
                     />
                   </div>
@@ -190,18 +213,32 @@ const AgencyLogin = () => {
                     type="submit"
                     className="btn btn-primary"
                     disabled={loading}
-                    style={{ textDecoration: "none", color: "#fff" }}
+                    style={{ 
+                      backgroundColor: "#000",
+                      borderColor: "#000",
+                      padding: "12px 24px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#fff",
+                      textDecoration: "none",
+                      display: "block",
+                      margin: "20px auto 0",
+                      width: "calc(100% - 48px)",
+                      borderRadius: "8px",
+                      border: "none",
+                      cursor: "pointer"
+                    }}
                   >
                     {loading ? "Logging in..." : "Login"}
                   </button>
-                  {/* <p className="mt-3">
-                    <span
-                      style={{ cursor: "pointer", color: "#0d6efd" }}
-                      onClick={() => navigate("/forgot-password")}
-                    >
-                      Forgot Password?
+                  <p className="mt-3" style={{textAlign: "center", margin: "15px 0 0 0"}}>
+                    <span style={{color: "#333", fontSize: "12px"}}>
+                      Don't have an account?{" "}
+                      <Link to="/agencyRegister" style={{color: "#0d6efd", textDecoration: "none", fontWeight: "600"}}>
+                        Sign Up
+                      </Link>
                     </span>
-                  </p> */}
+                  </p>
                 </form>
               </div>
             </div>
@@ -210,7 +247,16 @@ const AgencyLogin = () => {
       </div>
 
       {/* Footer */}
-      <footer style={{backgroundColor: "rgba(0,0,0,0.5)", color: "#fff", textAlign: "center", padding: "15px 20px", margin: 0, width: "100%", fontSize: "14px"}}>
+      <footer style={{
+        backgroundColor: "#b3d9ff", 
+        color: "#333", 
+        textAlign: "center", 
+        padding: window.innerWidth <= 768 ? "10px 15px" : "12px 20px", 
+        margin: 0, 
+        marginTop: "auto", 
+        width: "100%", 
+        fontSize: window.innerWidth <= 768 ? "11px" : "14px"
+      }}>
         <p style={{margin: 0}}>© 2025 OmniVision. All rights reserved.</p>
       </footer>
     </section>
