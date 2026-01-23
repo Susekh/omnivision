@@ -107,7 +107,7 @@ const BillionEyePublic = () => {
         width: "100%", 
         fontSize: "14px"
       }}>
-        <p style={{margin: 0, color: "#333", fontSize: "14px", fontWeight: "400"}}>© 2026 OmniVision. All rights reserved.</p>
+        <p style={{margin: 0, color: "#333", fontSize: "14px", fontWeight: "400"}}>© 2026 OmniVision. All rights reserved by Neuradyne.</p>
       </footer>
     </section>
   );

@@ -265,7 +265,7 @@ const RegisterPage = () => {
       </div>
 
       <footer style={footerStyle}>
-        <p style={{ margin: 0 }}>© 2025 OmniVision. All rights reserved.</p>
+        <p style={{ margin: 0 }}>© 2026 OmniVision. All rights reserved by Neuradyne.</p>
       </footer>
     </section>
   );
