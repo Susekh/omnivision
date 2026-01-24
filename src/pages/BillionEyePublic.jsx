@@ -8,6 +8,15 @@ import { CameraAltRounded } from "@mui/icons-material";
 const BillionEyePublic = () => {
   const navigate = useNavigate();
   
+  // Auto-redirect to /camera after 2 seconds
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/camera');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigate]);
+  
   return (
     <section
       className="bg-cover main home-page"

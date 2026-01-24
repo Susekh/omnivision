@@ -502,22 +502,6 @@ const CameraPage = () => {
           </div>
         )}
 
-        {showPopup && (
-          <div className="popup">
-            <div className="popup-content">
-              <div className="checkmark">✔</div>
-              <h2>Report Submitted</h2>
-              <p>Your report has been successfully sent to the government.</p>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="popup-button"
-              >
-                Submit Another Report
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Thank You Message */}
         {showThankYou && (
           <div className="popup">
