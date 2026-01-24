@@ -19,6 +19,7 @@ const CameraPage = () => {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
+  const audioRef = useRef(null); // Reference for audio element
 
   const [exifData, setExifData] = useState(null);
   const [isCameraLoading, setIsCameraLoading] = useState(true);
@@ -231,21 +232,44 @@ const CameraPage = () => {
     setCapturedImage(base64String);
     setShowPopup(true);
 
-    setTimeout(() => {
+    // Wait for initial popup, then show thank you and play audio
+    const popupTimeout = setTimeout(() => {
       setShowPopup(false);
       setShowThankYou(true);
+    }, 1000);
 
-      // Step 2: Show "Thank You" message for another 3 seconds, then navigate to home
-      setTimeout(() => {
-        setShowThankYou(false);
-        // Stop any active camera streams
-        if (videoRef.current && videoRef.current.srcObject) {
-          const tracks = videoRef.current.srcObject.getTracks();
-          tracks.forEach(track => track.stop());
+    // Wait a bit longer before trying to play audio to ensure DOM is updated
+    const audioTimeout = setTimeout(() => {
+      if (audioRef.current) {
+        try {
+          // Reset audio to beginning
+          audioRef.current.currentTime = 0;
+          audioRef.current.load(); // Reload the audio source
+          
+          // Create a promise for audio playback
+          const playPromise = audioRef.current.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              console.log("✅ Audio playing successfully");
+            }).catch(err => {
+              console.error("❌ Audio playback failed:", err);
+              // If audio fails, navigate after 3 seconds anyway
+              setTimeout(() => {
+                setShowThankYou(false);
+                if (videoRef.current && videoRef.current.srcObject) {
+                  const tracks = videoRef.current.srcObject.getTracks();
+                  tracks.forEach(track => track.stop());
+                }
+                navigate("/home", { replace: true });
+              }, 500);
+            });
+          }
+        } catch (err) {
+          console.error("❌ Error playing audio:", err);
         }
-        navigate("/home", { replace: true });
-      }, 3000);
-    }, 3000);
+      }
+    }, 3200); // Slightly delayed to ensure popup state is updated
   };
 
   // navigate("/");
@@ -525,12 +549,30 @@ const CameraPage = () => {
           </div>
         )}
 
-        {/* Thank You Message */}
+        {/* Thank You Message with Audio */}
         {showThankYou && (
           <div className="popup">
             <div className="popup-content">
+              <div className="popup-icon">✓</div>
               <h2>Thank You for Reporting!</h2>
               <p>Your contribution helps make a better and safer society.</p>
+              {/* Hidden audio element - plays automatically */}
+              <audio 
+                ref={audioRef}
+                preload="auto"
+                onEnded={() => {
+                  // When audio ends, navigate to home
+                  setShowThankYou(false);
+                  if (videoRef.current && videoRef.current.srcObject) {
+                    const tracks = videoRef.current.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                  }
+                  navigate("/home", { replace: true });
+                }}
+              >
+                <source src="/images/thanksaudio.mp3" type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
             </div>
           </div>
         )}
