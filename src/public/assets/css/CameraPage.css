@@ -121,6 +121,70 @@ video.camera-feed {
   background: #f5f5f5;
 }
 
+/* Home Button - Left side of capture button */
+.home-button {
+  position: absolute;
+  bottom: 40px;
+  left: 30px;
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: white;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.home-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.home-button:active {
+  transform: scale(0.95);
+}
+
+.home-button svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+  .home-button {
+    bottom: 35px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    min-height: 45px;
+  }
+
+  .home-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 /* Hidden Canvas */
 canvas {
   display: none !important;

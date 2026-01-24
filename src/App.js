@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+import SplashPage from "./pages/SplashPage";
 import BillionEye from "./pages/BillionEye";
 import RegisterPage from "./pages/userRegistration";
 import LoginPage from "./pages/userLogin";
@@ -36,11 +37,14 @@ function App() {
   return (
     <BrowserRouter basename="/">
       <Routes>
+        {/* Splash Page - Displays first for 3 seconds */}
+        <Route path="/" element={<SplashPage />} />
+        
         {/* Public Routes */}
         <Route path="/Agency" element={<BillionEye />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<BillionEyePublic />} />
+        <Route path="/home" element={<BillionEyePublic />} />
         <Route path="/Camera" element={<CameraPage />} />
         <Route path="/onBoardingStaff" element={<ProtectedRoute element={OnBoardingStaff} />} />
         <Route path="/eventReport/:event_id"  element={<ProtectedRoute element={EventReport} />} />

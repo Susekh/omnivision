@@ -235,10 +235,15 @@ const CameraPage = () => {
       setShowPopup(false);
       setShowThankYou(true);
 
-      // Step 2: Show "Thank You" message for another 3 seconds, then navigate
+      // Step 2: Show "Thank You" message for another 3 seconds, then navigate to home
       setTimeout(() => {
         setShowThankYou(false);
-        navigate("/");
+        // Stop any active camera streams
+        if (videoRef.current && videoRef.current.srcObject) {
+          const tracks = videoRef.current.srcObject.getTracks();
+          tracks.forEach(track => track.stop());
+        }
+        navigate("/home", { replace: true });
       }, 3000);
     }, 3000);
   };
@@ -459,6 +464,16 @@ const CameraPage = () => {
     setCameraType((prevType) => (prevType === "user" ? "environment" : "user"));
   };
 
+  const handleHomeClick = () => {
+    // Stop any active camera streams
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    // Navigate to home and stay there
+    navigate("/home", { replace: true });
+  };
+
   return (
     <section className="main camera-page">
       <div className="camera-space">
@@ -478,6 +493,14 @@ const CameraPage = () => {
             <p>Loading camera...</p>
           </div>
         )}
+
+        {/* Home Button - Left side of capture button */}
+        <button onClick={handleHomeClick} className="home-button" title="Go to Home">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </button>
 
         {/* Camera Shutter Button - Overlaid on video feed */}
         <button onClick={captureImage} className="capture-button"></button>
