@@ -50,7 +50,7 @@ function App() {
         <Route path="/eventReport/:event_id"  element={<ProtectedRoute element={EventReport} />} />
         <Route path="/gomaps" element={<GoMapsTest />} />
         <Route path="/agencyLogin" element={<AgencyLogin />} />
-        <Route path="/agencyRegister" element={<AgencyRegister />} />
+        {/* <Route path="/agencyRegister" element={<AgencyRegister />} /> */}
         <Route path="/groundstaffTax" element={<GroundStaffTax />} />
         <Route path="/ongoingTax" element={<OngoingTax />} />
         <Route

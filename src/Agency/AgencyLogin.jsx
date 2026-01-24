@@ -232,12 +232,12 @@ const AgencyLogin = () => {
                     {loading ? "Logging in..." : "Login"}
                   </button>
                   <p className="mt-3" style={{textAlign: "center", margin: "15px 0 0 0"}}>
-                    <span style={{color: "#333", fontSize: "12px"}}>
+                    {/* {<span style={{color: "#333", fontSize: "12px"}}>
                       Don't have an account?{" "}
                       <Link to="/agencyRegister" style={{color: "#0d6efd", textDecoration: "none", fontWeight: "600"}}>
                         Sign Up
                       </Link>
-                    </span>
+                    </span>} */}
                   </p>
                 </form>
               </div>
