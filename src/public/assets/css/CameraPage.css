@@ -21,6 +21,7 @@ section.main.camera-page,
   top: 0 !important;
   left: 0 !important;
   width: 100vw !important;
+  height: 100vh !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
