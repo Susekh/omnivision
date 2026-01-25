@@ -342,7 +342,9 @@ const Dashboard = () => {
               <div className="d-flex align-items-center justify-content-between" style={{padding: "15px 20px"}}>
                 <div className="logo">
                   <img
-                    src="/images/omnivision-logo-small.png"
+                    src="/images/omnivision-logo.png"
+                    width={100}
+                    height={100}
                     alt="Logo"
                     onClick={() => navigate(`/dashboard/${agencyId}`)}
                     style={{ cursor: "pointer" }}

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "../public/assets/css/Login.css";
 import { Link } from "react-router-dom";
-import api from "../api"; // Assuming your API client is imported as `api`
-import { useNavigate } from "react-router-dom"; // Replace useHistory with useNavigate
+import api from "../api";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -12,12 +12,12 @@ const LoginPage = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigate = useNavigate(); // Replace useHistory with useNavigate
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value, // Use e.target.name instead of e.target.id
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -39,10 +39,8 @@ const LoginPage = () => {
 
       if (response.status === 200) {
         setSuccess("Login successful!");
-        // Store the token in local storage (or a more secure mechanism)
         localStorage.setItem("token", response.data.token);
-        // Redirect to /bmcreport after successful login
-        navigate("/bmcreport"); // Replace history.push with navigate
+        navigate("/bmcreport");
       } else {
         setError("Invalid email or password.");
       }
@@ -56,8 +54,6 @@ const LoginPage = () => {
     console.log("Login button clicked");
   };
 
-  
-
   const isMobile = window.innerWidth <= 768;
 
   const sectionStyle = {
@@ -66,6 +62,8 @@ const LoginPage = () => {
     display: "flex",
     flexDirection: "column",
     flex: 1,
+    position: "relative",
+    overflow: "hidden",
   };
 
   const wrapperStyle = {
@@ -76,7 +74,9 @@ const LoginPage = () => {
     alignItems: "center",
     justifyContent: "center",
     padding: isMobile ? "15px" : "20px",
-    backgroundColor: "#b3d9ff",
+    backgroundColor: "transparent",
+    position: "relative",
+    zIndex: 1,
   };
 
   const logoStyle = {
@@ -97,7 +97,7 @@ const LoginPage = () => {
   };
 
   const formContainerStyle = {
-    backgroundColor: "#b3d9ff",
+    backgroundColor: "transparent",
     padding: "0",
     margin: "0",
     width: "100%",
@@ -160,7 +160,7 @@ const LoginPage = () => {
   };
 
   const footerStyle = {
-    backgroundColor: "#b3d9ff",
+    backgroundColor: "transparent",
     color: "#333",
     textAlign: "center",
     padding: isMobile ? "10px 15px" : "12px 20px",
@@ -168,10 +168,12 @@ const LoginPage = () => {
     marginTop: "auto",
     width: "100%",
     fontSize: isMobile ? "11px" : "14px",
+    position: "relative",
+    zIndex: 1,
   };
 
   return (
-    <section style={sectionStyle}>
+    <section style={sectionStyle} className="login-page-container">
       <div style={wrapperStyle}>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: isMobile ? "12px" : "15px" }}>
           <img

@@ -585,3 +585,54 @@ section.dashboard-report-img figure {
 }
 
 /**/
+
+/* Add these styles to your existing Login.css file */
+
+/* Subtle animated background with floating shapes */
+.login-page-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle, rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px);
+  background-size: 35px 35px;
+  animation: login-float 25s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-page-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: login-subtle-pulse 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes login-float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-80px); }
+}
+
+@keyframes login-subtle-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-page-container::before {
+    background-size: 30px 30px;
+  }
+}

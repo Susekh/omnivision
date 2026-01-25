@@ -55,7 +55,7 @@ function App() {
         <Route path="/ongoingTax" element={<OngoingTax />} />
         <Route
           path="/dashboard/:agencyId"
-          element={<ProtectedRoute element={Dashboard} />}
+          element={<Dashboard />}
         />
         <Route path="/assignGroundstaff" element={<ProtectedRoute element={AssignGroundStaff} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
