@@ -584,9 +584,9 @@ const AdminAgencyManager = () => {
           </div>
 
           {/* Map View */}
-          <div className="bg-white rounded-lg shadow-md p-2">
+          <div className="bg-white h-140 rounded-lg shadow-md p-2">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">Map View</h3>
-            <div className="h-175 rounded-lg overflow-hidden border border-gray-200">
+            <div className="h-120 rounded-lg overflow-hidden border border-gray-200">
               <MapContainer
                 center={mapCenter}
                 zoom={13}
