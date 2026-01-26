@@ -421,9 +421,9 @@ const AdminAgencyManager = () => {
             </div>
 
             {/* Map Preview Section */}
-            <div className="bg-white rounded-lg shadow-md p-2">
+            <div className="bg-white rounded-lg shadow-md h-145 p-2">
               <h4 className="text-lg font-semibold text-gray-800 mb-4">Location Preview</h4>
-              <div className="h-150 rounded-lg overflow-hidden border border-gray-200">
+              <div className="h-120 rounded-lg overflow-hidden border border-gray-200">
                 <MapContainer
                   center={previewCenter}
                   zoom={13}
