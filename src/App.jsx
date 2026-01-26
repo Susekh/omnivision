@@ -10,17 +10,17 @@ import ServiceLogin from "./pages/serviceLogin";
 import CameraPage from "./pages/CameraPage";
 import Dashboard from "./pages/Dashboard";
 import BillionEyePublic from "./pages/BillionEyePublic";
-import "./public/assets/css/bootstrap/scss/bootstrap.scss";
 import OnBoardingStaff from "./pages/OnBoardingStaff";
 import EventReport from "./Agency/EventReport";
-import Demo from "./pages/demo";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import GoMapsTest from "./pages/gomaps";
 import AgencyLogin from "./Agency/AgencyLogin";
 import AgencyRegister from "./Agency/AgencyRegister";
-import GroundStaffTax from "./Agency/GroundStaff";
 import OngoingTax from "./Agency/OngoingTax";
 import AssignGroundStaff from "./Agency/assignGroundstaff";
-import ForgotPassword from "../src/Agency/ForgetPassword";
+import ForgotPassword from "./Agency/ForgetPassword";
+import AdminAgencyManager from "./pages/AdminAgencyManager";
 
 // Protected Route Component
 const ProtectedRoute = ({ element: Element }) => {
@@ -51,7 +51,6 @@ function App() {
         <Route path="/gomaps" element={<GoMapsTest />} />
         <Route path="/agencyLogin" element={<AgencyLogin />} />
         {/* <Route path="/agencyRegister" element={<AgencyRegister />} /> */}
-        <Route path="/groundstaffTax" element={<GroundStaffTax />} />
         <Route path="/ongoingTax" element={<OngoingTax />} />
         <Route
           path="/dashboard/:agencyId"
@@ -59,6 +58,7 @@ function App() {
         />
         <Route path="/assignGroundstaff" element={<ProtectedRoute element={AssignGroundStaff} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin" element={<AdminAgencyManager/>} />
 
         {/* Protected Routes */}
 
@@ -66,7 +66,6 @@ function App() {
           path="/ServiceLogin"
           element={<ProtectedRoute element={ServiceLogin} />}
         />
-        <Route path="/demo" element={<ProtectedRoute element={Demo} />} />
       </Routes>
     </BrowserRouter>
   );
