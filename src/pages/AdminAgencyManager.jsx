@@ -500,9 +500,9 @@ const AdminAgencyManager = () => {
 
                     {formData.locationType === 'location' ? (
                       <>
-                        <div className="bg-sky-50 border border-sky-200 rounded-md p-2.5">
+                        <div className="bg-sky-50 border border-sky-200 mt-2 rounded-md p-2">
                           <div className="flex items-start gap-2 mb-2">
-                            <Upload size={16} className="text-sky-600 mt-0.5 flex-shrink-0" />
+                            <Upload size={16} className="text-sky-600 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                               <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">Import from File</h5>
                               <p className="text-xs text-gray-600 mb-1.5">Upload GeoJSON, JSON, or CSV</p>
@@ -553,9 +553,9 @@ const AdminAgencyManager = () => {
                       </>
                     ) : (
                       <>
-                        <div className="bg-sky-50 border border-sky-200 rounded-md p-2.5">
+                        <div className="bg-sky-50 border border-sky-200 rounded-md mt-2 p-2">
                           <div className="flex items-start gap-2 mb-2">
-                            <Upload size={16} className="text-sky-600 mt-0.5 flex-shrink-0" />
+                            <Upload size={16} className="text-sky-600 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                               <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">Import from File</h5>
                               <p className="text-xs text-gray-600 mb-1.5">Upload polygon coordinates</p>
