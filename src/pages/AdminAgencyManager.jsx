@@ -583,7 +583,7 @@ const AdminAgencyManager = () => {
                           <label className="block text-xs font-semibold text-gray-700 mb-1">Jurisdiction Points (5 points) *</label>
                           <div className="space-y-1.5">
                             {formData.jurisdictionPoints.map((point, index) => (
-                              <div key={index} className="grid grid-cols-2 gap-1.5">
+                              <div key={index} className="grid grid-cols-2 mb-1 gap-1.5">
                                 <input
                                   type="number"
                                   step="any"
