@@ -8,7 +8,7 @@ const CameraPage = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
-  const streamRef = useRef(null); // Track active stream for better cleanup
+  const streamRef = useRef(null);
 
   const [capturedImage, setCapturedImage] = useState(null);
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -34,11 +34,70 @@ const CameraPage = () => {
     }
   }, []);
 
-  // Get available camera devices
+  // Optimized camera initialization - Start immediately
+  useEffect(() => {
+    const startCamera = async () => {
+      setIsCameraLoading(true);
+      stopCameraStream();
+
+      try {
+        const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+        
+        // Simplified constraints for faster initialization
+        const constraints = {
+          video: {
+            facingMode: { ideal: isMobile ? cameraType : "user" },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+          },
+        };
+
+        console.log("🎥 Requesting camera access...");
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.muted = true;
+          videoRef.current.playsInline = true; // Important for iOS
+
+          // Immediate play attempt
+          try {
+            await videoRef.current.play();
+            setIsCameraLoading(false);
+            console.log("✅ Camera ready");
+          } catch (playError) {
+            console.warn("Initial play failed, retrying...", playError);
+            // Fallback play attempt
+            setTimeout(() => {
+              videoRef.current?.play().then(() => {
+                setIsCameraLoading(false);
+              });
+            }, 100);
+          }
+        }
+      } catch (error) {
+        console.error("Camera error:", error);
+        setIsCameraLoading(false);
+        setCameraError(
+          `Unable to access camera: ${error.message}. Please grant camera permissions.`
+        );
+      }
+    };
+
+    // Start camera immediately without delay
+    startCamera();
+    
+    return () => {
+      stopCameraStream();
+    };
+  }, [cameraType, stopCameraStream]);
+
+  // Get available camera devices (non-blocking)
   useEffect(() => {
     const getCameraDevices = async () => {
       try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
         const allDevices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = allDevices.filter((d) => d.kind === "videoinput");
         setDevices(videoDevices);
@@ -49,111 +108,6 @@ const CameraPage = () => {
 
     getCameraDevices();
   }, []);
-
-  // Start camera with optimized mobile-first constraints
-  useEffect(() => {
-    const startCamera = async () => {
-      setIsCameraLoading(true);
-      stopCameraStream();
-
-      try {
-        const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
-        let videoConstraints = {};
-
-        // Smart device selection
-        if (devices.length > 0) {
-          const targetCamera =
-            cameraType === "environment"
-              ? devices.find(
-                  (d) =>
-                    d.label.toLowerCase().includes("back") ||
-                    d.label.toLowerCase().includes("rear") ||
-                    d.label.toLowerCase().includes("environment"),
-                ) || devices[devices.length > 1 ? 1 : 0]
-              : devices.find(
-                  (d) =>
-                    d.label.toLowerCase().includes("front") ||
-                    d.label.toLowerCase().includes("user"),
-                ) || devices[0];
-
-          videoConstraints = { deviceId: { exact: targetCamera.deviceId } };
-        } else {
-          videoConstraints = {
-            facingMode: { ideal: isMobile ? cameraType : "user" },
-          };
-        }
-
-        // Responsive resolution for better mobile performance
-        const width =
-          window.innerWidth < 600 ? 640 : window.innerWidth < 1024 ? 960 : 1280;
-        const height = Math.round((width * 9) / 16);
-
-        const constraints = {
-          video: {
-            ...videoConstraints,
-            width: { ideal: width, min: 320 },
-            height: { ideal: height, min: 240 },
-          },
-        };
-
-        console.log(
-          "🎥 Requesting camera access with constraints:",
-          constraints,
-        );
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.muted = true;
-
-          // Handle metadata loaded
-          videoRef.current.onloadedmetadata = () => {
-            console.log(
-              "📐 Video metadata loaded. Dimensions:",
-              videoRef.current.videoWidth,
-              "x",
-              videoRef.current.videoHeight,
-            );
-            videoRef.current
-              .play()
-              .catch((err) => console.error("Error playing video:", err));
-          };
-
-          // Update loading state when playing
-          videoRef.current.onplaying = () => {
-            console.log("▶️ Video is now playing");
-            setIsCameraLoading(false);
-          };
-
-          // Initial play attempt
-          await videoRef.current.play().catch((err) => {
-            console.error("Initial play failed:", err);
-            setTimeout(() => videoRef.current?.play(), 100);
-          });
-
-          console.log(
-            "✅ Camera access granted. Stream active:",
-            stream.active,
-          );
-          console.log("🎬 Video tracks:", stream.getVideoTracks().length);
-        }
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        setIsCameraLoading(false);
-        setCameraError(
-          `Unable to access camera: ${error.message}. Please grant camera permissions.`,
-        );
-      }
-    };
-
-    const timer = setTimeout(startCamera, 100);
-    return () => {
-      clearTimeout(timer);
-      stopCameraStream();
-    };
-  }, [cameraType, devices, stopCameraStream]);
 
   // Extract EXIF metadata (optimized)
   const extractExifMetadata = useCallback(async (base64String) => {
@@ -198,11 +152,7 @@ const CameraPage = () => {
           base64String,
         };
 
-        console.log("📤 Sending data to server:", {
-          location: { type: "Point", coordinates: [lng, lat] },
-          timestamp,
-          base64StringLength: base64String.length,
-        });
+        console.log("📤 Sending data to server...");
 
         const response = await api.post("user/upload-image", payload, {
           headers: { "Content-Type": "application/json" },
@@ -220,7 +170,7 @@ const CameraPage = () => {
         alert("Upload failed. Please check your connection.");
       }
     },
-    [],
+    []
   );
 
   // Get user location with mobile-optimized settings
@@ -228,6 +178,7 @@ const CameraPage = () => {
     (imageBase64) => {
       if (!imageBase64 || !("geolocation" in navigator)) {
         setLocationError("Geolocation not available on this device.");
+        setIsProcessing(false);
         return;
       }
 
@@ -240,17 +191,19 @@ const CameraPage = () => {
             latitude,
             longitude,
             accuracy: position.coords.accuracy,
-            timestamp: new Date(position.timestamp).toISOString(),
           });
 
           if (isNaN(latitude) || isNaN(longitude)) {
             setLocationError("Invalid GPS coordinates received.");
+            setIsProcessing(false);
             return;
           }
 
+          // Store location but don't display it (only for backend)
           setLocation({ latitude, longitude });
           setLocationError(null);
           sendImageToServer(imageBase64, latitude, longitude);
+          
           // Hide processing loader
           setIsProcessing(false);
 
@@ -267,7 +220,7 @@ const CameraPage = () => {
                   .catch((err) => console.error("Audio playback failed:", err));
               }
             }, 200);
-          }, 1000);
+          }, 800);
         },
         (error) => {
           console.error("📍 Location error:", error);
@@ -284,12 +237,12 @@ const CameraPage = () => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 15000,
+          timeout: 10000, // Reduced from 15s to 10s
           maximumAge: 0,
-        },
+        }
       );
     },
-    [sendImageToServer],
+    [sendImageToServer]
   );
 
   // Capture image from video feed
@@ -301,12 +254,13 @@ const CameraPage = () => {
 
     if (!canvas || !video) {
       console.error("Canvas or video not available");
+      setIsProcessing(false);
       return;
     }
 
     // Play shutter sound
     const shutterSound = new Audio(
-      "/images/camera-shutter-and-flash-combined-6827.mp3",
+      "/images/camera-shutter-and-flash-combined-6827.mp3"
     );
     shutterSound.play().catch((err) => console.error("Audio failed:", err));
 
@@ -316,15 +270,10 @@ const CameraPage = () => {
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageData = canvas.toDataURL("image/jpeg");
+    const imageData = canvas.toDataURL("image/jpeg", 0.9); // Added quality parameter
     const base64String = imageData.split(",")[1];
 
     console.log("📸 Image captured!");
-    console.log(
-      "🖼️ Captured image base64 (first 100 chars):",
-      base64String.substring(0, 100) + "...",
-    );
-    console.log("📏 Image size (base64 length):", base64String.length);
 
     setCapturedImage(base64String);
     extractExifMetadata(base64String);
@@ -356,14 +305,6 @@ const CameraPage = () => {
           className="camera-feed"
         />
 
-        {/* Loading Indicator */}
-        {isCameraLoading && !cameraError && (
-          <div className="camera-loading">
-            <div className="loading-spinner" />
-            <p>Loading camera...</p>
-          </div>
-        )}
-
         {/* Home Button */}
         <button
           onClick={handleHomeClick}
@@ -390,6 +331,7 @@ const CameraPage = () => {
           onClick={captureImage}
           className="capture-button"
           aria-label="Capture Photo"
+          disabled={isCameraLoading || isProcessing}
         />
 
         {/* Hidden Canvas for Image Capture */}
@@ -414,23 +356,13 @@ const CameraPage = () => {
           <div className="popup">
             <div className="popup-content">
               <div className="loading-spinner" />
-              <p>Processing...</p>
+              <p>Processing</p>
             </div>
           </div>
         )}
 
-        {/* Location Display */}
-        {location.latitude && location.longitude && (
-          <div className="location-display">
-            <div className="location-icon">📍</div>
-            <div className="location-info">
-              <span className="location-label">Location:</span>
-              <span className="location-coords">
-                {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Location Display - Hidden (location stored for backend only) */}
+        {/* Location is captured but not displayed to user */}
 
         {/* Error Messages */}
         {cameraError && <p className="error-message">{cameraError}</p>}
