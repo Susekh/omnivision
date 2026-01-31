@@ -11,7 +11,7 @@ const BillionEyePublic = () => {
     "System Online & Monitoring",
     "AI Detection Active",
     "Secure Connection Established",
-    "Ready for Surveillance"
+    "Ready for Surveillance",
   ];
 
   useEffect(() => {
@@ -25,8 +25,11 @@ const BillionEyePublic = () => {
 
   return (
     <section className="billionpublic-container">
+      {/* Dotted Floating Background */}
+      <div className="dotted-bg"></div>
+      <div className="dotted-bg depth"></div>
+
       <div className="billionpublic-wrapper">
-        
         {/* Top Section - Logo and Branding */}
         <div className="billionpublic-top-section">
           {/* AI Core with orbital rings */}
@@ -36,15 +39,11 @@ const BillionEyePublic = () => {
               alt="OmniVision Logo"
               className="billionpublic-logo-img"
             />
-            
+
             {/* Orbital rings */}
             <div className="billionpublic-orbital-ring billionpublic-orbital-ring-1"></div>
             <div className="billionpublic-orbital-ring billionpublic-orbital-ring-2"></div>
             <div className="billionpublic-orbital-ring billionpublic-orbital-ring-3"></div>
-            
-            {/* Glowing dots on orbits */}
-            {/* <div className="billionpublic-orbit-dot billionpublic-orbit-dot-1"></div>
-            <div className="billionpublic-orbit-dot billionpublic-orbit-dot-2"></div> */}
           </div>
 
           {/* Brand name */}
@@ -60,20 +59,13 @@ const BillionEyePublic = () => {
           <div className="billionpublic-status-message">
             {statusMessages[statusIndex]}
           </div>
-          
-          {/* Loading dots */}
-          <div className="billionpublic-loader">
-            <div className="billionpublic-loader-dot"></div>
-            <div className="billionpublic-loader-dot"></div>
-            <div className="billionpublic-loader-dot"></div>
-          </div>
         </div>
 
         {/* Action Button */}
         <div className="billionpublic-action-section">
-          <button 
+          <button
             className="billionpublic-camera-btn"
-            onClick={() => navigate('/Camera')}
+            onClick={() => navigate("/Camera")}
           >
             <CameraAltRounded className="billionpublic-btn-icon" />
             <span>Incident & Report</span>
@@ -86,7 +78,6 @@ const BillionEyePublic = () => {
             © 2026 OmniVision. All rights reserved by Neuradyne.
           </p>
         </div>
-
       </div>
     </section>
   );

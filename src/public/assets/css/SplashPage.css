@@ -1,13 +1,16 @@
+/* Professional Splash Page - Responsive & 3D Enhanced */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Main container */
+/* Main container with original blue theme */
 .splash-container {
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport for mobile */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,47 +20,51 @@
   position: relative;
 }
 
-/* Animated background particles - tiny dots pattern */
+/* Enhanced animated background particles with depth */
 .splash-container::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
-  background-size: 30px 30px;
-  animation: float 20s linear infinite;
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
+  background-size: 35px 35px;
+  animation: float-particles 22s linear infinite;
   pointer-events: none;
+  opacity: 0.8;
 }
 
-/* Additional layer of smaller dots */
+/* Additional layer with different pattern for depth */
 .splash-container::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: 15px 15px;
-  animation: float 25s linear infinite reverse;
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
+  background-size: 55px 55px;
+  background-position: 18px 18px;
+  animation: float-particles 28s linear infinite reverse;
   pointer-events: none;
+  opacity: 0.6;
 }
 
-@keyframes float {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-100px); }
+@keyframes float-particles {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-60px, -60px) rotate(360deg); }
 }
 
+/* Responsive wrapper with safe area support */
 .splash-wrapper {
   width: 100%;
-  max-width: 450px;
-  height: 100vh;
-  padding: 60px 24px 40px;
+  max-width: 480px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(60px + env(safe-area-inset-top, 0px)) 28px calc(40px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -73,32 +80,40 @@
   align-items: center;
   flex: 1;
   justify-content: center;
-  margin-top: -60px;
+  margin-top: -50px;
 }
 
-/* AI Core with 3D effect */
+/* =====================================
+   SPLASH AI CORE (FROM BillionEyePublic.css)
+   ===================================== */
+
 .ai-core {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
+/* Logo */
 .ai-core-img {
-  width: 90px;
-  height: 90px;
+  width: 200px;
+  height: 120px;
   z-index: 10;
   position: relative;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
-  animation: float-logo 3s ease-in-out infinite;
+  animation: splash-float-logo 3s ease-in-out infinite;
 }
 
-@keyframes float-logo {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+@keyframes splash-float-logo {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* Orbital rings */
@@ -106,12 +121,12 @@
   position: absolute;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  animation: rotate-orbit 8s linear infinite;
+  animation: splash-rotate-orbit 8s linear infinite;
 }
 
 .orbital-ring-1 {
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotateX(70deg);
@@ -120,8 +135,8 @@
 }
 
 .orbital-ring-2 {
-  width: 220px;
-  height: 220px;
+  width: 200px;
+  height: 200px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotateX(70deg);
@@ -130,8 +145,8 @@
 }
 
 .orbital-ring-3 {
-  width: 260px;
-  height: 260px;
+  width: 240px;
+  height: 240px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotateX(70deg);
@@ -139,124 +154,116 @@
   opacity: 0.3;
 }
 
-@keyframes rotate-orbit {
-  0% { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg); }
-  100% { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg); }
-}
-
-/* Glowing dots on orbits */
-.orbit-dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-  animation: orbit-around 6s linear infinite;
-}
-
-.orbit-dot-1 {
-  animation-duration: 6s;
-}
-
-.orbit-dot-2 {
-  animation-duration: 8s;
-  animation-delay: -2s;
-}
-
-@keyframes orbit-around {
+@keyframes splash-rotate-orbit {
   0% {
-    top: 50%;
-    left: 10%;
-    transform: translate(-50%, -50%);
-  }
-  25% {
-    top: 10%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  50% {
-    top: 50%;
-    left: 90%;
-    transform: translate(-50%, -50%);
-  }
-  75% {
-    top: 90%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg);
   }
   100% {
-    top: 50%;
-    left: 10%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg);
   }
 }
 
-/* Brand */
+/* Professional Brand Typography */
 .splash-brand {
   text-align: center;
+  animation: brand-fade-in 1.2s ease-out 0.3s both;
+}
+
+@keyframes brand-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .splash-title {
-  font-size: 48px;
-  font-weight: 600;
+  font-size: 56px;
+  font-weight: 700;
   color: #fff;
   margin: 0;
-  letter-spacing: 1px;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.5px;
+  text-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .splash-subtitle {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-top: 8px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.95);
+  margin-top: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Status Card */
+/* Premium Glass Morphism Status Card */
 .status-card {
   width: 100%;
   max-width: 500px;
-  padding: 28px 24px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 32px 28px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12));
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.15),
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: card-slide-up 1s ease-out 0.6s both;
+}
+
+@keyframes card-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .status-title {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16px;
+  text-transform: uppercase;
 }
 
 .status-message {
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 22px;
+  font-weight: 600;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  letter-spacing: -0.3px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Loading dots */
+/* Premium Loading dots animation */
 .splash-loader {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   justify-content: center;
 }
 
 .loader-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  animation: bounce 1.4s infinite ease-in-out both;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.85));
+  box-shadow: 
+    0 0 12px rgba(255, 255, 255, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: bounce-premium 1.5s infinite ease-in-out both;
 }
 
 .loader-dot:nth-child(1) {
@@ -267,38 +274,595 @@
   animation-delay: -0.16s;
 }
 
-@keyframes bounce {
+@keyframes bounce-premium {
   0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.4;
+    transform: scale(0.4);
+    opacity: 0.3;
   }
   40% {
-    transform: scale(1);
+    transform: scale(1.2);
     opacity: 1;
   }
 }
 
-/* Footer */
+/* Professional Footer */
 .splash-footer {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  animation: footer-fade-in 1.2s ease-out 0.9s both;
+}
+
+@keyframes footer-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .swipe-icon {
-  animation: bounce-arrow 2s infinite;
+  animation: bounce-arrow 2.8s ease-in-out infinite;
 }
 
 @keyframes bounce-arrow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%, 100% { 
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% { 
+    transform: translateY(-12px);
+    opacity: 1;
+  }
 }
 
 .splash-footer-text {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
-  font-weight: 300;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   FULLY RESPONSIVE DESIGN
+   ============================================ */
+
+/* Extra Small Phones (max 360px) */
+@media (max-width: 360px) {
+  .splash-wrapper {
+    padding: calc(45px + env(safe-area-inset-top, 0px)) 20px calc(30px + env(safe-area-inset-bottom, 0px));
+    max-width: 360px;
+  }
+
+  .splash-top-section {
+    margin-top: -35px;
+  }
+
+  .ai-core {
+    width: 170px;
+    height: 170px;
+    margin-bottom: 36px;
+  }
+
+  .ai-core-img {
+  width: 200px !important;
+  height: 120px !important;
+}
+
+/* 🔒 LOCK ORBIT SIZES (DO NOT SCALE PER BREAKPOINT) */
+.orbital-ring-1 {
+  width: 160px;
+  height: 160px;
+}
+
+.orbital-ring-2 {
+  width: 200px;
+  height: 200px;
+}
+
+.orbital-ring-3 {
+  width: 240px;
+  height: 240px;
+}
+
+
+.orbit-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .splash-title {
+    font-size: 42px;
+  }
+
+  .splash-subtitle {
+    font-size: 15px;
+    margin-top: 8px;
+  }
+
+  .status-card {
+    padding: 26px 20px;
+  }
+
+  .status-title {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+  }
+
+  .status-message {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .loader-dot {
+    width: 10px;
+    height: 10px;
+    gap: 8px;
+  }
+
+  .splash-footer-text {
+    font-size: 14px;
+  }
+}
+
+/* Small Phones (361px - 400px) */
+@media (min-width: 361px) and (max-width: 400px) {
+  .splash-wrapper {
+    max-width: 400px;
+  }
+
+  .ai-core {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 30px;
+  }
+
+  .ai-core-img {
+    width: 95px;
+    height: 95px;
+  }
+
+  .orbital-ring-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .orbital-ring-2 {
+    width: 245px;
+    height: 245px;
+  }
+
+  .orbital-ring-3 {
+    width: 290px;
+    height: 290px;
+  }
+
+  .splash-title {
+    font-size: 48px;
+  }
+
+  .splash-subtitle {
+    font-size: 16px;
+  }
+
+  .status-message {
+    font-size: 20px;
+  }
+}
+
+/* Medium Phones (401px - 480px) */
+@media (min-width: 401px) and (max-width: 480px) {
+  .splash-wrapper {
+    max-width: 450px;
+  }
+
+  .ai-core {
+    width: 190px;
+    height: 190px;
+    margin-bottom: 44px;
+  }
+
+  .ai-core-img {
+    width: 105px;
+    height: 105px;
+  }
+
+  .orbital-ring-1 {
+    width: 215px;
+    height: 215px;
+  }
+
+  .orbital-ring-2 {
+    width: 260px;
+    height: 260px;
+  }
+
+  .orbital-ring-3 {
+    width: 305px;
+    height: 305px;
+  }
+
+  .splash-title {
+    font-size: 52px;
+  }
+
+  .splash-subtitle {
+    font-size: 17px;
+  }
+
+  .status-card {
+    padding: 30px 26px;
+  }
+
+  .status-message {
+    font-size: 21px;
+  }
+}
+
+/* Large Phones (481px - 600px) */
+@media (min-width: 481px) and (max-width: 600px) {
+  .splash-wrapper {
+    max-width: 500px;
+    padding: calc(65px + env(safe-area-inset-top, 0px)) 32px calc(45px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ai-core {
+    width: 210px;
+    height: 210px;
+    margin-bottom: 50px;
+  }
+
+  .ai-core-img {
+    width: 115px;
+    height: 115px;
+  }
+
+  .orbital-ring-1 {
+    width: 235px;
+    height: 235px;
+  }
+
+  .orbital-ring-2 {
+    width: 285px;
+    height: 285px;
+  }
+
+  .orbital-ring-3 {
+    width: 335px;
+    height: 335px;
+  }
+
+  .orbit-dot {
+    width: 13px;
+    height: 13px;
+  }
+
+  .splash-title {
+    font-size: 58px;
+  }
+
+  .splash-subtitle {
+    font-size: 19px;
+    margin-top: 14px;
+  }
+
+  .status-card {
+    padding: 34px 30px;
+  }
+
+  .status-message {
+    font-size: 23px;
+  }
+
+  .loader-dot {
+    width: 13px;
+    height: 13px;
+  }
+
+  .splash-footer-text {
+    font-size: 17px;
+  }
+}
+
+/* Tablets (601px - 768px) */
+@media (min-width: 601px) and (max-width: 768px) {
+  .splash-wrapper {
+    max-width: 550px;
+    padding: calc(70px + env(safe-area-inset-top, 0px)) 36px calc(50px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ai-core {
+    width: 230px;
+    height: 230px;
+    margin-bottom: 56px;
+  }
+
+  .ai-core-img {
+    width: 125px;
+    height: 125px;
+  }
+
+  .orbital-ring-1 {
+    width: 255px;
+    height: 255px;
+    border-width: 3px;
+  }
+
+  .orbital-ring-2 {
+    width: 310px;
+    height: 310px;
+    border-width: 3px;
+  }
+
+  .orbital-ring-3 {
+    width: 365px;
+    height: 365px;
+  }
+
+  .orbit-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  .splash-title {
+    font-size: 64px;
+  }
+
+  .splash-subtitle {
+    font-size: 20px;
+    margin-top: 16px;
+  }
+
+  .status-card {
+    padding: 38px 34px;
+  }
+
+  .status-title {
+    font-size: 12px;
+    letter-spacing: 3.5px;
+  }
+
+  .status-message {
+    font-size: 25px;
+  }
+
+  .loader-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  .splash-footer-text {
+    font-size: 18px;
+  }
+}
+
+/* Large Tablets & Small Desktops (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .splash-wrapper {
+    max-width: 600px;
+  }
+
+  .ai-core {
+    width: 250px;
+    height: 250px;
+    margin-bottom: 60px;
+  }
+
+  .ai-core-img {
+    width: 135px;
+    height: 135px;
+  }
+
+  .orbital-ring-1 {
+    width: 280px;
+    height: 280px;
+  }
+
+  .orbital-ring-2 {
+    width: 340px;
+    height: 340px;
+  }
+
+  .orbital-ring-3 {
+    width: 400px;
+    height: 400px;
+  }
+
+  .splash-title {
+    font-size: 68px;
+  }
+
+  .splash-subtitle {
+    font-size: 21px;
+  }
+
+  .status-card {
+    padding: 40px 36px;
+  }
+
+  .status-message {
+    font-size: 26px;
+  }
+}
+
+/* Landscape Orientation - Compact Layout */
+@media (max-height: 600px) and (orientation: landscape) {
+  .splash-wrapper {
+    padding: calc(25px + env(safe-area-inset-top, 0px)) 28px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .splash-top-section {
+    margin-top: -15px;
+  }
+
+  .ai-core {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 28px;
+  }
+
+  .ai-core-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .orbital-ring-1 {
+    width: 170px;
+    height: 170px;
+    border-width: 2px;
+  }
+
+  .orbital-ring-2 {
+    width: 205px;
+    height: 205px;
+    border-width: 2px;
+  }
+
+  .orbital-ring-3 {
+    width: 240px;
+    height: 240px;
+    border-width: 1.5px;
+  }
+
+  .orbit-dot {
+    width: 9px;
+    height: 9px;
+  }
+
+  .splash-title {
+    font-size: 36px;
+  }
+
+  .splash-subtitle {
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  .status-card {
+    padding: 20px 24px;
+  }
+
+  .status-title {
+    margin-bottom: 10px;
+    font-size: 10px;
+  }
+
+  .status-message {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+
+  .loader-dot {
+    width: 9px;
+    height: 9px;
+    gap: 7px;
+  }
+
+  .splash-footer {
+    gap: 8px;
+  }
+
+  .splash-footer-text {
+    font-size: 13px;
+  }
+}
+
+/* Very Tall Screens (min-height: 800px) */
+@media (min-height: 800px) {
+  .ai-core {
+    margin-bottom: 64px;
+  }
+
+  .splash-top-section {
+    margin-top: -60px;
+  }
+
+  .status-card {
+    margin-bottom: 20px;
+  }
+}
+
+/* Ultra-Wide Screens */
+@media (min-width: 1025px) {
+  .splash-wrapper {
+    max-width: 650px;
+  }
+
+  .ai-core {
+    width: 270px;
+    height: 270px;
+  }
+
+  .ai-core-img {
+    width: 145px;
+    height: 145px;
+  }
+
+  .orbital-ring-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .orbital-ring-2 {
+    width: 365px;
+    height: 365px;
+  }
+
+  .orbital-ring-3 {
+    width: 430px;
+    height: 430px;
+  }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .splash-container::before,
+  .splash-container::after,
+  .ai-core-img,
+  .orbital-ring,
+  .orbit-dot {
+    animation: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .splash-container {
+    background: linear-gradient(180deg, #5ab3ee 0%, #3d7fc5 100%);
+  }
+
+  .status-card {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .orbital-ring {
+    border-width: 3.5px;
+  }
+
+  .orbit-dot {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 1);
+  }
+}
+
+/* iOS Safe Area Support */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .splash-wrapper {
+    padding-top: max(60px, env(safe-area-inset-top));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
 }
