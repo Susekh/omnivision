@@ -154,7 +154,7 @@ const CameraPage = () => {
 
         console.log("📤 Sending data to server...");
 
-        const response = await api.post("user/upload-image", payload, {
+        const response = await api.post("/backend/user/upload-image", payload, {
           headers: { "Content-Type": "application/json" },
         });
 
