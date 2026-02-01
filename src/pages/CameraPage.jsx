@@ -146,13 +146,13 @@ const CameraPage = () => {
           userId: "12345",
           location: {
             type: "Point",
-            coordinates: [20.275, 85.835],
+            coordinates: [lat, lng],
           },
           timestamp,
           base64String,
         };
 
-        console.log("📤 Sending data to server...")
+        console.log("📤 Sending data to server...");
 
         const response = await api.post("/backend/user/upload-image", payload, {
           headers: { "Content-Type": "application/json" },
