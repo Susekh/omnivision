@@ -146,7 +146,7 @@ const CameraPage = () => {
           userId: "12345",
           location: {
             type: "Point",
-            coordinates: [lat, lng],
+            coordinates: [20.275, 85.835],
           },
           timestamp,
           base64String,
