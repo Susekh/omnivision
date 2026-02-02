@@ -1,7 +1,7 @@
 import React , {useState , useEffect }from "react";
 import api from "../api";
 import "../public/assets/css/OngoingTax.css";
-
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 const OngoingTax = () => {
   const [reportData, setReportData] = useState(null);
 
@@ -114,7 +114,7 @@ const OngoingTax = () => {
                 <div className="row">
                   <div className="col-md-3 col-4" style={{marginLeft:"14px"}}>
                     <figure>
-                      <img src={reportData.imageUrl} alt="" className="w-100" />
+                      <img src={normalizeImageUrl(reportData.imageUrl)} alt="" className="w-100" />
                     </figure>
                   </div>
                   <div className="col-md-9 col-8">

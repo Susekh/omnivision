@@ -6,6 +6,7 @@ import api from "../api";
 import "../public/assets/css/Dashboard.css";
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl"
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -611,13 +612,13 @@ const Dashboard = () => {
                                           }}
                                         >
                                           <img
-                                            src={report.image_url}
+                                            src={normalizeImageUrl(report.image_url)}
                                             alt={`Event ${report.event_id}`}
                                             title="Click to zoom"
                                             className="default-class"
                                             onClick={() =>
                                               setZoomedImageUrl(
-                                                report.image_url
+                                                normalizeImageUrl(report.image_url)
                                               )
                                             }
                                             style={{

@@ -1,11 +1,13 @@
 import React from "react";
 import { useLocation} from "react-router-dom";
 import "../public/assets/css/IncidentReport.css"; // External CSS for styling
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 
 const ReportPage = () => {
 //   const navigate = useNavigate();
   const location = useLocation();
   const { incidentId, latitude, longitude, imageUrl } = location.state || {};
+  normalizeImageUrl(imageUrl);
 
   const handleSubmit = () => {
     alert("Report submitted successfully!");

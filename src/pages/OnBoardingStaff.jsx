@@ -127,6 +127,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import api from "../api";
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 
 const OnBoardingStaff = () => {
   const [incidents, setIncidents] = useState([]); // Store incidents data
@@ -177,7 +178,7 @@ const OnBoardingStaff = () => {
                   <td>{new Date(incident.timestamp).toLocaleString()}</td>
                   <td>
                     <img
-                      src={incident.imageUrl}
+                      src={normalizeImageUrl(incident.imageUrl)}
                       alt="Incident"
                       width="100"
                       height="100"

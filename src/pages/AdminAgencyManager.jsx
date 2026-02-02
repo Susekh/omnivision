@@ -835,7 +835,7 @@ const AdminAgencyManager = () => {
                 className="h-14 w-auto"
                 onError={(e) => e.target.style.display = 'none'}
               />
-              <p className="mt-2 font-bold text-3xl text-neutral-700">Agency Management</p>
+              <p className="mt-2 font-bold text-3xl text-neutral-700">Super Admin</p>
             </div>
             <div className="flex items-center gap-2">
               <button
