@@ -16,7 +16,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import GoMapsTest from "./pages/gomaps";
 import AgencyLogin from "./Agency/AgencyLogin";
-import AgencyRegister from "./Agency/AgencyRegister";
 import OngoingTax from "./Agency/OngoingTax";
 import AssignGroundStaff from "./Agency/assignGroundstaff";
 import ForgotPassword from "./Agency/ForgetPassword";
