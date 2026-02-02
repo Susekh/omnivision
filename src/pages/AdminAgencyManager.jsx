@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Polygon, Popup, useMap } from 'react-leaflet';
-import { Trash2, Edit2, Plus, Eye, EyeOff, Save, X, MapPin, Upload, FileText } from 'lucide-react';
+import { Trash2, Edit2, Plus, Eye, EyeOff, Save, X, MapPin, Upload, RefreshCw, AlertCircle } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import api from '../api';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -12,72 +13,31 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Initial agency data
-const initialAgencies = [
-  {
-    _id: "68494141fa7e1500079ec953",
-    AgencyId: "agency-121",
-    AgencyName: "City Maintenance",
-    mobileNumber: "1234567892",
-    password: "password123",
-    location: { latitude: 20.27767900038015, longitude: 85.83477958751283 },
-    eventResponsibleFor: ["Road Damage", "Environmental Violation", "Daytime Running Street Light"],
-    jurisdiction: {
-      coordinates: [[20.27, 85.83], [20.28, 85.83], [20.28, 85.84], [20.27, 85.84], [20.27, 85.83]],
-      type: "Polygon"
-    }
-  },
-  {
-    _id: "68494141fa7e1500079ec954",
-    AgencyId: "agency-125",
-    AgencyName: "Kiims",
-    mobileNumber: "8480750392",
-    password: "kiims2024",
-    location: { latitude: 20.27767900038015, longitude: 85.83477958751283 },
-    eventResponsibleFor: ["Human healthcare services"]
-  },
-  {
-    _id: "68494141fa7e1500079ec956",
-    AgencyId: "agency-126",
-    AgencyName: "SUM",
-    mobileNumber: "9861374962",
-    password: "sum2024",
-    location: { latitude: 20.340294, longitude: 85.80871 },
-    eventResponsibleFor: ["Human healthcare services"]
-  },
-  {
-    _id: "685cd7cc48bf540007fa1f3c",
-    AgencyId: "agency-122",
-    AgencyName: "BMC",
-    mobileNumber: "1234567890",
-    password: "bmc2024",
-    location: { latitude: 20.27767900038015, longitude: 85.83477958751283 },
-    eventResponsibleFor: ["Road Damage", "Environmental Violation", "Daytime Running Street Light"],
-    jurisdiction: {
-      coordinates: [[20.27, 85.83], [20.28, 85.83], [20.28, 85.84], [20.27, 85.84], [20.27, 85.83]],
-      type: "Polygon"
-    }
-  }
-];
-
+// ✅ FIXED: MapUpdater with proper validation
 const MapUpdater = ({ center }) => {
   const map = useMap();
   useEffect(() => {
-    if (center) {
-      map.setView(center, 13);
+    if (center && Array.isArray(center) && center.length === 2) {
+      const [lat, lng] = center;
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        map.setView(center, 13);
+      }
     }
   }, [center, map]);
   return null;
 };
 
 const AdminAgencyManager = () => {
-  const [agencies, setAgencies] = useState(initialAgencies);
+  const [agencies, setAgencies] = useState([]);
   const [view, setView] = useState('list');
   const [selectedAgency, setSelectedAgency] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [showPassword, setShowPassword] = useState({});
   const [mapCenter, setMapCenter] = useState([20.2961, 85.8245]);
   const [fileUploadError, setFileUploadError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   
   const [formData, setFormData] = useState({
     AgencyName: '',
@@ -95,6 +55,40 @@ const AdminAgencyManager = () => {
       { lat: '', lng: '' }
     ]
   });
+
+  // Fetch agencies on component mount
+  useEffect(() => {
+    fetchAgencies();
+  }, []);
+
+  // Auto-dismiss notifications
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError('');
+        setSuccess('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
+  const fetchAgencies = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await api.get('/backend/agencies');
+      if (response.data.success) {
+        setAgencies(response.data.data);
+      } else {
+        setError('Failed to fetch agencies');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error fetching agencies');
+      console.error('Error fetching agencies:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getPreviewMapCenter = () => {
     if (formData.locationType === 'location' && formData.latitude && formData.longitude) {
@@ -142,6 +136,8 @@ const AdminAgencyManager = () => {
     });
     setEditMode(false);
     setView('form');
+    setError('');
+    setSuccess('');
   };
 
   const handleEdit = (agency) => {
@@ -153,69 +149,157 @@ const AdminAgencyManager = () => {
       latitude: agency.location?.latitude || '',
       longitude: agency.location?.longitude || '',
       jurisdictionPoints: hasJurisdiction
-        ? agency.jurisdiction.coordinates.slice(0, 5).map(coord => ({ lat: coord[0], lng: coord[1] }))
+        ? agency.jurisdiction.coordinates[0].slice(0, 5).map(coord => ({ lat: coord[1], lng: coord[0] }))
         : [{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]
     });
     setSelectedAgency(agency);
     setEditMode(true);
     setView('form');
+    setError('');
+    setSuccess('');
   };
 
-  const handleDelete = (agencyId) => {
-    if (window.confirm('Are you sure you want to delete this agency?')) {
-      setAgencies(agencies.filter(a => a._id !== agencyId));
+  const handleDelete = async (agencyId) => {
+    if (!window.confirm('Are you sure you want to delete this agency?')) {
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const response = await api.delete(`/backend/agencies/${agencyId}`);
+      if (response.data.success) {
+        setSuccess('Agency deleted successfully');
+        await fetchAgencies();
+      } else {
+        setError('Failed to delete agency');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error deleting agency');
+      console.error('Error deleting agency:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = () => {
-    const newAgency = {
-      _id: editMode ? selectedAgency._id : Date.now().toString(),
-      AgencyId: editMode ? selectedAgency.AgencyId : `agency-${Math.floor(Math.random() * 1000)}`,
-      AgencyName: formData.AgencyName,
-      mobileNumber: formData.mobileNumber,
-      password: formData.password,
-      eventResponsibleFor: formData.eventResponsibleFor.split(',').map(e => e.trim()),
-    };
+  const validateForm = () => {
+    if (!formData.AgencyName.trim()) {
+      setError('Agency name is required');
+      return false;
+    }
+    if (!formData.mobileNumber.trim()) {
+      setError('Mobile number is required');
+      return false;
+    }
+    if (!/^\d{10}$/.test(formData.mobileNumber)) {
+      setError('Mobile number must be 10 digits');
+      return false;
+    }
+    if (!editMode && !formData.password.trim()) {
+      setError('Password is required');
+      return false;
+    }
 
     if (formData.locationType === 'location') {
-      newAgency.location = {
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude)
-      };
+      if (!formData.latitude || !formData.longitude) {
+        setError('Latitude and longitude are required for location type');
+        return false;
+      }
     } else {
-      const coords = formData.jurisdictionPoints
-        .filter(p => p.lat && p.lng)
-        .map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
-      
-      if (coords.length >= 3) {
-        coords.push(coords[0]); // Close the polygon
-        newAgency.jurisdiction = {
-          coordinates: coords,
-          type: "Polygon"
-        };
-        
-        // Calculate center for location
-        const avgLat = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
-        const avgLng = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
-        newAgency.location = { latitude: avgLat, longitude: avgLng };
+      const validPoints = formData.jurisdictionPoints.filter(p => p.lat && p.lng);
+      if (validPoints.length < 3) {
+        setError('At least 3 jurisdiction points are required');
+        return false;
       }
     }
 
-    if (editMode) {
-      setAgencies(agencies.map(a => a._id === selectedAgency._id ? newAgency : a));
-    } else {
-      setAgencies([...agencies, newAgency]);
-    }
-    
-    setView('list');
+    return true;
   };
 
-  const handleChangePassword = (agency) => {
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const payload = {
+        AgencyName: formData.AgencyName,
+        mobileNumber: formData.mobileNumber,
+        eventResponsibleFor: formData.eventResponsibleFor.split(',').map(e => e.trim()).filter(e => e)
+      };
+
+      // Add password only for creation or if it's being changed
+      if (!editMode || formData.password.trim()) {
+        payload.password = formData.password;
+      }
+
+      if (formData.locationType === 'location') {
+        payload.lat = parseFloat(formData.latitude);
+        payload.lng = parseFloat(formData.longitude);
+      } else {
+        const coords = formData.jurisdictionPoints
+          .filter(p => p.lat && p.lng)
+          .map(p => [parseFloat(p.lng), parseFloat(p.lat)]); // [lng, lat] for GeoJSON
+        
+        if (coords.length >= 3) {
+          coords.push(coords[0]); // Close the polygon
+          payload.jurisdiction = {
+            type: "Polygon",
+            coordinates: [coords]
+          };
+        }
+      }
+
+      let response;
+      if (editMode) {
+        response = await api.put(`/backend/agencies/${selectedAgency.AgencyId}`, payload);
+      } else {
+        response = await api.post('/backend/agency', payload);
+      }
+
+      if (response.data.success) {
+        setSuccess(editMode ? 'Agency updated successfully' : 'Agency created successfully');
+        await fetchAgencies();
+        setTimeout(() => {
+          setView('list');
+        }, 1500);
+      } else {
+        setError(response.data.message || 'Operation failed');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || `Error ${editMode ? 'updating' : 'creating'} agency`);
+      console.error('Error submitting form:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (agency) => {
     const newPassword = prompt('Enter new password:');
-    if (newPassword) {
-      setAgencies(agencies.map(a => 
-        a._id === agency._id ? { ...a, password: newPassword } : a
-      ));
+    if (!newPassword) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      const response = await api.put(`/backend/agencies/${agency.AgencyId}`, {
+        password: newPassword
+      });
+      
+      if (response.data.success) {
+        setSuccess('Password changed successfully');
+        await fetchAgencies();
+      } else {
+        setError('Failed to change password');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error changing password');
+      console.error('Error changing password:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -387,12 +471,29 @@ const AdminAgencyManager = () => {
     }
   };
 
+  // Notification component
+  const Notification = ({ type, message }) => {
+    if (!message) return null;
+    
+    return (
+      <div className={`fixed top-4 right-4 z-50 max-w-md px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+        type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+      }`}>
+        <AlertCircle size={18} />
+        <span className="text-sm font-medium">{message}</span>
+      </div>
+    );
+  };
+
   if (view === 'form') {
     const previewCenter = getPreviewMapCenter();
     const previewPolygon = getPreviewPolygonCoords();
     
     return (
       <div className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden">
+        <Notification type="error" message={error} />
+        <Notification type="success" message={success} />
+        
         {/* Header */}
         <div className="bg-sky-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-3 py-2.5">
@@ -436,6 +537,7 @@ const AdminAgencyManager = () => {
                         onChange={(e) => setFormData({ ...formData, AgencyName: e.target.value })}
                         className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
                         placeholder="Enter agency name"
+                        disabled={loading}
                       />
                     </div>
 
@@ -446,30 +548,37 @@ const AdminAgencyManager = () => {
                         value={formData.mobileNumber}
                         onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
                         className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                        placeholder="Enter mobile number"
+                        placeholder="10-digit mobile number"
+                        maxLength={10}
+                        disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Password *</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Password {editMode && '(leave blank to keep current)'}
+                      </label>
                       <input
                         type="password"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                        placeholder="Enter password"
+                        placeholder={editMode ? "Leave blank to keep current password" : "Enter password"}
+                        disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Events Responsible For *</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Events Responsible For</label>
                       <input
                         type="text"
                         value={formData.eventResponsibleFor}
                         onChange={(e) => setFormData({ ...formData, eventResponsibleFor: e.target.value })}
                         placeholder="e.g., Road Damage, Street Light"
                         className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                        disabled={loading}
                       />
+                      <p className="text-xs text-gray-500 mt-0.5">Separate multiple events with commas</p>
                     </div>
 
                     <div>
@@ -482,6 +591,7 @@ const AdminAgencyManager = () => {
                             checked={formData.locationType === 'location'}
                             onChange={(e) => setFormData({ ...formData, locationType: e.target.value })}
                             className="mr-1.5 w-3 h-3 accent-sky-500"
+                            disabled={loading}
                           />
                           <span className="text-xs font-medium text-gray-700">Single Location</span>
                         </label>
@@ -492,6 +602,7 @@ const AdminAgencyManager = () => {
                             checked={formData.locationType === 'jurisdiction'}
                             onChange={(e) => setFormData({ ...formData, locationType: e.target.value })}
                             className="mr-1.5 w-3 h-3 accent-sky-500"
+                            disabled={loading}
                           />
                           <span className="text-xs font-medium text-gray-700">Jurisdiction</span>
                         </label>
@@ -511,6 +622,7 @@ const AdminAgencyManager = () => {
                                 accept=".json,.geojson,.csv"
                                 onChange={handleFileUpload}
                                 className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
+                                disabled={loading}
                               />
                               {fileUploadError && (
                                 <p className="text-xs text-red-600 mt-1 font-medium">{fileUploadError}</p>
@@ -536,6 +648,7 @@ const AdminAgencyManager = () => {
                               onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                               className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
                               placeholder="20.2961"
+                              disabled={loading}
                             />
                           </div>
                           <div>
@@ -547,6 +660,7 @@ const AdminAgencyManager = () => {
                               onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                               className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
                               placeholder="85.8245"
+                              disabled={loading}
                             />
                           </div>
                         </div>
@@ -564,6 +678,7 @@ const AdminAgencyManager = () => {
                                 accept=".json,.geojson,.csv"
                                 onChange={handleFileUpload}
                                 className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
+                                disabled={loading}
                               />
                               {fileUploadError && (
                                 <p className="text-xs text-red-600 mt-1 font-medium">{fileUploadError}</p>
@@ -580,7 +695,7 @@ const AdminAgencyManager = () => {
                         <div className="text-center text-xs font-medium text-gray-500 my-1">OR</div>
                         
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Jurisdiction Points (5 points) *</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Jurisdiction Points (minimum 3 points) *</label>
                           <div className="space-y-1.5">
                             {formData.jurisdictionPoints.map((point, index) => (
                               <div key={index} className="grid grid-cols-2 mb-1 gap-1.5">
@@ -595,6 +710,7 @@ const AdminAgencyManager = () => {
                                     setFormData({ ...formData, jurisdictionPoints: newPoints });
                                   }}
                                   className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
+                                  disabled={loading}
                                 />
                                 <input
                                   type="number"
@@ -607,6 +723,7 @@ const AdminAgencyManager = () => {
                                     setFormData({ ...formData, jurisdictionPoints: newPoints });
                                   }}
                                   className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
+                                  disabled={loading}
                                 />
                               </div>
                             ))}
@@ -618,14 +735,25 @@ const AdminAgencyManager = () => {
                     <div className="flex gap-2 pt-2">
                       <button
                         onClick={handleSubmit}
-                        className="flex-1 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-1.5 font-medium text-sm"
+                        disabled={loading}
+                        className="flex-1 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Save size={16} />
-                        {editMode ? 'Update' : 'Create'}
+                        {loading ? (
+                          <>
+                            <RefreshCw size={16} className="animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Save size={16} />
+                            {editMode ? 'Update' : 'Create'}
+                          </>
+                        )}
                       </button>
                       <button
                         onClick={() => setView('list')}
-                        className="px-3 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-all flex items-center gap-1.5 font-medium text-sm"
+                        disabled={loading}
+                        className="px-3 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-all flex items-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <X size={16} />
                         Cancel
@@ -693,8 +821,11 @@ const AdminAgencyManager = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col">
+      <Notification type="error" message={error} />
+      <Notification type="success" message={success} />
+      
       {/* Header */}
-      <div className=" bg-sky-200 shadow-sm">
+      <div className="bg-sky-200 shadow-sm">
         <div className="container mx-auto px-3 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -706,12 +837,22 @@ const AdminAgencyManager = () => {
               />
               <p className="mt-2 font-bold text-3xl text-neutral-700">Agency Management</p>
             </div>
-            <div
-              onClick={handleAddNew}
-              className="px-3  py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all flex items-center gap-1.5 font-medium text-sm"
-            >
-              <Plus size={18} />
-              Add Agency
+            <div className="flex items-center gap-2">
+              <button
+                onClick={fetchAgencies}
+                disabled={loading}
+                className="px-3 py-2 bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all flex items-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+              <div
+                onClick={handleAddNew}
+                className="px-3 py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all flex items-center gap-1.5 font-medium text-sm"
+              >
+                <Plus size={18} />
+                Add Agency
+              </div>
             </div>
           </div>
         </div>
@@ -722,92 +863,123 @@ const AdminAgencyManager = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
             {/* Agencies List */}
             <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
-              <div className="bg-sky-300 px-3 py-1">
+              <div className="bg-sky-300 px-3 py-1 flex items-center justify-between">
                 <p className="text-2xl font-bold text-sky-800">Agencies List</p>
+                <span className="text-sm text-sky-700 font-medium">
+                  {agencies.length} {agencies.length === 1 ? 'agency' : 'agencies'}
+                </span>
               </div>
               <div className="flex-1 overflow-y-auto p-3">
-                <div className="space-y-2.5">
-                  {agencies.map((agency) => (
-                    <div
-                      key={agency._id}
-                      className="border mb-2 border-sky-200 rounded-lg p-3 hover:shadow-md hover:border-sky-300 transition-all bg-white"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-base text-sky-700 truncate">
-                            {agency.AgencyName}
-                          </h3>
-                          <p className="text-xs text-gray-600">ID: {agency.AgencyId}</p>
-                          <p className="text-xs text-gray-600">📱 {agency.mobileNumber}</p>
-                        </div>
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => handleEdit(agency)}
-                            className=" btn p-1.5 text-sky-600 hover:bg-sky-100 rounded-md transition-all"
-                            title="Edit"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(agency._id)}
-                            className=" btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-all"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-2 pb-2 border-b border-sky-100">
-                        <p className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-gray-700">Password:</span>
-                          <span className="font-mono text-gray-800 bg-sky-50 px-1.5 py-0.5 rounded text-xs">
-                            {showPassword[agency._id] ? agency.password : '••••••••'}
-                          </span>
-                          <button
-                            onClick={() => togglePasswordVisibility(agency._id)}
-                            className="text-sky-600 hover:text-sky-700 transition-colors"
-                          >
-                            {showPassword[agency._id] ? <EyeOff size={14} /> : <Eye size={14} />}
-                          </button>
-                          <button
-                            onClick={() => handleChangePassword(agency)}
-                            className="text-xs text-sky-600 hover:underline font-semibold"
-                          >
-                            Change
-                          </button>
-                        </p>
-                      </div>
-
-                      <div className="mb-2">
-                        <p className="text-xs font-semibold text-gray-700 mb-1">Events:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {agency.eventResponsibleFor.map((event, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full font-medium"
-                            >
-                              {event}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="text-xs">
-                        <p className="font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                          <MapPin size={14} className="text-sky-600" />
-                          {agency.jurisdiction ? 'Jurisdiction Area' : 'Location Point'}
-                        </p>
-                        <button
-                          onClick={() => handleViewOnMap(agency)}
-                          className="text-sky-600 hover:text-sky-700 font-semibold transition-colors"
-                        >
-                          View on Map →
-                        </button>
-                      </div>
+                {loading && agencies.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <RefreshCw size={32} className="animate-spin text-sky-500 mx-auto mb-2" />
+                      <p className="text-gray-600">Loading agencies...</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : agencies.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <p className="text-gray-600 mb-2">No agencies found</p>
+                      <button
+                        onClick={handleAddNew}
+                        className="text-sky-600 hover:text-sky-700 font-semibold"
+                      >
+                        Create your first agency
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {agencies.map((agency) => (
+                      <div
+                        key={agency._id}
+                        className="border mb-2 border-sky-200 rounded-lg p-3 hover:shadow-md hover:border-sky-300 transition-all bg-white"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-base text-sky-700 truncate">
+                              {agency.AgencyName}
+                            </h3>
+                            <p className="text-xs text-gray-600">ID: {agency.AgencyId}</p>
+                            <p className="text-xs text-gray-600">📱 {agency.mobileNumber}</p>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => handleEdit(agency)}
+                              disabled={loading}
+                              className="btn p-1.5 text-sky-600 hover:bg-sky-100 rounded-md transition-all disabled:opacity-50"
+                              title="Edit"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(agency.AgencyId)}
+                              disabled={loading}
+                              className="btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-all disabled:opacity-50"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="mb-2 pb-2 border-b border-sky-100">
+                          <p className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-gray-700">Password:</span>
+                            <span className="font-mono text-gray-800 bg-sky-50 px-1.5 py-0.5 rounded text-xs">
+                              {showPassword[agency.AgencyId] ? agency.password : '••••••••'}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(agency.AgencyId)}
+                              className="text-sky-600 hover:text-sky-700 transition-colors"
+                            >
+                              {showPassword[agency.AgencyId] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                            <button
+                              onClick={() => handleChangePassword(agency)}
+                              disabled={loading}
+                              className="text-xs text-sky-600 hover:underline font-semibold disabled:opacity-50"
+                            >
+                              Change
+                            </button>
+                          </p>
+                        </div>
+
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-gray-700 mb-1">Events:</p>
+                          {agency.eventResponsibleFor && agency.eventResponsibleFor.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {agency.eventResponsibleFor.map((event, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full font-medium"
+                                >
+                                  {event}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-500 italic">No events assigned</span>
+                          )}
+                        </div>
+
+                        <div className="text-xs">
+                          <p className="font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                            <MapPin size={14} className="text-sky-600" />
+                            {agency.type === 'jurisdiction' ? 'Jurisdiction Area' : 'Location Point'}
+                          </p>
+                          <button
+                            onClick={() => handleViewOnMap(agency)}
+                            className="text-sky-600 hover:text-sky-700 font-semibold transition-colors"
+                          >
+                            View on Map →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -832,9 +1004,9 @@ const AdminAgencyManager = () => {
                     
                     {agencies.map((agency) => (
                       <React.Fragment key={agency._id}>
-                        {agency.jurisdiction ? (
+                        {agency.jurisdiction && agency.jurisdiction.coordinates ? (
                           <Polygon
-                            positions={agency.jurisdiction.coordinates.map(coord => [coord[0], coord[1]])}
+                            positions={agency.jurisdiction.coordinates[0].map(coord => [coord[1], coord[0]])}
                             pathOptions={{ color: '#0284c7', fillColor: '#7dd3fc', fillOpacity: 0.4 }}
                           >
                             <Popup>
