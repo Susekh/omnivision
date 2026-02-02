@@ -1,12 +1,10 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api";
 import "../public/assets/css/Dashboard.css";
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import normalizeImageUrl from "../utils/normalizeMinioImgUrl"
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -111,34 +109,37 @@ const Dashboard = () => {
   // };
 
   const updateEventStatus = async (event_id, newStatus, agencyId = null) => {
-  try {
-    const payload = { status: newStatus };
-    if (newStatus === "Accepted" && agencyId) {
-      payload.agencyId = agencyId;
-    }
-    const response = await api.put(`backend/events/status/${event_id}`, payload);
-    if (response.status === 200) {
-      setDashboardData((prevData) =>
-        prevData.map((event) =>
-          event.event_id === event_id
-            ? { ...event, status: newStatus }
-            : event
-        )
+    try {
+      const payload = { status: newStatus };
+      if (newStatus === "Accepted" && agencyId) {
+        payload.agencyId = agencyId;
+      }
+      const response = await api.put(
+        `backend/events/status/${event_id}`,
+        payload,
       );
+      if (response.status === 200) {
+        setDashboardData((prevData) =>
+          prevData.map((event) =>
+            event.event_id === event_id
+              ? { ...event, status: newStatus }
+              : event,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
     }
-  } catch (error) {
-    console.error("Error updating status:", error);
-  }
-};
+  };
 
   // const approveEvent = (event_id) => {
   //   // updateEventStatus(event_id, "Accepted");
   //   navigate(`/eventReport/${event_id}`, { state: { event_id } });
   // };
   const approveEvent = (event_id) => {
-  updateEventStatus(event_id, "Accepted", agencyId); // Pass agencyId
-  navigate(`/eventReport/${event_id}`, { state: { event_id } });
-};
+    updateEventStatus(event_id, "Accepted", agencyId); // Pass agencyId
+    navigate(`/eventReport/${event_id}`, { state: { event_id } });
+  };
   const rejectEvent = (event_id) => updateEventStatus(event_id, "Rejected");
   // const holdEvent = (event_id) => updateEventStatus(event_id, "On Hold");
   const handleAssign = (event_id) => updateEventStatus(event_id, "Assigned");
@@ -158,7 +159,7 @@ const Dashboard = () => {
         return dashboardData.filter((event) => event.status === "Assigned");
       case "ResolvedEvents":
         return dashboardData.filter(
-          (event) => event.status === "closed" || event.status === "Rejected"
+          (event) => event.status === "closed" || event.status === "Rejected",
         );
       default:
         return dashboardData;
@@ -237,7 +238,7 @@ const Dashboard = () => {
         const scaleY = height / naturalHeight;
 
         const report = dashboardData.find(
-          (event) => event.image_url === zoomedImageUrl
+          (event) => normalizeImageUrl(event.image_url) === zoomedImageUrl,
         );
 
         if (
@@ -265,7 +266,7 @@ const Dashboard = () => {
             adjustedBox.left,
             adjustedBox.top,
             adjustedBox.width,
-            adjustedBox.height
+            adjustedBox.height,
           );
 
           console.log("Image Dimensions:", {
@@ -301,7 +302,7 @@ const Dashboard = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -336,11 +337,14 @@ const Dashboard = () => {
 
   return (
     <>
-      <header style={{margin: 0, padding: 0, width: "100%"}}>
-        <div className="container-fluid" style={{padding: 0, margin: 0}}>
-          <div className="row" style={{margin: 0}}>
-            <div className="col-md-12" style={{padding: 0}}>
-              <div className="d-flex align-items-center justify-content-between" style={{padding: "15px 20px"}}>
+      <header style={{ margin: 0, padding: 0, width: "100%" }}>
+        <div className="container-fluid" style={{ padding: 0, margin: 0 }}>
+          <div className="row" style={{ margin: 0 }}>
+            <div className="col-md-12" style={{ padding: 0 }}>
+              <div
+                className="d-flex align-items-center justify-content-between"
+                style={{ padding: "15px 20px" }}
+              >
                 <div className="logo">
                   <img
                     src="/images/omnivision-logo.png"
@@ -513,7 +517,7 @@ const Dashboard = () => {
               height: "52%",
               padding: "10px",
               boxSizing: "border-box",
-              
+
               margin: "10px",
             }}
           >
@@ -578,7 +582,7 @@ const Dashboard = () => {
                                     <td>
                                       {report.assignment_time
                                         ? new Date(
-                                            report.assignment_time
+                                            report.assignment_time,
                                           ).toLocaleString()
                                         : "N/A"}
                                     </td>
@@ -596,7 +600,7 @@ const Dashboard = () => {
                                           addFlagAt(
                                             parseFloat(report.latitude),
                                             parseFloat(report.longitude),
-                                            "flag"
+                                            "flag",
                                           )
                                         }
                                       >
@@ -612,13 +616,17 @@ const Dashboard = () => {
                                           }}
                                         >
                                           <img
-                                            src={normalizeImageUrl(report.image_url)}
+                                            src={normalizeImageUrl(
+                                              report.image_url,
+                                            )}
                                             alt={`Event ${report.event_id}`}
                                             title="Click to zoom"
                                             className="default-class"
                                             onClick={() =>
                                               setZoomedImageUrl(
-                                                normalizeImageUrl(report.image_url)
+                                                normalizeImageUrl(
+                                                  report.image_url,
+                                                ),
                                               )
                                             }
                                             style={{
@@ -633,7 +641,7 @@ const Dashboard = () => {
                                               const img = e.target;
                                               const canvas =
                                                 document.getElementById(
-                                                  `canvas-${report.event_id}`
+                                                  `canvas-${report.event_id}`,
                                                 );
                                               const ctx =
                                                 canvas?.getContext("2d");
@@ -651,10 +659,10 @@ const Dashboard = () => {
                                                 ({ x1, y1, x2, y2 } = report);
                                               } else if (
                                                 Array.isArray(
-                                                  report.boundingBoxes
+                                                  report.boundingBoxes,
                                                 ) &&
                                                 Array.isArray(
-                                                  report.boundingBoxes[0]
+                                                  report.boundingBoxes[0],
                                                 ) &&
                                                 report.boundingBoxes[0]
                                                   .length === 4
@@ -687,7 +695,7 @@ const Dashboard = () => {
                                                   0,
                                                   0,
                                                   canvas.width,
-                                                  canvas.height
+                                                  canvas.height,
                                                 );
                                                 ctx.strokeStyle = "red";
                                                 ctx.lineWidth = 2;
@@ -695,7 +703,7 @@ const Dashboard = () => {
                                                   boxX,
                                                   boxY,
                                                   boxWidth,
-                                                  boxHeight
+                                                  boxHeight,
                                                 );
                                               });
                                             }}
@@ -741,13 +749,12 @@ const Dashboard = () => {
           <section
             style={{
               width: "30%",
-              height:"75%",
+              height: "75%",
               background: "linear-gradient(to bottom, #e0f7fa, #fce4ec)",
               padding: "10px",
               boxSizing: "border-box",
               borderRadius: "10px",
               margin: "10px",
-           
             }}
           >
             <div>
@@ -799,28 +806,30 @@ const Dashboard = () => {
                 // Find the event data associated with the zoomed image URL
                 const event = dashboardData.find((event) =>
                   event.allIncidents.some(
-                    (incident) => incident.image_url === zoomedImageUrl
-                  )
+                    (incident) =>
+                      normalizeImageUrl(incident.image_url) === zoomedImageUrl,
+                  ),
                 );
 
                 // If event data isn't found, don't render image/canvas
                 if (!event) {
                   console.error(
                     "Could not find event data for zoomed image:",
-                    zoomedImageUrl
+                    zoomedImageUrl,
                   );
                   return <p>Error loading image data.</p>; // Or some other fallback
                 }
 
                 // Find the index of the currently displayed incident within its event
                 const currentIndex = event.allIncidents.findIndex(
-                  (incident) => incident.image_url === zoomedImageUrl
+                  (incident) =>
+                    normalizeImageUrl(incident.image_url) === zoomedImageUrl,
                 );
 
                 if (currentIndex === -1) {
                   console.error(
                     "Could not find incident index for zoomed image:",
-                    zoomedImageUrl
+                    zoomedImageUrl,
                   );
                   return <p>Error loading incident data.</p>; // Or some other fallback
                 }
@@ -869,7 +878,7 @@ const Dashboard = () => {
                         if (!boundingBox || boundingBox.length !== 4) {
                           console.warn(
                             "Invalid or missing bounding box for zoomed image:",
-                            zoomedImageUrl
+                            zoomedImageUrl,
                           );
                           // Clear canvas if previous box was drawn, otherwise leave blank
                           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -885,7 +894,7 @@ const Dashboard = () => {
                         if ([x1, y1, x2, y2].some(isNaN)) {
                           console.warn(
                             "Invalid coordinate values in bounding box:",
-                            boundingBox
+                            boundingBox,
                           );
                           ctx.clearRect(0, 0, canvas.width, canvas.height);
                           return;
@@ -944,10 +953,12 @@ const Dashboard = () => {
                       onClick={() => {
                         console.log(
                           "Prev Button Clicked. New URL:",
-                          event.allIncidents[prevIndex].image_url
+                          event.allIncidents[prevIndex].image_url,
                         );
                         setZoomedImageUrl(
-                          normalizeImageUrl(event.allIncidents[prevIndex].image_url)
+                          normalizeImageUrl(
+                            event.allIncidents[prevIndex].image_url,
+                          ),
                         );
                       }}
                       // Disable if only one image? (Optional)
@@ -964,10 +975,12 @@ const Dashboard = () => {
                           "Next Button Clicked. New URL:",
                           nextIndex,
                           "    ",
-                          event.allIncidents[nextIndex].image_url
+                          event.allIncidents[nextIndex].image_url,
                         );
                         setZoomedImageUrl(
-                          normalizeImageUrl(event.allIncidents[nextIndex].image_url)
+                          normalizeImageUrl(
+                            event.allIncidents[nextIndex].image_url,
+                          ),
                         );
                       }}
                       // Disable if only one image? (Optional)
@@ -986,15 +999,13 @@ const Dashboard = () => {
         </div> /* End Zoom Overlay */
       )}{" "}
       {/* End Zoomed Image Section */}
-      <footer className="footer"  style={{marginTop: 0, width: "100%"}}>
+      <footer className="footer" style={{ marginTop: 0, width: "100%" }}>
         <div className="footer-container">
           <div className="row">
             <div
               className="col-md-12 text-center"
               style={{ marginTop: "55px" }}
-            >
-             
-            </div>
+            ></div>
           </div>
         </div>
       </footer>
@@ -1136,8 +1147,19 @@ const Dashboard = () => {
       )}
       {/* End Events Popup Section */}
       {/* Footer */}
-      <footer style={{backgroundColor: "#f8f9fa", borderTop: "1px solid #dee2e6", padding: "15px 0", textAlign: "center", margin: 0, width: "100%"}}>
-        <p style={{margin: 0, fontSize: "14px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
+      <footer
+        style={{
+          backgroundColor: "#f8f9fa",
+          borderTop: "1px solid #dee2e6",
+          padding: "15px 0",
+          textAlign: "center",
+          margin: 0,
+          width: "100%",
+        }}
+      >
+        <p style={{ margin: 0, fontSize: "14px", color: "#6c757d" }}>
+          © 2025 OmniVision. All rights reserved.
+        </p>
       </footer>
     </>
   );
