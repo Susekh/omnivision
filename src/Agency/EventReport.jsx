@@ -4,7 +4,7 @@ import "../public/assets/css/EventReport.css";
 import api from "../api";
 
 import MapCanvas from "../components/mapCanvas";
-
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
@@ -480,7 +480,7 @@ const EventReport = () => {
                 </div>
                 <figure>
                   <img
-                    src={reportData.image_url}
+                    src={normalizeImageUrl(reportData.image_url)}
                     style={{
                       width: "200px",
                       transform: "rotate(-90deg)",
