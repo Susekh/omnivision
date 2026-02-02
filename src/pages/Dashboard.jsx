@@ -137,7 +137,7 @@ const Dashboard = () => {
   //   navigate(`/eventReport/${event_id}`, { state: { event_id } });
   // };
   const approveEvent = (event_id) => {
-    updateEventStatus(event_id, "Accepted", agencyId); // Pass agencyId
+    updateEventStatus(event_id, "open", agencyId); // Pass agencyId
     navigate(`/eventReport/${event_id}`, { state: { event_id } });
   };
   const rejectEvent = (event_id) => updateEventStatus(event_id, "Rejected");
