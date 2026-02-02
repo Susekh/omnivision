@@ -947,7 +947,7 @@ const Dashboard = () => {
                           event.allIncidents[prevIndex].image_url
                         );
                         setZoomedImageUrl(
-                          event.allIncidents[prevIndex].image_url
+                          normalizeImageUrl(event.allIncidents[prevIndex].image_url)
                         );
                       }}
                       // Disable if only one image? (Optional)
@@ -967,7 +967,7 @@ const Dashboard = () => {
                           event.allIncidents[nextIndex].image_url
                         );
                         setZoomedImageUrl(
-                          event.allIncidents[nextIndex].image_url
+                          normalizeImageUrl(event.allIncidents[nextIndex].image_url)
                         );
                       }}
                       // Disable if only one image? (Optional)
