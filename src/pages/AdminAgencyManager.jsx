@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// ✅ FIXED: MapUpdater with proper validation
+// MapUpdater with proper validation
 const MapUpdater = ({ center }) => {
   const map = useMap();
   useEffect(() => {
@@ -39,14 +39,15 @@ const AdminAgencyManager = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
+  // ✅ MODIFIED: Always initialize with default lat/lng
   const [formData, setFormData] = useState({
     AgencyName: '',
     mobileNumber: '',
     password: '',
     eventResponsibleFor: '',
     locationType: 'location',
-    latitude: '',
-    longitude: '',
+    latitude: '20.2961',
+    longitude: '85.8245',
     jurisdictionPoints: [
       { lat: '', lng: '' },
       { lat: '', lng: '' },
@@ -91,15 +92,8 @@ const AdminAgencyManager = () => {
   };
 
   const getPreviewMapCenter = () => {
-    if (formData.locationType === 'location' && formData.latitude && formData.longitude) {
+    if (formData.latitude && formData.longitude) {
       return [parseFloat(formData.latitude), parseFloat(formData.longitude)];
-    } else if (formData.locationType === 'jurisdiction') {
-      const validPoints = formData.jurisdictionPoints.filter(p => p.lat && p.lng);
-      if (validPoints.length > 0) {
-        const avgLat = validPoints.reduce((sum, p) => sum + parseFloat(p.lat), 0) / validPoints.length;
-        const avgLng = validPoints.reduce((sum, p) => sum + parseFloat(p.lng), 0) / validPoints.length;
-        return [avgLat, avgLng];
-      }
     }
     return [20.2961, 85.8245];
   };
@@ -124,8 +118,8 @@ const AdminAgencyManager = () => {
       password: '',
       eventResponsibleFor: '',
       locationType: 'location',
-      latitude: '',
-      longitude: '',
+      latitude: '20.2961',
+      longitude: '85.8245',
       jurisdictionPoints: [
         { lat: '', lng: '' },
         { lat: '', lng: '' },
@@ -140,22 +134,44 @@ const AdminAgencyManager = () => {
     setSuccess('');
   };
 
-  // ✅ FIXED: Handle edit with correct coordinate parsing from DB format [lat, lng]
+  // ✅ MODIFIED: Handle edit - always set lat/lng from location or default
   const handleEdit = (agency) => {
     const hasJurisdiction = agency.jurisdiction && agency.jurisdiction.coordinates;
+    
+    // Parse jurisdiction points from DB format [lat, lng]
+    let jurisdictionPoints = [
+      { lat: '', lng: '' },
+      { lat: '', lng: '' },
+      { lat: '', lng: '' },
+      { lat: '', lng: '' },
+      { lat: '', lng: '' }
+    ];
+    
+    if (hasJurisdiction && Array.isArray(agency.jurisdiction.coordinates)) {
+      jurisdictionPoints = agency.jurisdiction.coordinates.slice(0, 5).map(coord => ({
+        lat: coord[0], // First element is lat in DB format
+        lng: coord[1]  // Second element is lng in DB format
+      }));
+      
+      // Pad with empty points if less than 5
+      while (jurisdictionPoints.length < 5) {
+        jurisdictionPoints.push({ lat: '', lng: '' });
+      }
+    }
+    
     setFormData({
-      ...agency,
-      eventResponsibleFor: agency.eventResponsibleFor.join(', '),
+      AgencyName: agency.AgencyName,
+      mobileNumber: agency.mobileNumber,
+      password: '', // ✅ FIXED: Always start with empty password in edit mode
+      eventResponsibleFor: Array.isArray(agency.eventResponsibleFor) 
+        ? agency.eventResponsibleFor.join(', ') 
+        : '',
       locationType: hasJurisdiction ? 'jurisdiction' : 'location',
-      latitude: agency.location?.latitude || '',
-      longitude: agency.location?.longitude || '',
-      jurisdictionPoints: hasJurisdiction
-        ? agency.jurisdiction.coordinates[0].slice(0, 5).map(coord => ({ 
-            lat: coord[0],  // First element is lat in your DB format
-            lng: coord[1]   // Second element is lng in your DB format
-          }))
-        : [{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]
+      latitude: agency.location?.latitude || '20.2961',
+      longitude: agency.location?.longitude || '85.8245',
+      jurisdictionPoints
     });
+    
     setSelectedAgency(agency);
     setEditMode(true);
     setView('form');
@@ -186,6 +202,7 @@ const AdminAgencyManager = () => {
     }
   };
 
+  // ✅ MODIFIED: Validation - always require lat/lng
   const validateForm = () => {
     if (!formData.AgencyName.trim()) {
       setError('Agency name is required');
@@ -199,20 +216,22 @@ const AdminAgencyManager = () => {
       setError('Mobile number must be 10 digits');
       return false;
     }
-    if (!editMode && !formData.password.trim()) {
+    if (!editMode && (!formData.password || !formData.password.trim())) {
       setError('Password is required');
       return false;
     }
 
-    if (formData.locationType === 'location') {
-      if (!formData.latitude || !formData.longitude) {
-        setError('Latitude and longitude are required for location type');
-        return false;
-      }
-    } else {
+    // ✅ MODIFIED: Always validate lat/lng
+    if (!formData.latitude || !formData.longitude) {
+      setError('Latitude and longitude are required');
+      return false;
+    }
+
+    // ✅ MODIFIED: Only validate jurisdiction points if locationType is jurisdiction
+    if (formData.locationType === 'jurisdiction') {
       const validPoints = formData.jurisdictionPoints.filter(p => p.lat && p.lng);
       if (validPoints.length < 3) {
-        setError('At least 3 jurisdiction points are required');
+        setError('At least 3 jurisdiction points are required for jurisdiction type');
         return false;
       }
     }
@@ -220,7 +239,7 @@ const AdminAgencyManager = () => {
     return true;
   };
 
-  // ✅ FIXED: Submit with correct coordinate format [lat, lng] to match DB
+  // ✅ MODIFIED: Submit - always send lat/lng, jurisdiction is optional (null if not provided)
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -234,31 +253,46 @@ const AdminAgencyManager = () => {
       const payload = {
         AgencyName: formData.AgencyName,
         mobileNumber: formData.mobileNumber,
-        eventResponsibleFor: formData.eventResponsibleFor.split(',').map(e => e.trim()).filter(e => e)
+        eventResponsibleFor: formData.eventResponsibleFor
+          .split(',')
+          .map(e => e.trim())
+          .filter(e => e),
+        // ✅ MODIFIED: Always include lat/lng
+        lat: parseFloat(formData.latitude),
+        lng: parseFloat(formData.longitude)
       };
 
       // Add password only for creation or if it's being changed
-      if (!editMode || formData.password.trim()) {
+      if (!editMode || (formData.password && formData.password.trim())) {
         payload.password = formData.password;
       }
 
-      if (formData.locationType === 'location') {
-        payload.lat = parseFloat(formData.latitude);
-        payload.lng = parseFloat(formData.longitude);
-      } else {
-        // ✅ FIXED: Send coordinates as [lat, lng] to match your DB format
+      // ✅ MODIFIED: Add jurisdiction only if locationType is jurisdiction and has valid points
+      if (formData.locationType === 'jurisdiction') {
         const coords = formData.jurisdictionPoints
           .filter(p => p.lat && p.lng)
           .map(p => [parseFloat(p.lat), parseFloat(p.lng)]); // [lat, lng] format
         
         if (coords.length >= 3) {
-          coords.push(coords[0]); // Close the polygon
+          // Close the polygon by adding the first point at the end
+          coords.push(coords[0]);
+          
           payload.jurisdiction = {
             type: "Polygon",
-            coordinates: [coords]
+            coordinates: coords // Flat array, not nested
           };
+          
+          console.log('Sending jurisdiction payload:', payload.jurisdiction);
+        } else {
+          // ✅ MODIFIED: Send null if no valid jurisdiction
+          payload.jurisdiction = null;
         }
+      } else {
+        // ✅ MODIFIED: Send null for location type (no jurisdiction)
+        payload.jurisdiction = null;
       }
+
+      console.log('Final payload:', payload);
 
       let response;
       if (editMode) {
@@ -314,11 +348,13 @@ const AdminAgencyManager = () => {
   };
 
   const handleViewOnMap = (agency) => {
+    console.log('Viewing agency on map:', agency);
     if (agency.location) {
       setMapCenter([agency.location.latitude, agency.location.longitude]);
     }
   };
 
+  // ✅ KEPT: File upload logic remains unchanged for jurisdiction
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -348,7 +384,7 @@ const AdminAgencyManager = () => {
     };
 
     reader.readAsText(file);
-    event.target.value = ''; // Reset file input
+    event.target.value = '';
   };
 
   const handleJSONUpload = (content) => {
@@ -562,7 +598,7 @@ const AdminAgencyManager = () => {
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Password {editMode && '(leave blank to keep current)'}
+                        Password {editMode ? '(leave blank to keep current)' : '*'}
                       </label>
                       <input
                         type="password"
@@ -572,6 +608,9 @@ const AdminAgencyManager = () => {
                         placeholder={editMode ? "Leave blank to keep current password" : "Enter password"}
                         disabled={loading}
                       />
+                      {editMode && (
+                        <p className="text-xs text-gray-500 mt-0.5">Only fill this if you want to change the password</p>
+                      )}
                     </div>
 
                     <div>
@@ -587,9 +626,44 @@ const AdminAgencyManager = () => {
                       <p className="text-xs text-gray-500 mt-0.5">Separate multiple events with commas</p>
                     </div>
 
+                    {/* ✅ MODIFIED: Always show lat/lng fields, make them required */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Location Type *</label>
-                      <div className="flex gap-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Location Coordinates *</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Latitude *</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.latitude}
+                            onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                            className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                            placeholder="20.2961"
+                            disabled={loading}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Longitude *</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.longitude}
+                            onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                            className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                            placeholder="85.8245"
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">Primary location coordinates (always required)</p>
+                    </div>
+
+                    {/* ✅ MODIFIED: Jurisdiction is now optional */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Jurisdiction Area (Optional)
+                      </label>
+                      <div className="flex gap-2 mb-2">
                         <label className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1">
                           <input
                             type="radio"
@@ -599,7 +673,7 @@ const AdminAgencyManager = () => {
                             className="mr-1.5 w-3 h-3 accent-sky-500"
                             disabled={loading}
                           />
-                          <span className="text-xs font-medium text-gray-700">Single Location</span>
+                          <span className="text-xs font-medium text-gray-700">No Jurisdiction</span>
                         </label>
                         <label className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1">
                           <input
@@ -610,133 +684,77 @@ const AdminAgencyManager = () => {
                             className="mr-1.5 w-3 h-3 accent-sky-500"
                             disabled={loading}
                           />
-                          <span className="text-xs font-medium text-gray-700">Jurisdiction</span>
+                          <span className="text-xs font-medium text-gray-700">Add Jurisdiction</span>
                         </label>
                       </div>
-                    </div>
 
-                    {formData.locationType === 'location' ? (
-                      <>
-                        <div className="bg-sky-50 border border-sky-200 mt-2 rounded-md p-2">
-                          <div className="flex items-start gap-2 mb-2">
-                            <Upload size={16} className="text-sky-600 mt-0.5 shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">Import from File</h5>
-                              <p className="text-xs text-gray-600 mb-1.5">Upload GeoJSON, JSON, or CSV</p>
-                              <input
-                                type="file"
-                                accept=".json,.geojson,.csv"
-                                onChange={handleFileUpload}
-                                className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
-                                disabled={loading}
-                              />
-                              {fileUploadError && (
-                                <p className="text-xs text-red-600 mt-1 font-medium">{fileUploadError}</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-600 space-y-0.5 pl-5">
-                            <p className="font-semibold text-gray-700">Formats:</p>
-                            <p>• JSON: {`{"latitude": 20.29, "longitude": 85.82}`}</p>
-                            <p>• CSV: latitude,longitude headers</p>
-                          </div>
-                        </div>
-                        
-                        <div className="text-center text-xs font-medium text-gray-500 my-1">OR</div>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">Latitude *</label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={formData.latitude}
-                              onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                              className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                              placeholder="20.2961"
-                              disabled={loading}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">Longitude *</label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={formData.longitude}
-                              onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                              className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                              placeholder="85.8245"
-                              disabled={loading}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="bg-sky-50 border border-sky-200 rounded-md mt-2 p-2">
-                          <div className="flex items-start gap-2 mb-2">
-                            <Upload size={16} className="text-sky-600 mt-0.5 shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">Import from File</h5>
-                              <p className="text-xs text-gray-600 mb-1.5">Upload polygon coordinates</p>
-                              <input
-                                type="file"
-                                accept=".json,.geojson,.csv"
-                                onChange={handleFileUpload}
-                                className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
-                                disabled={loading}
-                              />
-                              {fileUploadError && (
-                                <p className="text-xs text-red-600 mt-1 font-medium">{fileUploadError}</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-600 space-y-0.5 pl-5">
-                            <p className="font-semibold text-gray-700">Formats:</p>
-                            <p>• JSON: {`{"coordinates": [[lat, lng], ...]}`}</p>
-                            <p>• CSV: lat/lng columns with multiple rows</p>
-                          </div>
-                        </div>
-                        
-                        <div className="text-center text-xs font-medium text-gray-500 my-1">OR</div>
-                        
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Jurisdiction Points (minimum 3 points) *</label>
-                          <div className="space-y-1.5">
-                            {formData.jurisdictionPoints.map((point, index) => (
-                              <div key={index} className="grid grid-cols-2 mb-1 gap-1.5">
+                      {formData.locationType === 'jurisdiction' && (
+                        <>
+                          <div className="bg-sky-50 border border-sky-200 rounded-md p-2 mb-2">
+                            <div className="flex items-start gap-2 mb-2">
+                              <Upload size={16} className="text-sky-600 mt-0.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">Import from File</h5>
+                                <p className="text-xs text-gray-600 mb-1.5">Upload polygon coordinates</p>
                                 <input
-                                  type="number"
-                                  step="any"
-                                  placeholder={`Point ${index + 1} Lat`}
-                                  value={point.lat}
-                                  onChange={(e) => {
-                                    const newPoints = [...formData.jurisdictionPoints];
-                                    newPoints[index].lat = e.target.value;
-                                    setFormData({ ...formData, jurisdictionPoints: newPoints });
-                                  }}
-                                  className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
+                                  type="file"
+                                  accept=".json,.geojson,.csv"
+                                  onChange={handleFileUpload}
+                                  className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
                                   disabled={loading}
                                 />
-                                <input
-                                  type="number"
-                                  step="any"
-                                  placeholder={`Point ${index + 1} Lng`}
-                                  value={point.lng}
-                                  onChange={(e) => {
-                                    const newPoints = [...formData.jurisdictionPoints];
-                                    newPoints[index].lng = e.target.value;
-                                    setFormData({ ...formData, jurisdictionPoints: newPoints });
-                                  }}
-                                  className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
-                                  disabled={loading}
-                                />
+                                {fileUploadError && (
+                                  <p className="text-xs text-red-600 mt-1 font-medium">{fileUploadError}</p>
+                                )}
                               </div>
-                            ))}
+                            </div>
+                            <div className="text-xs text-gray-600 space-y-0.5 pl-5">
+                              <p className="font-semibold text-gray-700">Formats:</p>
+                              <p>• JSON: {`{"coordinates": [[lat, lng], ...]}`}</p>
+                              <p>• CSV: lat/lng columns with multiple rows</p>
+                            </div>
                           </div>
-                        </div>
-                      </>
-                    )}
+                          
+                          <div className="text-center text-xs font-medium text-gray-500 my-1">OR</div>
+                          
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Jurisdiction Points (minimum 3 points)</label>
+                            <div className="space-y-1.5">
+                              {formData.jurisdictionPoints.map((point, index) => (
+                                <div key={index} className="grid grid-cols-2 mb-1 gap-1.5">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={`Point ${index + 1} Lat`}
+                                    value={point.lat}
+                                    onChange={(e) => {
+                                      const newPoints = [...formData.jurisdictionPoints];
+                                      newPoints[index].lat = e.target.value;
+                                      setFormData({ ...formData, jurisdictionPoints: newPoints });
+                                    }}
+                                    className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
+                                    disabled={loading}
+                                  />
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={`Point ${index + 1} Lng`}
+                                    value={point.lng}
+                                    onChange={(e) => {
+                                      const newPoints = [...formData.jurisdictionPoints];
+                                      newPoints[index].lng = e.target.value;
+                                      setFormData({ ...formData, jurisdictionPoints: newPoints });
+                                    }}
+                                    className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
+                                    disabled={loading}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
 
                     <div className="flex gap-2 pt-2">
                       <button
@@ -788,18 +806,20 @@ const AdminAgencyManager = () => {
                       />
                       <MapUpdater center={previewCenter} />
                       
-                      {formData.locationType === 'location' && formData.latitude && formData.longitude && (
+                      {/* Always show location marker */}
+                      {formData.latitude && formData.longitude && (
                         <Marker position={[parseFloat(formData.latitude), parseFloat(formData.longitude)]}>
                           <Popup>
                             <div className="text-center">
                               <strong className="text-sky-700">{formData.AgencyName || 'New Agency'}</strong>
                               <br />
-                              <span className="text-xs text-gray-600">Location Point</span>
+                              <span className="text-xs text-gray-600">Primary Location</span>
                             </div>
                           </Popup>
                         </Marker>
                       )}
                       
+                      {/* Show jurisdiction polygon if available */}
                       {formData.locationType === 'jurisdiction' && previewPolygon && previewPolygon.length >= 4 && (
                         <Polygon
                           positions={previewPolygon}
@@ -930,27 +950,6 @@ const AdminAgencyManager = () => {
                           </div>
                         </div>
                         
-                        <div className="mb-2 pb-2 border-b border-sky-100">
-                          <p className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-gray-700">Password:</span>
-                            <span className="font-mono text-gray-800 bg-sky-50 px-1.5 py-0.5 rounded text-xs">
-                              {showPassword[agency.AgencyId] ? agency.password : '••••••••'}
-                            </span>
-                            <button
-                              onClick={() => togglePasswordVisibility(agency.AgencyId)}
-                              className="text-sky-600 hover:text-sky-700 transition-colors"
-                            >
-                              {showPassword[agency.AgencyId] ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
-                            <button
-                              onClick={() => handleChangePassword(agency)}
-                              disabled={loading}
-                              className="text-xs text-sky-600 hover:underline font-semibold disabled:opacity-50"
-                            >
-                              Change
-                            </button>
-                          </p>
-                        </div>
 
                         <div className="mb-2">
                           <p className="text-xs font-semibold text-gray-700 mb-1">Events:</p>
@@ -989,7 +988,7 @@ const AdminAgencyManager = () => {
               </div>
             </div>
 
-            {/* Map View - ✅ FIXED: Display with correct coordinate order */}
+            {/* Map View */}
             <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
               <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
                 <MapPin size={18} className="text-sky-800" />
@@ -1012,7 +1011,7 @@ const AdminAgencyManager = () => {
                       <React.Fragment key={agency._id}>
                         {agency.jurisdiction && agency.jurisdiction.coordinates ? (
                           <Polygon
-                            positions={agency.jurisdiction.coordinates[0].map(coord => [coord[0], coord[1]])}
+                            positions={agency.jurisdiction.coordinates.map(coord => [coord[0], coord[1]])}
                             pathOptions={{ color: '#0284c7', fillColor: '#7dd3fc', fillOpacity: 0.4 }}
                           >
                             <Popup>
