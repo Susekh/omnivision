@@ -40,7 +40,6 @@ const BillionEye = () => {
         </div>
       </nav>
 
-      {/* Page Content */}
       <div className="pag-1-wrapper">
         <section className="pag-1-wrapper-sec-1">
           <figure>
