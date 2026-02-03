@@ -57,138 +57,138 @@ const getEventIcon = (type) => {
   return "📍";
 };
 
-// ─── MOCK: All agencies (from BillionEyes_V1_agencies.json) ─────────────────
-// Remove when using the real API.
-const MOCK_AGENCIES = [
-  {
-    AgencyId: "agency-121",
-    AgencyName: "City Maintenance",
-    eventResponsibleFor: [
-      "Road Damage",
-      "Environmental Violation",
-      "Daytime Running Street Light",
-    ],
-  },
-  {
-    AgencyId: "agency-122",
-    AgencyName: "BMC",
-    eventResponsibleFor: [
-      "Road Damage",
-      "Environmental Violation",
-      "Daytime Running Street Light",
-    ],
-  },
-  {
-    AgencyId: "agency-125",
-    AgencyName: "Kiims",
-    eventResponsibleFor: ["Human healthcare services"],
-  },
-  {
-    AgencyId: "agency-126",
-    AgencyName: "SUM",
-    eventResponsibleFor: ["Human healthcare services"],
-  },
-];
+// // ─── MOCK: All agencies (from BillionEyes_V1_agencies.json) ─────────────────
+// // Remove when using the real API.
+// const MOCK_AGENCIES = [
+//   {
+//     AgencyId: "agency-121",
+//     AgencyName: "City Maintenance",
+//     eventResponsibleFor: [
+//       "Road Damage",
+//       "Environmental Violation",
+//       "Daytime Running Street Light",
+//     ],
+//   },
+//   {
+//     AgencyId: "agency-122",
+//     AgencyName: "BMC",
+//     eventResponsibleFor: [
+//       "Road Damage",
+//       "Environmental Violation",
+//       "Daytime Running Street Light",
+//     ],
+//   },
+//   {
+//     AgencyId: "agency-125",
+//     AgencyName: "Kiims",
+//     eventResponsibleFor: ["Human healthcare services"],
+//   },
+//   {
+//     AgencyId: "agency-126",
+//     AgencyName: "SUM",
+//     eventResponsibleFor: ["Human healthcare services"],
+//   },
+// ];
 
-// ─── MOCK: All incidents (from BillionEyes_V1_Incident.json) ────────────────
-// Remove when using the real API.
-const MOCK_INCIDENTS = [
-  {
-    event_id: "I-20260202-002",
-    description: "Road Damage", // Pothole → Road Damage
-    assignment_time: "2026-02-02T08:34:18.724Z",
-    latitude: 20.2777702,
-    longitude: 85.8343072,
-    image_url:
-      "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
-    boundingBoxes: [[264.05, 125.11, 720, 529.66]],
-    status: "open",
-    allIncidents: [
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
-        boundingBoxes: [[264.05, 125.11, 720, 529.66]],
-      },
-    ],
-  },
-  {
-    event_id: "I-20260202-004",
-    description: "Human healthcare services", // Car Accident → Human healthcare services
-    assignment_time: "2026-02-02T13:35:26.542Z",
-    latitude: 20.3360432,
-    longitude: 85.8118569,
-    image_url:
-      "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
-    boundingBoxes: [[202.84, 149.99, 720, 647.9]],
-    status: "Assigned",
-    allIncidents: [
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
-        boundingBoxes: [[202.84, 149.99, 720, 647.9]],
-      },
-    ],
-  },
-  {
-    event_id: "I-20260202-006",
-    description: "Environmental Violation", // Litter → Environmental Violation
-    assignment_time: "2026-02-02T18:32:52.003Z",
-    latitude: 20.3360371,
-    longitude: 85.8118463,
-    image_url:
-      "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
-    boundingBoxes: [[90.92, 121.35, 720, 579.16]],
-    status: "open",
-    allIncidents: [
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
-        boundingBoxes: [[90.92, 121.35, 720, 579.16]],
-      },
-    ],
-  },
-  {
-    event_id: "I-20260202-008",
-    description: "Human healthcare services", // Car Accident → Human healthcare services
-    assignment_time: "2026-02-02T19:16:27.238Z",
-    latitude: 20.3360353,
-    longitude: 85.8118478,
-    image_url:
-      "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-    boundingBoxes: [[119.87, 199.53, 720, 681.89]],
-    status: "closed",
-    allIncidents: [
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-        boundingBoxes: [[119.87, 199.53, 720, 681.89]],
-      },
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-        boundingBoxes: [[139.06, 229.55, 720, 688.82]],
-      },
-    ],
-  },
-  {
-    event_id: "I-20260203-002",
-    description: "Human healthcare services", // Car Accident → Human healthcare services
-    assignment_time: "2026-02-03T08:43:19.541Z",
-    latitude: 20.3360324,
-    longitude: 85.8118437,
-    image_url:
-      "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
-    boundingBoxes: [[570.5, 137.84, 720, 635.1]],
-    status: "Rejected",
-    allIncidents: [
-      {
-        image_url:
-          "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
-        boundingBoxes: [[570.5, 137.84, 720, 635.1]],
-      },
-    ],
-  },
-];
+// // ─── MOCK: All incidents (from BillionEyes_V1_Incident.json) ────────────────
+// // Remove when using the real API.
+// const MOCK_INCIDENTS = [
+//   {
+//     event_id: "I-20260202-002",
+//     description: "Road Damage", // Pothole → Road Damage
+//     assignment_time: "2026-02-02T08:34:18.724Z",
+//     latitude: 20.2777702,
+//     longitude: 85.8343072,
+//     image_url:
+//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
+//     boundingBoxes: [[264.05, 125.11, 720, 529.66]],
+//     status: "open",
+//     allIncidents: [
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
+//         boundingBoxes: [[264.05, 125.11, 720, 529.66]],
+//       },
+//     ],
+//   },
+//   {
+//     event_id: "I-20260202-004",
+//     description: "Human healthcare services", // Car Accident → Human healthcare services
+//     assignment_time: "2026-02-02T13:35:26.542Z",
+//     latitude: 20.3360432,
+//     longitude: 85.8118569,
+//     image_url:
+//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
+//     boundingBoxes: [[202.84, 149.99, 720, 647.9]],
+//     status: "Assigned",
+//     allIncidents: [
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
+//         boundingBoxes: [[202.84, 149.99, 720, 647.9]],
+//       },
+//     ],
+//   },
+//   {
+//     event_id: "I-20260202-006",
+//     description: "Environmental Violation", // Litter → Environmental Violation
+//     assignment_time: "2026-02-02T18:32:52.003Z",
+//     latitude: 20.3360371,
+//     longitude: 85.8118463,
+//     image_url:
+//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
+//     boundingBoxes: [[90.92, 121.35, 720, 579.16]],
+//     status: "open",
+//     allIncidents: [
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
+//         boundingBoxes: [[90.92, 121.35, 720, 579.16]],
+//       },
+//     ],
+//   },
+//   {
+//     event_id: "I-20260202-008",
+//     description: "Human healthcare services", // Car Accident → Human healthcare services
+//     assignment_time: "2026-02-02T19:16:27.238Z",
+//     latitude: 20.3360353,
+//     longitude: 85.8118478,
+//     image_url:
+//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
+//     boundingBoxes: [[119.87, 199.53, 720, 681.89]],
+//     status: "closed",
+//     allIncidents: [
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
+//         boundingBoxes: [[119.87, 199.53, 720, 681.89]],
+//       },
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
+//         boundingBoxes: [[139.06, 229.55, 720, 688.82]],
+//       },
+//     ],
+//   },
+//   {
+//     event_id: "I-20260203-002",
+//     description: "Human healthcare services", // Car Accident → Human healthcare services
+//     assignment_time: "2026-02-03T08:43:19.541Z",
+//     latitude: 20.3360324,
+//     longitude: 85.8118437,
+//     image_url:
+//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
+//     boundingBoxes: [[570.5, 137.84, 720, 635.1]],
+//     status: "Rejected",
+//     allIncidents: [
+//       {
+//         image_url:
+//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
+//         boundingBoxes: [[570.5, 137.84, 720, 635.1]],
+//       },
+//     ],
+//   },
+// ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -211,54 +211,28 @@ const Dashboard = () => {
   // 2. Sets the header to that agency's name
   // 3. Filters incidents to ONLY those the agency is responsible for
   // Replace this whole block with the real API call when done testing.
+
   useEffect(() => {
-    const agency = MOCK_AGENCIES.find((a) => a.AgencyId === agencyId);
+    if (!agencyId) return;
 
-    if (!agency) {
-      console.error(
-        "[MOCK] Agency not found for id:",
-        agencyId,
-        "— available:",
-        MOCK_AGENCIES.map((a) => a.AgencyId),
-      );
-      setAssignedAgency("Unknown Agency");
-      setDashboardData([]);
-      return;
-    }
+    const fetchDashboardData = async () => {
+      try {
+        const response = await api.get(`backend/agency-dashboard/${agencyId}`);
 
-    setAssignedAgency(agency.AgencyName);
+        setDashboardData(response.data?.assignedEvents || []);
+        setAssignedAgency(response.data?.AgencyName || "Unknown Agency");
 
-    // Keep only incidents whose incident_type is in this agency's responsibility list
-    const filtered = MOCK_INCIDENTS.filter((incident) =>
-      agency.eventResponsibleFor.includes(incident.description),
-    );
+        console.log(`Logged in as ${response.data?.AgencyName} (${agencyId})`);
+        console.log(
+          `Showing ${response.data?.assignedEvents?.length || 0} incidents`,
+        );
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        setAssignedAgency("Error loading agency");
+      }
+    };
 
-    console.log(
-      `[MOCK] Logged in as: ${agency.AgencyName} (${agency.AgencyId})`,
-    );
-    console.log(`[MOCK] Responsible for:`, agency.eventResponsibleFor);
-    console.log(
-      `[MOCK] Showing ${filtered.length} / ${MOCK_INCIDENTS.length} incidents`,
-    );
-
-    setDashboardData(filtered);
-
-    // ── REAL API (uncomment when done testing) ─────────────────────────────
-    // if (!agencyId) {
-    //   console.error("Agency ID is missing");
-    //   return;
-    // }
-    // const fetchDashboardData = async () => {
-    //   try {
-    //     const response = await api.get(`backend/agency-dashboard/${agencyId}`);
-    //     setDashboardData(response.data?.assignedEvents || []);
-    //     setAssignedAgency(response.data?.AgencyName || "Unknown Agency");
-    //   } catch (error) {
-    //     console.error("Error fetching dashboard data:", error);
-    //     setAssignedAgency("Error loading agency");
-    //   }
-    // };
-    // fetchDashboardData();
+    fetchDashboardData();
   }, [agencyId]);
 
   const addFlagAt = (lat, lng, name) => {
