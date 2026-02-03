@@ -140,6 +140,7 @@ const AdminAgencyManager = () => {
     setSuccess('');
   };
 
+  // ✅ FIXED: Handle edit with correct coordinate parsing from DB format [lat, lng]
   const handleEdit = (agency) => {
     const hasJurisdiction = agency.jurisdiction && agency.jurisdiction.coordinates;
     setFormData({
@@ -149,7 +150,10 @@ const AdminAgencyManager = () => {
       latitude: agency.location?.latitude || '',
       longitude: agency.location?.longitude || '',
       jurisdictionPoints: hasJurisdiction
-        ? agency.jurisdiction.coordinates[0].slice(0, 5).map(coord => ({ lat: coord[1], lng: coord[0] }))
+        ? agency.jurisdiction.coordinates[0].slice(0, 5).map(coord => ({ 
+            lat: coord[0],  // First element is lat in your DB format
+            lng: coord[1]   // Second element is lng in your DB format
+          }))
         : [{ lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }, { lat: '', lng: '' }]
     });
     setSelectedAgency(agency);
@@ -216,6 +220,7 @@ const AdminAgencyManager = () => {
     return true;
   };
 
+  // ✅ FIXED: Submit with correct coordinate format [lat, lng] to match DB
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -241,9 +246,10 @@ const AdminAgencyManager = () => {
         payload.lat = parseFloat(formData.latitude);
         payload.lng = parseFloat(formData.longitude);
       } else {
+        // ✅ FIXED: Send coordinates as [lat, lng] to match your DB format
         const coords = formData.jurisdictionPoints
           .filter(p => p.lat && p.lng)
-          .map(p => [parseFloat(p.lng), parseFloat(p.lat)]); // [lng, lat] for GeoJSON
+          .map(p => [parseFloat(p.lat), parseFloat(p.lng)]); // [lat, lng] format
         
         if (coords.length >= 3) {
           coords.push(coords[0]); // Close the polygon
@@ -983,7 +989,7 @@ const AdminAgencyManager = () => {
               </div>
             </div>
 
-            {/* Map View */}
+            {/* Map View - ✅ FIXED: Display with correct coordinate order */}
             <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
               <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
                 <MapPin size={18} className="text-sky-800" />
@@ -1006,7 +1012,7 @@ const AdminAgencyManager = () => {
                       <React.Fragment key={agency._id}>
                         {agency.jurisdiction && agency.jurisdiction.coordinates ? (
                           <Polygon
-                            positions={agency.jurisdiction.coordinates[0].map(coord => [coord[1], coord[0]])}
+                            positions={agency.jurisdiction.coordinates[0].map(coord => [coord[0], coord[1]])}
                             pathOptions={{ color: '#0284c7', fillColor: '#7dd3fc', fillOpacity: 0.4 }}
                           >
                             <Popup>
