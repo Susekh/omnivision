@@ -248,7 +248,7 @@ const EventReport = () => {
           <div className="header-content">
             <div
               className="logo"
-              onClick={() => navigate(`/dashboard/agencyId=${agencyId}`)}
+              onClick={() => navigate(`/dashboard/${reportData.AgencyId}`)}
             >
               <img src="/images/omnivision-logo.png" alt="Logo" />
             </div>
@@ -528,7 +528,6 @@ const EventReport = () => {
       </div>
 
       <footer className="event-report-footer">
-        <img src="/images/footer-bg.png" alt="" />
         <p>© 2025 OmniVision. All rights reserved.</p>
       </footer>
     </section>
