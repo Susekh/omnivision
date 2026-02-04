@@ -233,12 +233,14 @@ const EventReport = () => {
     return <p>No data found for event {event_id}</p>;
   }
 
-  const formattedDate = reportData?.assignment_time
-    ? new Date(reportData.assignment_time).toLocaleDateString()
+  const isoDate = reportData?.assignment_time?.$date;
+
+  const formattedDate = isoDate
+    ? new Date(isoDate).toLocaleDateString()
     : "N/A";
 
-  const formattedTime = reportData?.assignment_time
-    ? new Date(reportData.assignment_time).toLocaleTimeString()
+  const formattedTime = isoDate
+    ? new Date(isoDate).toLocaleTimeString()
     : "N/A";
 
   return (
