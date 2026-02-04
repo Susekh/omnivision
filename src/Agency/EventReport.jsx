@@ -430,9 +430,6 @@ const EventReport = () => {
                     <img
                       src={normalizeImageUrl(reportData.image_url)}
                       alt="Incident"
-                      style={{
-                        transform: "rotate(-90deg)",
-                      }}
                     />
                   </figure>
                 </div>
