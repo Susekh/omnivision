@@ -283,7 +283,7 @@ const EventReport = () => {
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
-              <MenuItem onClick={handleClose}>
+              {/* <MenuItem onClick={handleClose}>
                 <img
                   src="/images/enterprise.png"
                   style={{ width: 42, height: 42, marginRight: 15 }}
@@ -292,7 +292,7 @@ const EventReport = () => {
                 <Link to="/dashboard">
                   <h5 style={{ margin: 0 }}>AGENCY</h5>
                 </Link>
-              </MenuItem>
+              </MenuItem> */}
               <Divider />
               <MenuItem onClick={handleClose}>
                 <ListItemIcon>
@@ -300,7 +300,7 @@ const EventReport = () => {
                 </ListItemIcon>
                 <Link to="/assignGroundstaff">Add Ground Staff</Link>
               </MenuItem>
-              <MenuItem onClick={handleClose}>
+              {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>
                   <Settings fontSize="small" />
                 </ListItemIcon>
@@ -311,7 +311,7 @@ const EventReport = () => {
                   <Logout fontSize="small" />
                 </ListItemIcon>
                 Logout
-              </MenuItem>
+              </MenuItem> */}
             </Menu>
           </div>
         </div>
