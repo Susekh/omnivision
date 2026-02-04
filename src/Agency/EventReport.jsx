@@ -233,12 +233,12 @@ const EventReport = () => {
     return <p>No data found for event {event_id}</p>;
   }
 
-  const formattedDate = reportData?.assignments_time
-    ? new Date(reportData.assignments_time).toLocaleDateString()
+  const formattedDate = reportData?.assignment_time
+    ? new Date(reportData.assignment_time).toLocaleDateString()
     : "N/A";
 
-  const formattedTime = reportData?.assignments_time
-    ? new Date(reportData.assignments_time).toLocaleTimeString()
+  const formattedTime = reportData?.assignment_time
+    ? new Date(reportData.assignment_time).toLocaleTimeString()
     : "N/A";
 
   return (
@@ -526,10 +526,6 @@ const EventReport = () => {
           </div>
         </div>
       </div>
-
-      <footer className="event-report-footer">
-        <p>© 2025 OmniVision. All rights reserved.</p>
-      </footer>
     </section>
   );
 };
