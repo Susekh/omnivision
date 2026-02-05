@@ -64,7 +64,6 @@ const EventReport = () => {
   const [isAssigned, setIsAssigned] = useState(false);
   const [mapCoordinates, setMapCoordinates] = useState(null);
   const [agencyGroundStaff, setAgencyGroundStaff] = useState([]);
-  const { agencyId } = useParams();
 
   // Map states for interactive features
   const [markers, setMarkers] = useState([]);
@@ -172,7 +171,7 @@ const EventReport = () => {
   const handleAddGroundStaff = () => {
     if (reportData?.AgencyId && reportData?.event_id) {
       navigate(
-        `/assignGroundstaff?agencyId=${reportData.AgencyId}&eventId=${reportData.event_id}`,
+        `/assignGroundstaff/${reportData.AgencyId}?eventId=${reportData.event_id}`,
       );
     } else {
       console.error("Agency ID or Event ID is not available");
@@ -300,7 +299,11 @@ const EventReport = () => {
                 <ListItemIcon>
                   <PersonAdd fontSize="small" />
                 </ListItemIcon>
-                <Link to="/assignGroundstaff">Add Ground Staff</Link>
+                <Link
+                  to={`/assignGroundstaff/${reportData.AgencyId}?eventId=${reportData.event_id}`}
+                >
+                  Add Ground Staff
+                </Link>
               </MenuItem>
               {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>

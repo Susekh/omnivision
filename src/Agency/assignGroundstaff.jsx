@@ -1,36 +1,48 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import api from "../api";
 import "../public/assets/css/assignGroundstaff.css";
 
-const assignGroundstaff = () => {
+const AssignGroundstaff = () => {
   const [formData, setFormData] = useState({
     name: "",
     number: "",
     address: "",
   });
+
+  const [message, setMessage] = useState("");
+  const [assignedAgency, setAssignedAgency] = useState("Loading...");
+  const [isOpen, setIsOpen] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
-  const [message, setMessage] = useState("");
+  const { agencyId } = useParams();
 
   const queryParams = new URLSearchParams(location.search);
   const eventId = queryParams.get("eventId");
-  const [assignedAgency, setAssignedAgency] = useState("Loading...");
-  const { agencyId } = useParams();
 
+  const [namePlaceholder, setNamePlaceholder] = useState(
+    "Name of ground staff",
+  );
+  const [numberPlaceholder, setNumberPlaceholder] = useState(
+    "Enter 10-digit mobile number",
+  );
+
+  // 🔹 Fetch Agency Name
   useEffect(() => {
-    if (!agencyId) return;
+    if (!agencyId) return <p>Invalid agency</p>;
 
     const fetchAgencyName = async () => {
       try {
         const response = await api.get(`backend/agency/${agencyId}`);
+
         if (response.data?.success) {
           setAssignedAgency(response.data.data.agency_name);
         } else {
           setAssignedAgency("Agency");
         }
       } catch (error) {
-        console.error("Error fetching agency name:", error);
+        console.error("Error fetching agency:", error);
         setAssignedAgency("Agency");
       }
     };
@@ -38,21 +50,19 @@ const assignGroundstaff = () => {
     fetchAgencyName();
   }, [agencyId]);
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [namePlaceholder, setNamePlaceholder] = useState(
-    "Name of ground staff",
-  );
-  const [numberPlaceholder, setNumberPlaceholder] = useState(
-    "Enter 10-digit mobile number starting with 6",
-  );
-
+  // 🔹 Input handler
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
+  // 🔹 Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (
       !formData.name.trim() ||
       !formData.number.trim() ||
@@ -61,28 +71,34 @@ const assignGroundstaff = () => {
       setMessage("Please fill all fields before submitting.");
       return;
     }
-    try {
-      const dataToSubmit = { ...formData, agencyId };
 
-      const response = await api.post(
-        "backend/agency/addgroundstaff",
-        dataToSubmit,
-      );
-      if (response.data.success) {
+    try {
+      const payload = {
+        ...formData,
+        agencyId,
+      };
+
+      const response = await api.post("backend/agency/addgroundstaff", payload);
+
+      if (response.data?.success) {
         setMessage("Ground staff added successfully!");
-        setFormData({ name: "", number: "", address: "" });
+        setFormData({
+          name: "",
+          number: "",
+          address: "",
+        });
 
         if (eventId) {
           navigate(`/eventReport/${eventId}`);
-        } else if (agencyId) {
+        } else {
           navigate(`/dashboard/${agencyId}`);
         }
       } else {
         setMessage("Failed to add ground staff.");
       }
     } catch (error) {
-      setMessage("An error occurred. Please try again.");
       console.error(error);
+      setMessage("An error occurred. Please try again.");
     }
   };
 
@@ -92,7 +108,6 @@ const assignGroundstaff = () => {
       <header className="assign-header">
         <div className="assign-header-container">
           <div className="assign-header-content">
-            {/* Logo */}
             <div
               className="assign-logo"
               onClick={() => navigate(`/dashboard/${agencyId}`)}
@@ -104,12 +119,10 @@ const assignGroundstaff = () => {
               />
             </div>
 
-            {/* Title */}
             <div className="assign-header-title">
               <h1>{assignedAgency}</h1>
             </div>
 
-            {/* Menu Toggle */}
             <div className="assign-menu-toggle" onClick={() => setIsOpen(true)}>
               <img
                 src="/images/menu-bar.svg"
@@ -121,7 +134,6 @@ const assignGroundstaff = () => {
         </div>
       </header>
 
-      {/* Backdrop */}
       {isOpen && (
         <div className="assign-backdrop" onClick={() => setIsOpen(false)} />
       )}
@@ -129,194 +141,145 @@ const assignGroundstaff = () => {
       {/* Sidebar */}
       <div className={`assign-sidebar ${isOpen ? "assign-sidebar-open" : ""}`}>
         <div className="assign-sidebar-content">
-          <div className="assign-sidebar-header">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="assign-sidebar-close"
-            >
-              ✕
-            </button>
-          </div>
-          <nav>
-            <ul className="assign-sidebar-menu">
-              <li>
-                <button
-                  onClick={() => navigate(`/dashboard/${agencyId}`)}
-                  className="assign-sidebar-menu-item"
-                >
-                  Home
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="assign-sidebar-close"
+          >
+            ✕
+          </button>
+
+          <ul className="assign-sidebar-menu">
+            <li>
+              <button
+                onClick={() => navigate(`/dashboard/${agencyId}`)}
+                className="assign-sidebar-menu-item"
+              >
+                Home
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="assign-main-content">
         <div className="assign-container">
-          {/* Form Card */}
           <div className="assign-form-card">
-            {/* Card Header */}
             <div className="assign-card-header">
-              <div className="assign-card-header-content">
-                <div className="assign-card-icon">
-                  <img src="/images/On-boarding.png" alt="Onboarding" />
-                </div>
-                <h2>Ground Staff Registration</h2>
-              </div>
+              <img src="/images/On-boarding.png" alt="Onboarding" />
+              <h2>Ground Staff Registration</h2>
             </div>
 
-            {/* Form Body */}
-            <div className="assign-card-body">
-              <form onSubmit={handleSubmit} className="assign-form">
-                {/* Name and Mobile Number Row */}
-                <div className="assign-form-row">
-                  {/* Name Field */}
-                  <div className="assign-form-group">
-                    <label htmlFor="name" className="assign-form-label">
-                      Full Name <span className="assign-required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (/^[a-zA-Z\s]*$/.test(input)) {
-                          handleChange(e);
-                          setNamePlaceholder("Name of ground staff");
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const input = e.target.value.trim();
-                        const isValid = input
-                          .split(" ")
-                          .filter(Boolean)
-                          .every((word) => /^[A-Z][a-z]*$/.test(word));
-
-                        if (!isValid && input.length > 0) {
-                          setNamePlaceholder(
-                            "Each word should start with a capital letter (e.g., John Doe)",
-                          );
-                          setFormData({ ...formData, name: "" });
-                        }
-                      }}
-                      placeholder={namePlaceholder}
-                      required
-                      className="assign-form-input"
-                    />
-                  </div>
-
-                  {/* Mobile Number Field */}
-                  <div className="assign-form-group">
-                    <label htmlFor="number" className="assign-form-label">
-                      Mobile Number <span className="assign-required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="number"
-                      name="number"
-                      value={formData.number}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (/^\d{0,10}$/.test(input)) {
-                          handleChange(e);
-                          setNumberPlaceholder(
-                            "Enter 10-digit mobile number starting with 6",
-                          );
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const input = e.target.value;
-                        if (!/^[6-9]\d{9}$/.test(input) && input.length > 0) {
-                          setNumberPlaceholder(
-                            "Mobile number must be 10 digits and start with 6, 7, 8, or 9",
-                          );
-                          setFormData({ ...formData, number: "" });
-                        }
-                      }}
-                      placeholder={numberPlaceholder}
-                      maxLength={10}
-                      required
-                      className="assign-form-input"
-                    />
-                  </div>
-                </div>
-
-                {/* Address Field */}
-                <div className="assign-form-group assign-form-group-full">
-                  <label htmlFor="address" className="assign-form-label">
-                    Address <span className="assign-required">*</span>
+            <form onSubmit={handleSubmit} className="assign-form">
+              <div className="assign-form-row">
+                <div className="assign-form-group">
+                  <label>
+                    Full Name <span>*</span>
                   </label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Enter complete address of ground staff"
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    placeholder={namePlaceholder}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                        handleChange(e);
+                        setNamePlaceholder("Name of ground staff");
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const valid = e.target.value
+                        .trim()
+                        .split(" ")
+                        .every((w) => /^[A-Z][a-z]*$/.test(w));
+
+                      if (!valid && e.target.value) {
+                        setNamePlaceholder(
+                          "Each word must start with a capital letter",
+                        );
+                        setFormData((p) => ({
+                          ...p,
+                          name: "",
+                        }));
+                      }
+                    }}
                     required
-                    rows="4"
-                    className="assign-form-textarea"
                   />
                 </div>
 
-                {/* Action Buttons */}
-                <div className="assign-form-actions">
-                  <button
-                    type="submit"
-                    className="assign-btn assign-btn-submit"
-                  >
-                    Submit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (eventId) {
-                        navigate(`/eventReport/${eventId}`);
-                      } else if (agencyId) {
-                        navigate(`/dashboard/${agencyId}`);
-                      } else {
-                        console.error(
-                          "No valid eventId or agencyId to navigate back.",
-                        );
+                <div className="assign-form-group">
+                  <label>
+                    Mobile Number <span>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="number"
+                    maxLength={10}
+                    value={formData.number}
+                    placeholder={numberPlaceholder}
+                    onChange={(e) => {
+                      if (/^\d{0,10}$/.test(e.target.value)) {
+                        handleChange(e);
+                        setNumberPlaceholder("Enter 10-digit mobile number");
                       }
                     }}
-                    className="assign-btn assign-btn-back"
-                  >
-                    Back
-                  </button>
+                    onBlur={(e) => {
+                      if (
+                        !/^[6-9]\d{9}$/.test(e.target.value) &&
+                        e.target.value
+                      ) {
+                        setNumberPlaceholder(
+                          "Number must start with 9, 7 or 8",
+                        );
+                        setFormData((p) => ({
+                          ...p,
+                          number: "",
+                        }));
+                      }
+                    }}
+                    required
+                  />
                 </div>
+              </div>
 
-                {/* Message Display */}
-                {message && (
-                  <div
-                    className={`assign-message ${
-                      message.includes("successfully")
-                        ? "assign-message-success"
-                        : "assign-message-error"
-                    }`}
-                  >
-                    <p>{message}</p>
-                  </div>
-                )}
-              </form>
-            </div>
+              <div className="assign-form-group">
+                <label>
+                  Address <span>*</span>
+                </label>
+                <textarea
+                  name="address"
+                  rows="4"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="assign-form-actions">
+                <button type="submit">Submit</button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    eventId
+                      ? navigate(`/eventReport/${eventId}`)
+                      : navigate(`/dashboard/${agencyId}`)
+                  }
+                >
+                  Back
+                </button>
+              </div>
+
+              {message && <p>{message}</p>}
+            </form>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="assign-footer">
-        <div className="assign-footer-container">
-          <p className="assign-footer-text">
-            © 2026 OmniVision. All rights reserved.
-          </p>
-        </div>
+        © 2026 OmniVision. All rights reserved.
       </footer>
     </div>
   );
 };
 
-export default assignGroundstaff;
+export default AssignGroundstaff;

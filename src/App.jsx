@@ -25,11 +25,7 @@ import AdminAgencyManager from "./pages/AdminAgencyManager";
 const ProtectedRoute = ({ element: Element }) => {
   const isAuthenticated = !!localStorage.getItem("token");
 
-  return isAuthenticated ? (
-    <Element />
-  ) : (
-    <Navigate to="/agencyLogin" replace />
-  );
+  return isAuthenticated ? <Element /> : <Navigate to="/agencyLogin" replace />;
 };
 
 function App() {
@@ -38,26 +34,33 @@ function App() {
       <Routes>
         {/* Splash Page - Displays first for 3 seconds */}
         <Route path="/" element={<SplashPage />} />
-        
+
         {/* Public Routes */}
         <Route path="/Agency" element={<BillionEye />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/home" element={<BillionEyePublic />} />
         <Route path="/Camera" element={<CameraPage />} />
-        <Route path="/onBoardingStaff" element={<ProtectedRoute element={OnBoardingStaff} />} />
-        <Route path="/eventReport/:event_id"  element={<ProtectedRoute element={EventReport} />} />
+        <Route
+          path="/onBoardingStaff"
+          element={<ProtectedRoute element={OnBoardingStaff} />}
+        />
+        <Route
+          path="/eventReport/:event_id"
+          element={<ProtectedRoute element={EventReport} />}
+        />
         <Route path="/gomaps" element={<GoMapsTest />} />
         <Route path="/agencyLogin" element={<AgencyLogin />} />
         {/* <Route path="/agencyRegister" element={<AgencyRegister />} /> */}
         <Route path="/ongoingTax" element={<OngoingTax />} />
+        <Route path="/dashboard/:agencyId" element={<Dashboard />} />
         <Route
-          path="/dashboard/:agencyId"
-          element={<Dashboard />}
+          path="/assignGroundstaff/:agencyId"
+          element={<ProtectedRoute element={AssignGroundStaff} />}
         />
-        <Route path="/assignGroundstaff" element={<ProtectedRoute element={AssignGroundStaff} />} />
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/admin" element={<AdminAgencyManager/>} />
+        <Route path="/admin" element={<AdminAgencyManager />} />
 
         {/* Protected Routes */}
 
