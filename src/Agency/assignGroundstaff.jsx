@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
 
@@ -25,6 +25,29 @@ const AssignGroundStaff = () => {
     "Enter 10-digit mobile number",
   );
 
+  /* =========================
+     FETCH AGENCY NAME
+     ========================= */
+  useEffect(() => {
+    if (!agencyId) return;
+
+    const fetchAgencyName = async () => {
+      try {
+        const response = await api.get(`backend/agency/${agencyId}`);
+        if (response.data?.success) {
+          setAssignedAgency(response.data.data.agency_name);
+        } else {
+          setAssignedAgency("Agency");
+        }
+      } catch (error) {
+        console.error("Error fetching agency name:", error);
+        setAssignedAgency("Agency");
+      }
+    };
+
+    fetchAgencyName();
+  }, [agencyId]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -32,6 +55,7 @@ const AssignGroundStaff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (
       !formData.name.trim() ||
       !formData.number.trim() ||
@@ -64,8 +88,9 @@ const AssignGroundStaff = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-b from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff]">
-      {/* Header */}
+    /* PAGE BACKGROUND → WHITE */
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* ================= HEADER (GRADIENT ONLY HERE) ================= */}
       <header className="sticky top-0 z-50 bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -74,9 +99,9 @@ const AssignGroundStaff = () => {
               onClick={() => navigate(`/dashboard/${agencyId}`)}
             >
               <img
-                src="/billioneye/images/logo-small.png"
+                src="/image/omnivision-logo.png"
                 alt="Logo"
-                className="h-16 w-auto bg-transparent rounded-lg p-2 shadow-md"
+                className="h-16 w-auto bg-transparent p-2"
               />
             </div>
 
@@ -100,7 +125,7 @@ const AssignGroundStaff = () => {
         </div>
       </header>
 
-      {/* Sidebar */}
+      {/* ================= SIDEBAR ================= */}
       <div
         className={`fixed top-0 left-0 h-full w-72 bg-linear-to-b from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-2xl transform transition-transform duration-300 z-50 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -127,16 +152,94 @@ const AssignGroundStaff = () => {
         </div>
       </div>
 
-      {/* Card Header */}
-      <div className="bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] px-6 py-5 border-b-4 border-[#4fa3e3]">
-        <h2 className="text-2xl font-bold text-white">
-          Ground Staff Registration
-        </h2>
-      </div>
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="flex-1 py-10 px-4">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+          <h2 className="text-2xl font-bold text-[#1f6fb2] mb-6">
+            Ground Staff Registration
+          </h2>
 
-      {/* Footer */}
-      <footer className="bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] text-center py-6 mt-auto">
-        <p className="text-white/90 text-sm tracking-wide">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block font-semibold mb-2">Full Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder={namePlaceholder}
+                className="w-full border px-4 py-3 rounded-lg"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Mobile Number *
+              </label>
+              <input
+                type="text"
+                name="number"
+                value={formData.number}
+                onChange={handleChange}
+                placeholder={numberPlaceholder}
+                maxLength={10}
+                className="w-full border px-4 py-3 rounded-lg"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2">Address *</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows="4"
+                className="w-full border px-4 py-3 rounded-lg"
+                required
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
+              >
+                Submit
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  eventId
+                    ? navigate(`/eventReport/${eventId}`)
+                    : navigate(`/dashboard/${agencyId}`)
+                }
+                className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700"
+              >
+                Back
+              </button>
+            </div>
+
+            {message && (
+              <div
+                className={`p-4 rounded-lg ${
+                  message.includes("success")
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+          </form>
+        </div>
+      </main>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-gray-100 text-center py-4">
+        <p className="text-gray-600 text-sm">
           © 2026 OmniVision. All rights reserved.
         </p>
       </footer>
