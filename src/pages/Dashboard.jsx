@@ -960,17 +960,17 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ─── FOOTER (bottom) ──────────────────────────────────────────────── */}
       <div
         style={{
-          minHeight: "100vh",
+          flexGrow: 1,
           display: "flex",
           flexDirection: "column",
+          margin: "50px 0",
         }}
-      >
-        {/* MAIN CONTENT */}
-        <div style={{ flex: 1 }}>{/* your cards + map layout */}</div>
+      ></div>
 
+      {/* ─── FOOTER (bottom) ──────────────────────────────────────────────── */}
+      <div>
         {/* FOOTER */}
         <footer
           style={{

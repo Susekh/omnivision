@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: sans-serif;
-    overflow: auto; /* Enable scrolling */
+    overflow: visible; /* Enable scrolling */
     height: auto;
     width: 100%;
 }
@@ -264,7 +264,7 @@ body {
 
 
 .main.dashboard-main {
-    overflow: visible; /* Enable scrolling inside the main container */
+    overflow: hidden; /* Enable scrolling inside the main container */
     min-height: auto; /* Full height of the viewport */
     padding: 0; /* Remove padding */
     box-sizing: border-box; /* Include padding and border in height/width */
