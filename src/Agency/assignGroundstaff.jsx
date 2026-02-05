@@ -76,7 +76,7 @@ const AssignGroundStaff = () => {
               <img
                 src="/billioneye/images/logo-small.png"
                 alt="Logo"
-                className="h-16 w-auto bg-white rounded-lg p-2 shadow-md"
+                className="h-16 w-auto bg-transparent rounded-lg p-2 shadow-md"
               />
             </div>
 
