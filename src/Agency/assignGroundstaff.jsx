@@ -1,33 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
+import "../public/assets/css/assignGroundstaff.css";
 
-const AssignGroundStaff = () => {
+const assignGroundstaff = () => {
   const [formData, setFormData] = useState({
     name: "",
     number: "",
     address: "",
   });
-
   const navigate = useNavigate();
   const location = useLocation();
   const [message, setMessage] = useState("");
-  const [assignedAgency, setAssignedAgency] = useState("Loading...");
+
   const queryParams = new URLSearchParams(location.search);
   const eventId = queryParams.get("eventId");
-  const agencyId = queryParams.get("agencyId");
+  const [assignedAgency, setAssignedAgency] = useState("Loading...");
+  const { agencyId } = useParams();
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [namePlaceholder, setNamePlaceholder] = useState(
-    "Name of ground staff",
-  );
-  const [numberPlaceholder, setNumberPlaceholder] = useState(
-    "Enter 10-digit mobile number",
-  );
-
-  /* =========================
-     FETCH AGENCY NAME
-     ========================= */
   useEffect(() => {
     if (!agencyId) return;
 
@@ -48,6 +38,14 @@ const AssignGroundStaff = () => {
     fetchAgencyName();
   }, [agencyId]);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [namePlaceholder, setNamePlaceholder] = useState(
+    "Name of ground staff",
+  );
+  const [numberPlaceholder, setNumberPlaceholder] = useState(
+    "Enter 10-digit mobile number starting with 6",
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -55,7 +53,6 @@ const AssignGroundStaff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       !formData.name.trim() ||
       !formData.number.trim() ||
@@ -64,20 +61,22 @@ const AssignGroundStaff = () => {
       setMessage("Please fill all fields before submitting.");
       return;
     }
-
     try {
       const dataToSubmit = { ...formData, agencyId };
+
       const response = await api.post(
         "backend/agency/addgroundstaff",
         dataToSubmit,
       );
-
       if (response.data.success) {
         setMessage("Ground staff added successfully!");
         setFormData({ name: "", number: "", address: "" });
 
-        if (eventId) navigate(`/eventReport/${eventId}`);
-        else if (agencyId) navigate(`/dashboard/${agencyId}`);
+        if (eventId) {
+          navigate(`/eventReport/${eventId}`);
+        } else if (agencyId) {
+          navigate(`/dashboard/${agencyId}`);
+        }
       } else {
         setMessage("Failed to add ground staff.");
       }
@@ -88,163 +87,236 @@ const AssignGroundStaff = () => {
   };
 
   return (
-    /* PAGE BACKGROUND → WHITE */
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* ================= HEADER (GRADIENT ONLY HERE) ================= */}
-      <header className="sticky top-0 z-50 bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+    <div className="assign-ground-staff-wrapper">
+      {/* Header */}
+      <header className="assign-header">
+        <div className="assign-header-container">
+          <div className="assign-header-content">
+            {/* Logo */}
             <div
-              className="shrink-0 cursor-pointer transition-transform hover:scale-105"
+              className="assign-logo"
               onClick={() => navigate(`/dashboard/${agencyId}`)}
             >
               <img
-                src="/image/omnivision-logo.png"
+                src="/images/omnivision-logo.png"
                 alt="Logo"
-                className="h-16 w-auto bg-transparent p-2"
+                className="assign-logo-image"
               />
             </div>
 
-            <div className="flex-1 text-center">
-              <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-wide">
-                {assignedAgency}
-              </h1>
+            {/* Title */}
+            <div className="assign-header-title">
+              <h1>{assignedAgency}</h1>
             </div>
 
-            <div
-              className="cursor-pointer p-2 hover:bg-white/20 rounded-lg transition-all"
-              onClick={() => setIsOpen(true)}
-            >
+            {/* Menu Toggle */}
+            <div className="assign-menu-toggle" onClick={() => setIsOpen(true)}>
               <img
-                src="/billioneye/images/menu-bar.svg"
+                src="/images/menu-bar.svg"
                 alt="Menu"
-                className="h-7 w-7 brightness-0 invert"
+                className="assign-menu-icon"
               />
             </div>
           </div>
         </div>
       </header>
 
-      {/* ================= SIDEBAR ================= */}
-      <div
-        className={`fixed top-0 left-0 h-full w-72 bg-linear-to-b from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-2xl transform transition-transform duration-300 z-50 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full justify-between p-6">
-          <div>
-            <div className="flex justify-end mb-8">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-white text-3xl hover:bg-white/20 w-10 h-10 rounded-full"
-              >
-                ✕
-              </button>
-            </div>
+      {/* Backdrop */}
+      {isOpen && (
+        <div className="assign-backdrop" onClick={() => setIsOpen(false)} />
+      )}
 
+      {/* Sidebar */}
+      <div className={`assign-sidebar ${isOpen ? "assign-sidebar-open" : ""}`}>
+        <div className="assign-sidebar-content">
+          <div className="assign-sidebar-header">
             <button
-              onClick={() => navigate(`/dashboard/${agencyId}`)}
-              className="w-full px-6 py-3 bg-white text-[#1f6fb2] rounded-lg font-semibold hover:bg-[#1f6fb2] hover:text-white transition-all shadow-md"
+              onClick={() => setIsOpen(false)}
+              className="assign-sidebar-close"
             >
-              Home
+              ✕
             </button>
           </div>
+          <nav>
+            <ul className="assign-sidebar-menu">
+              <li>
+                <button
+                  onClick={() => navigate(`/dashboard/${agencyId}`)}
+                  className="assign-sidebar-menu-item"
+                >
+                  Home
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
 
-      {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 py-10 px-4">
-        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-[#1f6fb2] mb-6">
-            Ground Staff Registration
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block font-semibold mb-2">Full Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder={namePlaceholder}
-                className="w-full border px-4 py-3 rounded-lg"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2">
-                Mobile Number *
-              </label>
-              <input
-                type="text"
-                name="number"
-                value={formData.number}
-                onChange={handleChange}
-                placeholder={numberPlaceholder}
-                maxLength={10}
-                className="w-full border px-4 py-3 rounded-lg"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2">Address *</label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                rows="4"
-                className="w-full border px-4 py-3 rounded-lg"
-                required
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
-              >
-                Submit
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  eventId
-                    ? navigate(`/eventReport/${eventId}`)
-                    : navigate(`/dashboard/${agencyId}`)
-                }
-                className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700"
-              >
-                Back
-              </button>
-            </div>
-
-            {message && (
-              <div
-                className={`p-4 rounded-lg ${
-                  message.includes("success")
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}
-              >
-                {message}
+      {/* Main Content */}
+      <main className="assign-main-content">
+        <div className="assign-container">
+          {/* Form Card */}
+          <div className="assign-form-card">
+            {/* Card Header */}
+            <div className="assign-card-header">
+              <div className="assign-card-header-content">
+                <div className="assign-card-icon">
+                  <img src="/images/On-boarding.png" alt="Onboarding" />
+                </div>
+                <h2>Ground Staff Registration</h2>
               </div>
-            )}
-          </form>
+            </div>
+
+            {/* Form Body */}
+            <div className="assign-card-body">
+              <form onSubmit={handleSubmit} className="assign-form">
+                {/* Name and Mobile Number Row */}
+                <div className="assign-form-row">
+                  {/* Name Field */}
+                  <div className="assign-form-group">
+                    <label htmlFor="name" className="assign-form-label">
+                      Full Name <span className="assign-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={(e) => {
+                        const input = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(input)) {
+                          handleChange(e);
+                          setNamePlaceholder("Name of ground staff");
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const input = e.target.value.trim();
+                        const isValid = input
+                          .split(" ")
+                          .filter(Boolean)
+                          .every((word) => /^[A-Z][a-z]*$/.test(word));
+
+                        if (!isValid && input.length > 0) {
+                          setNamePlaceholder(
+                            "Each word should start with a capital letter (e.g., John Doe)",
+                          );
+                          setFormData({ ...formData, name: "" });
+                        }
+                      }}
+                      placeholder={namePlaceholder}
+                      required
+                      className="assign-form-input"
+                    />
+                  </div>
+
+                  {/* Mobile Number Field */}
+                  <div className="assign-form-group">
+                    <label htmlFor="number" className="assign-form-label">
+                      Mobile Number <span className="assign-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="number"
+                      name="number"
+                      value={formData.number}
+                      onChange={(e) => {
+                        const input = e.target.value;
+                        if (/^\d{0,10}$/.test(input)) {
+                          handleChange(e);
+                          setNumberPlaceholder(
+                            "Enter 10-digit mobile number starting with 6",
+                          );
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const input = e.target.value;
+                        if (!/^[6-9]\d{9}$/.test(input) && input.length > 0) {
+                          setNumberPlaceholder(
+                            "Mobile number must be 10 digits and start with 6, 7, 8, or 9",
+                          );
+                          setFormData({ ...formData, number: "" });
+                        }
+                      }}
+                      placeholder={numberPlaceholder}
+                      maxLength={10}
+                      required
+                      className="assign-form-input"
+                    />
+                  </div>
+                </div>
+
+                {/* Address Field */}
+                <div className="assign-form-group assign-form-group-full">
+                  <label htmlFor="address" className="assign-form-label">
+                    Address <span className="assign-required">*</span>
+                  </label>
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Enter complete address of ground staff"
+                    required
+                    rows="4"
+                    className="assign-form-textarea"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="assign-form-actions">
+                  <button
+                    type="submit"
+                    className="assign-btn assign-btn-submit"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (eventId) {
+                        navigate(`/eventReport/${eventId}`);
+                      } else if (agencyId) {
+                        navigate(`/dashboard/${agencyId}`);
+                      } else {
+                        console.error(
+                          "No valid eventId or agencyId to navigate back.",
+                        );
+                      }
+                    }}
+                    className="assign-btn assign-btn-back"
+                  >
+                    Back
+                  </button>
+                </div>
+
+                {/* Message Display */}
+                {message && (
+                  <div
+                    className={`assign-message ${
+                      message.includes("successfully")
+                        ? "assign-message-success"
+                        : "assign-message-error"
+                    }`}
+                  >
+                    <p>{message}</p>
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
         </div>
       </main>
 
-      {/* ================= FOOTER ================= */}
-      <footer className="bg-gray-100 text-center py-4">
-        <p className="text-gray-600 text-sm">
-          © 2026 OmniVision. All rights reserved.
-        </p>
+      {/* Footer */}
+      <footer className="assign-footer">
+        <div className="assign-footer-container">
+          <p className="assign-footer-text">
+            © 2026 OmniVision. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   );
 };
 
-export default AssignGroundStaff;
+export default assignGroundstaff;
