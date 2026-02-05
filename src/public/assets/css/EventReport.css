@@ -265,6 +265,13 @@ body {
   flex: 0.8;
 }
 
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    BUTTONS
    ═══════════════════════════════════════════════════════════════════ */
@@ -328,4 +335,6 @@ body {
   .map-container {
     height: 300px;
   }
+
 }
+

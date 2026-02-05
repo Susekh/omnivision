@@ -22,6 +22,7 @@ import Tooltip from "@mui/material/Tooltip";
 import PersonAdd from "@mui/icons-material/PersonAdd";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
+import Loader from "../components/loader";
 
 // Leaflet icon setup
 delete L.Icon.Default.prototype._getIconUrl;
@@ -225,7 +226,7 @@ const EventReport = () => {
   };
 
   if (loading) {
-    return <p>Loading report data...</p>;
+    return <Loader className="loader-container" />;
   }
 
   if (!reportData) {
