@@ -28,21 +28,18 @@ const AssignGroundstaff = () => {
     "Enter 10-digit mobile number",
   );
 
-  // 🔹 Fetch Agency Name
   useEffect(() => {
-    if (!agencyId) return <p>Invalid agency</p>;
+    if (!agencyId) return;
 
     const fetchAgencyName = async () => {
       try {
         const response = await api.get(`backend/agency/${agencyId}`);
-
         if (response.data?.success) {
           setAssignedAgency(response.data.data.agency_name);
         } else {
           setAssignedAgency("Agency");
         }
-      } catch (error) {
-        console.error("Error fetching agency:", error);
+      } catch {
         setAssignedAgency("Agency");
       }
     };
@@ -50,61 +47,41 @@ const AssignGroundstaff = () => {
     fetchAgencyName();
   }, [agencyId]);
 
-  // 🔹 Input handler
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.name.trim() ||
-      !formData.number.trim() ||
-      !formData.address.trim()
-    ) {
+    if (!formData.name || !formData.number || !formData.address) {
       setMessage("Please fill all fields before submitting.");
       return;
     }
 
     try {
-      const payload = {
-        ...formData,
-        agencyId,
-      };
-
+      const payload = { ...formData, agencyId };
       const response = await api.post("backend/agency/addgroundstaff", payload);
 
       if (response.data?.success) {
         setMessage("Ground staff added successfully!");
-        setFormData({
-          name: "",
-          number: "",
-          address: "",
-        });
+        setFormData({ name: "", number: "", address: "" });
 
-        if (eventId) {
-          navigate(`/eventReport/${eventId}`);
-        } else {
-          navigate(`/dashboard/${agencyId}`);
-        }
+        eventId
+          ? navigate(`/eventReport/${eventId}`)
+          : navigate(`/dashboard/${agencyId}`);
       } else {
         setMessage("Failed to add ground staff.");
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       setMessage("An error occurred. Please try again.");
     }
   };
 
   return (
     <div className="assign-ground-staff-wrapper">
-      {/* Header */}
+      {/* HEADER */}
       <header className="assign-header">
         <div className="assign-header-container">
           <div className="assign-header-content">
@@ -120,7 +97,7 @@ const AssignGroundstaff = () => {
             </div>
 
             <div className="assign-header-title">
-              <h1>{assignedAgency}</h1>
+              <h1>Ground Staff Registration</h1>
             </div>
 
             <div className="assign-menu-toggle" onClick={() => setIsOpen(true)}>
@@ -138,7 +115,7 @@ const AssignGroundstaff = () => {
         <div className="assign-backdrop" onClick={() => setIsOpen(false)} />
       )}
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <div className={`assign-sidebar ${isOpen ? "assign-sidebar-open" : ""}`}>
         <div className="assign-sidebar-content">
           <button
@@ -161,116 +138,137 @@ const AssignGroundstaff = () => {
         </div>
       </div>
 
-      {/* Main */}
+      {/* MAIN */}
       <main className="assign-main-content">
         <div className="assign-container">
           <div className="assign-form-card">
+            {/* CARD HEADER */}
             <div className="assign-card-header">
-              <img src="/images/On-boarding.png" alt="Onboarding" />
-              <h2>Ground Staff Registration</h2>
+              <div className="assign-card-header-content">
+                <div className="assign-card-icon">
+                  <img src="/images/On-boarding.png" alt="Onboarding" />
+                </div>
+                <h2>Add Ground Staff</h2>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="assign-form">
-              <div className="assign-form-row">
-                <div className="assign-form-group">
-                  <label>
-                    Full Name <span>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    placeholder={namePlaceholder}
-                    onChange={(e) => {
-                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
-                        handleChange(e);
-                        setNamePlaceholder("Name of ground staff");
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const valid = e.target.value
-                        .trim()
-                        .split(" ")
-                        .every((w) => /^[A-Z][a-z]*$/.test(w));
+            {/* CARD BODY */}
+            <div className="assign-card-body">
+              <form onSubmit={handleSubmit} className="assign-form">
+                <div className="assign-form-row">
+                  <div className="assign-form-group">
+                    <label className="assign-form-label">
+                      Full Name <span className="assign-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      placeholder={namePlaceholder}
+                      className="assign-form-input"
+                      onChange={(e) => {
+                        if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                          handleChange(e);
+                          setNamePlaceholder("Name of ground staff");
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const valid = e.target.value
+                          .trim()
+                          .split(" ")
+                          .every((w) => /^[A-Z][a-z]*$/.test(w));
+                        if (!valid && e.target.value) {
+                          setNamePlaceholder(
+                            "Each word must start with a capital letter",
+                          );
+                          setFormData((p) => ({ ...p, name: "" }));
+                        }
+                      }}
+                      required
+                    />
+                  </div>
 
-                      if (!valid && e.target.value) {
-                        setNamePlaceholder(
-                          "Each word must start with a capital letter",
-                        );
-                        setFormData((p) => ({
-                          ...p,
-                          name: "",
-                        }));
-                      }
-                    }}
+                  <div className="assign-form-group">
+                    <label className="assign-form-label">
+                      Mobile Number <span className="assign-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="number"
+                      maxLength={10}
+                      value={formData.number}
+                      placeholder={numberPlaceholder}
+                      className="assign-form-input"
+                      onChange={(e) => {
+                        if (/^\d{0,10}$/.test(e.target.value)) {
+                          handleChange(e);
+                          setNumberPlaceholder("Enter 10-digit mobile number");
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (
+                          !/^[6-9]\d{9}$/.test(e.target.value) &&
+                          e.target.value
+                        ) {
+                          setNumberPlaceholder(
+                            "Number must start with 9, 7 or 8",
+                          );
+                          setFormData((p) => ({ ...p, number: "" }));
+                        }
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="assign-form-group">
+                  <label className="assign-form-label">
+                    Address <span className="assign-required">*</span>
+                  </label>
+                  <textarea
+                    name="address"
+                    rows="4"
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="assign-form-textarea"
                     required
                   />
                 </div>
 
-                <div className="assign-form-group">
-                  <label>
-                    Mobile Number <span>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="number"
-                    maxLength={10}
-                    value={formData.number}
-                    placeholder={numberPlaceholder}
-                    onChange={(e) => {
-                      if (/^\d{0,10}$/.test(e.target.value)) {
-                        handleChange(e);
-                        setNumberPlaceholder("Enter 10-digit mobile number");
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (
-                        !/^[6-9]\d{9}$/.test(e.target.value) &&
-                        e.target.value
-                      ) {
-                        setNumberPlaceholder(
-                          "Number must start with 9, 7 or 8",
-                        );
-                        setFormData((p) => ({
-                          ...p,
-                          number: "",
-                        }));
-                      }
-                    }}
-                    required
-                  />
+                <div className="assign-form-actions">
+                  <button
+                    type="submit"
+                    className="assign-btn assign-btn-submit"
+                  >
+                    Submit
+                  </button>
+
+                  <button
+                    type="button"
+                    className="assign-btn assign-btn-back"
+                    onClick={() =>
+                      eventId
+                        ? navigate(`/eventReport/${eventId}`)
+                        : navigate(`/dashboard/${agencyId}`)
+                    }
+                  >
+                    Back
+                  </button>
                 </div>
-              </div>
 
-              <div className="assign-form-group">
-                <label>
-                  Address <span>*</span>
-                </label>
-                <textarea
-                  name="address"
-                  rows="4"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="assign-form-actions">
-                <button type="submit">Submit</button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    eventId
-                      ? navigate(`/eventReport/${eventId}`)
-                      : navigate(`/dashboard/${agencyId}`)
-                  }
-                >
-                  Back
-                </button>
-              </div>
-
-              {message && <p>{message}</p>}
-            </form>
+                {message && (
+                  <div
+                    className={`assign-message ${
+                      message.includes("success")
+                        ? "assign-message-success"
+                        : "assign-message-error"
+                    }`}
+                  >
+                    <p>{message}</p>
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
         </div>
       </main>
