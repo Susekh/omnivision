@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
 
 const AssignGroundStaff = () => {
@@ -8,19 +8,28 @@ const AssignGroundStaff = () => {
     number: "",
     address: "",
   });
-  const navigate = useNavigate();
-  const location = useLocation(); // Fixed useLocation
-  const [message, setMessage] = useState("");
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [message, setMessage] = useState("");
+  const [assignedAgency, setAssignedAgency] = useState("Loading...");
   const queryParams = new URLSearchParams(location.search);
   const eventId = queryParams.get("eventId");
-  const agencyId = queryParams.get("agencyId"); // Retrieve agencyId from query params
+  const agencyId = queryParams.get("agencyId");
 
-  const [isOpen, setIsOpen] = useState(false); // Added useState
+  const [isOpen, setIsOpen] = useState(false);
+  const [namePlaceholder, setNamePlaceholder] = useState(
+    "Name of ground staff",
+  );
+  const [numberPlaceholder, setNumberPlaceholder] = useState(
+    "Enter 10-digit mobile number",
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (
@@ -31,24 +40,20 @@ const AssignGroundStaff = () => {
       setMessage("Please fill all fields before submitting.");
       return;
     }
-    try {
-      // Include agencyId in the formData
-      const dataToSubmit = { ...formData, agencyId };
 
+    try {
+      const dataToSubmit = { ...formData, agencyId };
       const response = await api.post(
         "backend/agency/addgroundstaff",
-        dataToSubmit
+        dataToSubmit,
       );
+
       if (response.data.success) {
         setMessage("Ground staff added successfully!");
-        setFormData({ name: "", number: "", address: "" }); // Reset form
+        setFormData({ name: "", number: "", address: "" });
 
-        // Redirect back to EventReport with eventId or dashboard if not present
-        if (eventId) {
-          navigate(`/eventReport/${eventId}`);
-        } else if (agencyId) {
-          navigate(`/dashboard/${agencyId}`);
-        }
+        if (eventId) navigate(`/eventReport/${eventId}`);
+        else if (agencyId) navigate(`/dashboard/${agencyId}`);
       } else {
         setMessage("Failed to add ground staff.");
       }
@@ -58,364 +63,84 @@ const AssignGroundStaff = () => {
     }
   };
 
-  const [namePlaceholder, setNamePlaceholder] = useState("Name of ground staff");
-  const [numberPlaceholder, setNumberPlaceholder] = useState("Enter 10-digit mobile number starting with 6");
-
   return (
-    <section className="main dashboard-main onboarding_ground_staff_page">
-      <section
-        className="dashboard-main-page-wrapper"
-        style={{ backgroundColor: " #eaf8ff" }}
+    <div className="min-h-screen flex flex-col bg-linear-to-b from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div
+              className="shrink-0 cursor-pointer transition-transform hover:scale-105"
+              onClick={() => navigate(`/dashboard/${agencyId}`)}
+            >
+              <img
+                src="/billioneye/images/logo-small.png"
+                alt="Logo"
+                className="h-16 w-auto bg-white rounded-lg p-2 shadow-md"
+              />
+            </div>
+
+            <div className="flex-1 text-center">
+              <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-wide">
+                {assignedAgency}
+              </h1>
+            </div>
+
+            <div
+              className="cursor-pointer p-2 hover:bg-white/20 rounded-lg transition-all"
+              onClick={() => setIsOpen(true)}
+            >
+              <img
+                src="/billioneye/images/menu-bar.svg"
+                alt="Menu"
+                className="h-7 w-7 brightness-0 invert"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-72 bg-linear-to-b from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] shadow-2xl transform transition-transform duration-300 z-50 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <header>
-          <div className="container">
-            <div className="row" style={{ marginTop: "-11px" }}>
-              <div className="col-md-12">
-                <div className="top-1">
-                  <div
-                    className="logo"
-                    onClick={() => navigate(`/dashboard/${agencyId}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <img
-                      src="/billioneye/images/logo-small.png"
-                      alt="Logo"
-                      title=""
-                    />
-                  </div>
-                  {/* Hamburger Menu Button */}
-                  <div
-                    style={{
-                      cursor: "pointer",
-                      fontSize: "24px",
-                      padding: "10px",
-                      zIndex: "1100", // Ensures it's clickable
-                    }}
-                    onClick={() => setIsOpen(true)}
-                  >
-                    <img src="/billioneye/images/menu-bar.svg" alt="" />
-                  </div>
-                  {/* Backdrop to close the menu when clicking outside */}
-                  {isOpen && (
-                    <div
-                      style={{
-                        position: "fixed",
-                        top: "0",
-                        left: "0",
-                        width: "100%",
-                        height: "100vh",
-                        background: "rgba(0, 0, 0, 0.3)",
-                        zIndex: "999", // Below the menu, above other content
-                      }}
-                      onClick={() => setIsOpen(false)}
-                    ></div>
-                  )}
-
-                  {/* DropDown Nav Menu */}
-                  <div
-                    style={{
-                      position: "fixed",
-                      top: "0",
-                      left: isOpen ? "0" : "-250px",
-                      width: "250px",
-                      height: "100vh",
-                      background: "linear-gradient(135deg, #6a11cb, #2575fc)",
-                      boxShadow: "2px 0px 10px rgba(0, 0, 0, 0.3)",
-                      transition: "left 0.3s ease-in-out",
-                      padding: "20px",
-                      zIndex: "1000",
-                      color: "#fff",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div>
-                      <span
-                        style={{
-                          fontSize: "24px",
-                          cursor: "pointer",
-                          display: "block",
-                          marginBottom: "20px",
-                          color: "#fff",
-                        }}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        ✕
-                      </span>
-                      <ul
-                        style={{
-                          listStyle: "none",
-                          padding: "0",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "10px",
-                        }}
-                      >
-                        <li
-                          onClick={() => navigate(`/dashboard/${agencyId}`)}
-                          style={{
-                            padding: "12px 76px",
-                            background: "#fff",
-                            color: "#2575fc",
-                            borderRadius: "5px",
-                            textAlign: "center",
-                            cursor: "pointer",
-                            border: "none",
-                            transition: "background 0.3s ease, color 0.3s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#2575fc";
-                            e.target.style.color = "#fff";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "#fff";
-                            e.target.style.color = "#2575fc";
-                          }}
-                        >
-                          Home
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* <div className="menu-con">
-                                        <nav id="navigation1" className="navigation">
-                                            <div className="nav-header">
-                                                <div className="nav-toggle"></div>
-                                            </div>
-                                            <div className="nav-menus-wrapper">
-                                                <ul className="navbar-nav">
-                                                    <li className="nav-item active">
-                                                        <a href="dashboard-admin-bmc.html">HOME</a>
-                                                    </li>
-                                                    <li className="nav-item">
-                                                        <a href="onboarding_ground_staff.html">Onboarding ground staff</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </nav>
-                                    </div> */}
-                </div>
-              </div>
+        <div className="flex flex-col h-full justify-between p-6">
+          <div>
+            <div className="flex justify-end mb-8">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white text-3xl hover:bg-white/20 w-10 h-10 rounded-full"
+              >
+                ✕
+              </button>
             </div>
+
+            <button
+              onClick={() => navigate(`/dashboard/${agencyId}`)}
+              className="w-full px-6 py-3 bg-white text-[#1f6fb2] rounded-lg font-semibold hover:bg-[#1f6fb2] hover:text-white transition-all shadow-md"
+            >
+              Home
+            </button>
           </div>
-        </header>
+        </div>
+      </div>
 
-        <section className="page-heading" style={{ padding: "2px" }}>
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <h3>BMC</h3>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* Card Header */}
+      <div className="bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] px-6 py-5 border-b-4 border-[#4fa3e3]">
+        <h2 className="text-2xl font-bold text-white">
+          Ground Staff Registration
+        </h2>
+      </div>
 
-        <section className="onboarding_ground_staff_wrapper">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <div className="table-card">
-                  <div className="table-card-heading">
-                    <div className="table-card-heading-icon">
-                      <img
-                        src="/billioneye/images/On-boarding.png"
-                        alt="Onboarding"
-                        title=""
-                      />
-                    </div>
-                    <h4>On-boarding</h4>
-                  </div>
-                  <div className="onboarding_ground_staff_formcon">
-                    <form onSubmit={handleSubmit}>
-                      <div className="row">
-                        <div className="col-md-6">
-                          <div className="mb-3">
-                            <label
-                              htmlFor="name"
-                              className="form-label"
-                              style={{ marginLeft: "5px" }}
-                            >
-                              Name
-                            </label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              id="name"
-                              name="name"
-                              value={formData.name}
-                              onChange={(e) => {
-                                const input = e.target.value;
-                                // Allow only letters and spaces
-                                if (/^[a-zA-Z\s]*$/.test(input)) {
-                                  handleChange(e);
-                                  setNamePlaceholder("Name of ground staff");
-                                }
-                              }}
-                              onBlur={(e) => {
-                                const input = e.target.value.trim();
-                                // Validate that each word starts with a capital letter
-                                const isValid = input
-                                  .split(" ")
-                                  .filter(Boolean)
-                                  .every((word) => /^[A-Z][a-z]*$/.test(word));
-
-                                if (!isValid && input.length > 0) {
-                                  setNamePlaceholder("Each word should start with a capital letter (e.g., John Doe)");
-                                  setFormData({ ...formData, name: "" });
-                                }
-                              }}
-                              placeholder={namePlaceholder}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-md-6">
-                          <div className="mb-3">
-                            <label
-                              htmlFor="number"
-                              className="form-label"
-                              style={{ marginLeft: "5px" }}
-                            >
-                              Mobile Number
-                            </label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              id="number"
-                              name="number"
-                              value={formData.number}
-                              onChange={(e) => {
-                                const input = e.target.value;
-                                // Allow only digits and limit to 10 characters
-                                if (/^\d{0,10}$/.test(input)) {
-                                  handleChange(e);
-                                  setNumberPlaceholder("Enter 10-digit mobile number starting with 6");
-                                }
-                              }}
-                              placeholder={numberPlaceholder}
-                              onBlur={(e) => {
-                                const input = e.target.value;
-                                if (!/^[6-9]\d{9}$/.test(input) && input.length > 0) {
-                                  setNumberPlaceholder("Mobile number must be 10 digits and start with 6, 7, 8, or 9");
-                                  setFormData({ ...formData, number: "" });
-                                }
-                              }}
-                              maxLength={10}
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mb-3">
-                        <label
-                          htmlFor="address"
-                          className="form-label"
-                          style={{ marginLeft: "10px" }}
-                        >
-                          Address
-                        </label>
-                        <textarea
-                          className="form-control"
-                          id="address"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleChange}
-                          placeholder="Address of ground staff"
-                          required
-                        ></textarea>
-                      </div>
-                      {/* <div className="mb-3" style={{ marginLeft: "11px" }}>
-                        <h5>Type of problem responsible for</h5>
-                      </div> */}
-                      {/* <div className="d-flex gap-3">
-                        <div className="form-check">
-                          <div className="mb-3">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="Pothole"
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor="Pothole"
-                            >
-                              Pothole
-                            </label>
-                          </div>
-                        </div>
-                        <div className="form-check">
-                          <div className="mb-3">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="Litter"
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor="Litter"
-                            >
-                              Litter
-                            </label>
-                          </div>
-                        </div>
-                        <div className="form-check">
-                          <div className="mb-3">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="StreetLight"
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor="StreetLight"
-                            >
-                              Street Light
-                            </label>
-                          </div>
-                        </div>
-                      </div> */}
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{ marginLeft: "5px" }}
-                      >
-                        Submit
-                      </button>
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{ marginLeft: "5px" }}
-                        onClick={() => {
-                          if (eventId) {
-                            navigate(`/eventReport/${eventId}`);
-                          } else if (agencyId) {
-                            navigate(`/dashboard/${agencyId}`);
-                          } else {
-                            console.error(
-                              "No valid eventId or agencyId to navigate back."
-                            );
-                          }
-                        }}
-                      >
-                        Back
-                      </button>
-                    </form>
-                    {message && <p>{message}</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <footer>
-        <img src="/billioneye/images/footer-bg.png" alt="Footer" />
+      {/* Footer */}
+      <footer className="bg-linear-to-r from-[#1f6fb2] via-[#4fa3e3] to-[#9fd3ff] text-center py-6 mt-auto">
+        <p className="text-white/90 text-sm tracking-wide">
+          © 2026 OmniVision. All rights reserved.
+        </p>
       </footer>
-    </section>
+    </div>
   );
 };
 
