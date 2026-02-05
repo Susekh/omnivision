@@ -10,6 +10,7 @@ import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { auto } from "@popperjs/core";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -57,139 +58,6 @@ const getEventIcon = (type) => {
   return "📍";
 };
 
-// // ─── MOCK: All agencies (from BillionEyes_V1_agencies.json) ─────────────────
-// // Remove when using the real API.
-// const MOCK_AGENCIES = [
-//   {
-//     AgencyId: "agency-121",
-//     AgencyName: "City Maintenance",
-//     eventResponsibleFor: [
-//       "Road Damage",
-//       "Environmental Violation",
-//       "Daytime Running Street Light",
-//     ],
-//   },
-//   {
-//     AgencyId: "agency-122",
-//     AgencyName: "BMC",
-//     eventResponsibleFor: [
-//       "Road Damage",
-//       "Environmental Violation",
-//       "Daytime Running Street Light",
-//     ],
-//   },
-//   {
-//     AgencyId: "agency-125",
-//     AgencyName: "Kiims",
-//     eventResponsibleFor: ["Human healthcare services"],
-//   },
-//   {
-//     AgencyId: "agency-126",
-//     AgencyName: "SUM",
-//     eventResponsibleFor: ["Human healthcare services"],
-//   },
-// ];
-
-// // ─── MOCK: All incidents (from BillionEyes_V1_Incident.json) ────────────────
-// // Remove when using the real API.
-// const MOCK_INCIDENTS = [
-//   {
-//     event_id: "I-20260202-002",
-//     description: "Road Damage", // Pothole → Road Damage
-//     assignment_time: "2026-02-02T08:34:18.724Z",
-//     latitude: 20.2777702,
-//     longitude: 85.8343072,
-//     image_url:
-//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
-//     boundingBoxes: [[264.05, 125.11, 720, 529.66]],
-//     status: "open",
-//     allIncidents: [
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-001.jpg",
-//         boundingBoxes: [[264.05, 125.11, 720, 529.66]],
-//       },
-//     ],
-//   },
-//   {
-//     event_id: "I-20260202-004",
-//     description: "Human healthcare services", // Car Accident → Human healthcare services
-//     assignment_time: "2026-02-02T13:35:26.542Z",
-//     latitude: 20.3360432,
-//     longitude: 85.8118569,
-//     image_url:
-//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
-//     boundingBoxes: [[202.84, 149.99, 720, 647.9]],
-//     status: "Assigned",
-//     allIncidents: [
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-003.jpg",
-//         boundingBoxes: [[202.84, 149.99, 720, 647.9]],
-//       },
-//     ],
-//   },
-//   {
-//     event_id: "I-20260202-006",
-//     description: "Environmental Violation", // Litter → Environmental Violation
-//     assignment_time: "2026-02-02T18:32:52.003Z",
-//     latitude: 20.3360371,
-//     longitude: 85.8118463,
-//     image_url:
-//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
-//     boundingBoxes: [[90.92, 121.35, 720, 579.16]],
-//     status: "open",
-//     allIncidents: [
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-005.jpg",
-//         boundingBoxes: [[90.92, 121.35, 720, 579.16]],
-//       },
-//     ],
-//   },
-//   {
-//     event_id: "I-20260202-008",
-//     description: "Human healthcare services", // Car Accident → Human healthcare services
-//     assignment_time: "2026-02-02T19:16:27.238Z",
-//     latitude: 20.3360353,
-//     longitude: 85.8118478,
-//     image_url:
-//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-//     boundingBoxes: [[119.87, 199.53, 720, 681.89]],
-//     status: "closed",
-//     allIncidents: [
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-//         boundingBoxes: [[119.87, 199.53, 720, 681.89]],
-//       },
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260202-007.jpg",
-//         boundingBoxes: [[139.06, 229.55, 720, 688.82]],
-//       },
-//     ],
-//   },
-//   {
-//     event_id: "I-20260203-002",
-//     description: "Human healthcare services", // Car Accident → Human healthcare services
-//     assignment_time: "2026-02-03T08:43:19.541Z",
-//     latitude: 20.3360324,
-//     longitude: 85.8118437,
-//     image_url:
-//       "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
-//     boundingBoxes: [[570.5, 137.84, 720, 635.1]],
-//     status: "Rejected",
-//     allIncidents: [
-//       {
-//         image_url:
-//           "http://192.168.192.177:9000/billion-eyes-images/2026/I-20260203-001.jpg",
-//         boundingBoxes: [[570.5, 137.84, 720, 635.1]],
-//       },
-//     ],
-//   },
-// ];
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const { agencyId } = useParams();
@@ -205,12 +73,6 @@ const Dashboard = () => {
   const [markers, setMarkers] = useState([]);
   const [targetLocation, setTargetLocation] = useState([20.2961, 85.8245]);
   const [selectedEventType, setSelectedEventType] = useState(null);
-
-  // ─── MOCK useEffect ───────────────────────────────────────────────────────
-  // 1. Finds the agency that matches the URL's agencyId
-  // 2. Sets the header to that agency's name
-  // 3. Filters incidents to ONLY those the agency is responsible for
-  // Replace this whole block with the real API call when done testing.
 
   useEffect(() => {
     if (!agencyId) return;
@@ -719,171 +581,51 @@ const Dashboard = () => {
   return (
     <>
       {/* ─── HEADER ─────────────────────────────────────────────────────── */}
-      <header style={{ margin: 0, padding: 0, width: "100%" }}>
-        <div className="container-fluid" style={{ padding: 0, margin: 0 }}>
-          <div className="row" style={{ margin: 0 }}>
-            <div className="col-md-12" style={{ padding: 0 }}>
-              <div
-                className="d-flex align-items-center justify-content-between"
-                style={{ padding: "15px 20px" }}
-              >
-                <div className="logo">
-                  <img
-                    src="/images/omnivision-logo.png"
-                    width={100}
-                    height={100}
-                    alt="Logo"
-                    onClick={() => navigate(`/dashboard/${agencyId}`)}
-                    style={{ cursor: "pointer" }}
-                    title=""
-                  />
-                </div>
-                <div
-                  style={{
-                    cursor: "pointer",
-                    fontSize: "24px",
-                    padding: "10px",
-                    zIndex: "1100",
-                  }}
-                  onClick={() => setIsOpen(true)}
-                >
-                  <img src="/images/menu-bar.svg" alt="" />
-                </div>
-              </div>
+      <header className="main-header">
+        <div className="header-container">
+          <div className="header-content">
+            <div className="logo">
+              <img
+                src="/images/omnivision-logo.png"
+                alt="OmniVision Logo"
+                onClick={() => navigate(`/dashboard/${agencyId}`)}
+                className="logo-image"
+              />
+            </div>
+            <div className="header-title">
+              <h1>{assignedAgency}</h1>
+            </div>
+            <div className="menu-toggle" onClick={() => setIsOpen(true)}>
+              <img src="/images/menu-bar.svg" alt="Menu" />
             </div>
           </div>
         </div>
 
         {/* Slide-out sidebar */}
-        <div
-          style={{
-            position: "fixed",
-            top: "0",
-            left: isOpen ? "0" : "-250px",
-            width: "250px",
-            height: "100vh",
-            background: "linear-gradient(135deg, #6a11cb, #2575fc)",
-            boxShadow: "2px 0px 10px rgba(0,0,0,0.3)",
-            transition: "left 0.3s ease-in-out",
-            padding: "20px",
-            zIndex: "1000",
-            color: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <span
-              style={{
-                fontSize: "24px",
-                cursor: "pointer",
-                display: "block",
-                marginBottom: "20px",
-                color: "#fff",
-              }}
-              onClick={() => setIsOpen(false)}
-            >
-              ✕
-            </span>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: "0",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <Link to={`/dashboard/${agencyId}`}>
-                <li
-                  style={{
-                    padding: "12px 76px",
-                    background: "#fff",
-                    color: "#2575fc",
-                    borderRadius: "5px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    border: "none",
-                    transition: "background 0.3s ease, color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2575fc";
-                    e.target.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fff";
-                    e.target.style.color = "#2575fc";
-                  }}
-                >
-                  Home
-                </li>
+        <div className={`sidebar ${isOpen ? "sidebar-open" : ""}`}>
+          <div className="sidebar-content">
+            <div className="sidebar-header">
+              <span className="sidebar-close" onClick={() => setIsOpen(false)}>
+                ✕
+              </span>
+            </div>
+            <ul className="sidebar-menu">
+              <Link to={`/dashboard/${agencyId}`} className="sidebar-link">
+                <li className="sidebar-menu-item">Home</li>
               </Link>
               <Link
                 to={`/assignGroundstaff/?agencyId=${agencyId}`}
-                style={{ textDecoration: "none" }}
+                className="sidebar-link"
               >
-                <li
-                  style={{
-                    padding: "12px 20px",
-                    background: "#fff",
-                    color: "#2575fc",
-                    borderRadius: "5px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    border: "none",
-                    transition: "background 0.3s ease, color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2575fc";
-                    e.target.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#fff";
-                    e.target.style.color = "#2575fc";
-                  }}
-                >
-                  Onboard GroundStaff
-                </li>
+                <li className="sidebar-menu-item">Onboard GroundStaff</li>
               </Link>
             </ul>
           </div>
-          <button
-            style={{
-              padding: "10px 15px",
-              background: "#fff",
-              color: "#2575fc",
-              borderRadius: "5px",
-              textAlign: "center",
-              cursor: "pointer",
-              border: "none",
-              transition: "background 0.3s ease, color 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#2575fc";
-              e.target.style.color = "#fff";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "#fff";
-              e.target.style.color = "#2575fc";
-            }}
-            onClick={handleLogout}
-          >
+          <button className="sidebar-logout-btn" onClick={handleLogout}>
             Logout
           </button>
         </div>
       </header>
-
-      {/* ─── PAGE HEADING (agency name) ──────────────────────────────────── */}
-      <section className="page-heading">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <h3>{assignedAgency}</h3>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ─── MAIN BODY: Cards/Table + Map ────────────────────────────────── */}
       <div>
@@ -892,9 +634,9 @@ const Dashboard = () => {
             display: "flex",
             flexDirection: "row",
             width: "100%",
-            minHeight: "100vh",
+            minHeight: auto,
             boxSizing: "border-box",
-            overflow: "auto",
+            overflow: "visible",
           }}
         >
           {/* Left 70% – cards or table */}
@@ -1086,18 +828,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ─── FOOTER (top) ─────────────────────────────────────────────────── */}
-      <footer className="footer" style={{ marginTop: 0, width: "100%" }}>
-        <div className="footer-container">
-          <div className="row">
-            <div
-              className="col-md-12 text-center"
-              style={{ marginTop: "55px" }}
-            ></div>
-          </div>
-        </div>
-      </footer>
-
       {/* ─── ALL-EVENTS POPUP ─────────────────────────────────────────────── */}
       {isPopupOpen && (
         <div
@@ -1230,21 +960,32 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ─── FOOTER (bottom) ──────────────────────────────────────────────── */}
-      <footer
+      <div
         style={{
-          backgroundColor: "#f8f9fa",
-          borderTop: "1px solid #dee2e6",
-          padding: "15px 0",
-          textAlign: "center",
-          margin: 0,
-          width: "100%",
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          margin: "50px 0",
         }}
-      >
-        <p style={{ margin: 0, fontSize: "14px", color: "#6c757d" }}>
-          © 2025 OmniVision. All rights reserved.
-        </p>
-      </footer>
+      ></div>
+
+      {/* ─── FOOTER (bottom) ──────────────────────────────────────────────── */}
+      <div>
+        {/* FOOTER */}
+        <footer
+          style={{
+            backgroundColor: "#f8f9fa",
+            borderTop: "1px solid #dee2e6",
+            padding: "15px 0",
+            textAlign: "center",
+            width: "100%",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "14px", color: "#6c757d" }}>
+            © 2025 OmniVision. All rights reserved by Neuradyne.
+          </p>
+        </footer>
+      </div>
     </>
   );
 };

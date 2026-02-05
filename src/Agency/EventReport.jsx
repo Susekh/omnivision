@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom"; // Ensure all imports are at the top
+import { useParams, Link, useNavigate } from "react-router-dom";
 import "../public/assets/css/EventReport.css";
 import api from "../api";
 
-import MapCanvas from "../components/mapCanvas";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
@@ -17,20 +23,52 @@ import PersonAdd from "@mui/icons-material/PersonAdd";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 
+// Leaflet icon setup
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+const flagIconUrl = "/images/map-pin.png";
+
+const FlyToLocation = ({ targetLocation }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (targetLocation) {
+      map.flyTo(targetLocation, 17);
+    }
+  }, [targetLocation, map]);
+  return null;
+};
+
+const createFlagIcon = () =>
+  L.icon({
+    iconUrl: flagIconUrl,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -30],
+  });
+
 const EventReport = () => {
   const [anchorEl, setAnchorEl] = React.useState();
   const open = Boolean(anchorEl);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const { event_id } = useParams();
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState(null);
   const [selectedUser, setSelectedUser] = useState("");
   const [userDetails, setUserDetails] = useState(null);
-  const [isAssigned, setIsAssigned] = useState(false); // State to track assignment status
+  const [isAssigned, setIsAssigned] = useState(false);
   const [mapCoordinates, setMapCoordinates] = useState(null);
   const [agencyGroundStaff, setAgencyGroundStaff] = useState([]);
-  const { agencyId } = useParams(); // Retrieve agencyId from query params
+  const { agencyId } = useParams();
+
+  // Map states for interactive features
+  const [markers, setMarkers] = useState([]);
+  const [targetLocation, setTargetLocation] = useState([20.2961, 85.8245]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,19 +78,15 @@ const EventReport = () => {
     setAnchorEl(null);
   };
 
-  // useEffect(() => {
-  //   // Fetch ground staff from the backend
-  //   const fetchGroundStaff = async () => {
-  //     try {
-  //       const response = await api.get("backend/agency/groundstaff");
-  //       setUsers(response.data); // Update users state with fetched data
-  //     } catch (error) {
-  //       console.error("Error fetching ground staff:", error);
-  //     }
-  //   };
-
-  //   fetchGroundStaff();
-  // }, []);
+  const addFlagAt = (lat, lng, name) => {
+    const newMarker = {
+      position: [lat, lng],
+      name: name || "Flag",
+      icon: createFlagIcon(),
+    };
+    setMarkers((prev) => [...prev, newMarker]);
+    setTargetLocation([lat, lng]);
+  };
 
   useEffect(() => {
     if (!event_id) {
@@ -65,7 +99,18 @@ const EventReport = () => {
         const response = await api.get(`backend/event-report/${event_id}`);
         console.log("API Response:", response.data);
         setReportData(response.data);
-        setIsAssigned(response.data.status === "Assigned"); // Set initial assignment status
+        setIsAssigned(response.data.status === "Assigned");
+
+        // Set map coordinates if available
+        if (response.data.latitude && response.data.longitude) {
+          const coords = {
+            lat: parseFloat(response.data.latitude),
+            lng: parseFloat(response.data.longitude),
+          };
+          setMapCoordinates(coords);
+          setTargetLocation([coords.lat, coords.lng]);
+          addFlagAt(coords.lat, coords.lng, "Event Location");
+        }
       } catch (error) {
         console.error("Error fetching report data:", error);
       } finally {
@@ -76,16 +121,15 @@ const EventReport = () => {
     fetchData();
   }, [event_id]);
 
-  // Fetch ground staff by agency ID
   useEffect(() => {
     if (!reportData || !reportData.AgencyId) {
-      return; // Exit early if reportData or AgencyId is not available
+      return;
     }
 
     const fetchAgencyGroundStaff = async () => {
       try {
         const response = await api.get(
-          `backend/${reportData.AgencyId}/groundstaff`
+          `backend/${reportData.AgencyId}/groundstaff`,
         );
         if (response.data.success) {
           setAgencyGroundStaff(response.data.data);
@@ -100,28 +144,6 @@ const EventReport = () => {
     fetchAgencyGroundStaff();
   }, [reportData]);
 
-  //=================back button=====================================
-  //    useEffect(() => {
-  //   const storedStack = JSON.parse(localStorage.getItem("navigationStack")) || [];
-  //   if (agencyId && !storedStack.includes(agencyId)) {
-  //     const updatedStack = [...storedStack, agencyId];
-  //     localStorage.setItem("navigationStack", JSON.stringify(updatedStack));
-  //   }
-  // }, [agencyId]);
-
-  // const handleBack = () => {
-  //   const storedStack = JSON.parse(localStorage.getItem("navigationStack")) || [];
-  //   if (storedStack.length > 1) {
-  //     storedStack.pop(); // Remove current agencyId
-  //     const previousAgencyId = storedStack[storedStack.length - 1]; // Get previous
-  //     localStorage.setItem("navigationStack", JSON.stringify(storedStack)); // Save updated stack
-  //     navigate(`/dashboard/${previousAgencyId}`); // Navigate
-  //   } else {
-  //     // Optional: handle case when no previous page exists
-  //     navigate(`/dashboard?AgencyId=${agencyId}`);
-  //   }
-  // };
-
   const handleUserChange = (event) => {
     const userId = event.target.value;
     setSelectedUser(userId);
@@ -131,36 +153,26 @@ const EventReport = () => {
   };
 
   const handleUnassign = async () => {
-  try {
-    const response = await api.put(`backend/events/status/${event_id}`, {
-      status: "Unassigned",
-      groundStaffName: null, // Optionally clear ground staff
-      assignment_time: null, // Optionally clear assignment time
-    });
-    if (response.status === 200) {
-      setIsAssigned(false);
-      setUserDetails(null);
-      setSelectedUser("");
-      // Optionally, fetch updated report data here
-      // or navigate as needed
+    try {
+      const response = await api.put(`backend/events/status/${event_id}`, {
+        status: "Unassigned",
+        groundStaffName: null,
+        assignment_time: null,
+      });
+      if (response.status === 200) {
+        setIsAssigned(false);
+        setUserDetails(null);
+        setSelectedUser("");
+      }
+    } catch (error) {
+      console.error("Error unassigning ground staff:", error);
     }
-  } catch (error) {
-    console.error("Error unassigning ground staff:", error);
-  }
-};
-
-  // const handleAddGroundStaff = () => {
-  //   if (reportData?.AgencyId) {
-  //    navigate(`/assignGroundstaff?agencyId=${reportData.AgencyId}`);
-  //   } else {
-  //     console.error("Agency ID is not available");
-  //   }
-  // };
+  };
 
   const handleAddGroundStaff = () => {
     if (reportData?.AgencyId && reportData?.event_id) {
       navigate(
-        `/assignGroundstaff?agencyId=${reportData.AgencyId}&eventId=${reportData.event_id}`
+        `/assignGroundstaff?agencyId=${reportData.AgencyId}&eventId=${reportData.event_id}`,
       );
     } else {
       console.error("Agency ID or Event ID is not available");
@@ -174,7 +186,7 @@ const EventReport = () => {
       });
       if (response.status === 200) {
         console.log(`Event ${event_id} status updated to ${newStatus}`);
-        setIsAssigned(newStatus === "Assigned"); // Update assignment status
+        setIsAssigned(newStatus === "Assigned");
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -189,7 +201,7 @@ const EventReport = () => {
 
     try {
       const selectedStaff = agencyGroundStaff.find(
-        (staff) => staff._id === selectedUser
+        (staff) => staff._id === selectedUser,
       );
 
       if (!selectedStaff) {
@@ -200,7 +212,7 @@ const EventReport = () => {
       const response = await api.put(`backend/events/status/${event_id}`, {
         status: "Assigned",
         groundStaffName: selectedStaff.name,
-        assignment_time: new Date().toISOString(), // Add timestamp here
+        assignment_time: new Date().toISOString(),
       });
 
       if (response.status === 200) {
@@ -221,181 +233,125 @@ const EventReport = () => {
     return <p>No data found for event {event_id}</p>;
   }
 
-  // Only format date & time if reportData is available
-  const formattedDate = reportData?.assignments_time
-    ? new Date(reportData.assignments_time).toLocaleDateString()
+  const isoDate = reportData?.assignments_time?.$date;
+
+  const formattedDate = isoDate
+    ? new Date(isoDate).toLocaleDateString()
     : "N/A";
 
-  const formattedTime = reportData?.assignments_time
-    ? new Date(reportData.assignments_time).toLocaleTimeString()
+  const formattedTime = isoDate
+    ? new Date(isoDate).toLocaleTimeString()
     : "N/A";
-
-  if (!reportData) {
-    return <p>Loading report data...</p>;
-  }
 
   return (
-    <section
-      className="dashboard-main-page-wrapper"
-      style={{ backgroundColor: "#eaf8ff" }}
-    >
-      <header>
+    <section className="event-report-wrapper">
+      <header className="event-report-header">
         <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="top-1">
-                <div
-                  className="logo"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate(`/dashboard/agencyId=${agencyId}`)}
-                >
-                  <img src="/images/omnivision-logo-small.png" alt="Logo" />
-                </div>
-
-                <React.Fragment>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      textAlign: "center",
-                    }}
-                  >
-                    <Tooltip title="Account settings">
-                      <IconButton
-                        onClick={handleClick}
-                        size="small"
-                        sx={{ ml: 2 }}
-                        aria-controls={open ? "account-menu" : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={open ? "true" : undefined}
-                      >
-                        <Avatar sx={{ width: 52, height: 52 }}>
-                          <img
-                            src="/images/adminlogo.ico"
-                            alt="image-logo"
-                          />
-                        </Avatar>
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <Menu
-                    anchorEl={anchorEl}
-                    id="account-menu"
-                    open={open}
-                    onClose={handleClose}
-                    onClick={handleClose}
-                  >
-                    <MenuItem onClick={handleClose}>
-                      <img
-                        src="/images/enterprise.png"
-                        style={{ width: 42, height: 42 }}
-                        alt=""
-                      />{" "}
-                      <div
-                        style={{
-                          marginLeft: "20px",
-                          marginTop: "10px",
-                          fontWeight: "bold",
-                          fontSize: "18px",
-                          color: "#333",
-                          letterSpacing: "1px",
-                        }}
-                      >
-                        <Link to="/dashboard">
-                          <h5>AGENCY</h5>
-                        </Link>
-                      </div>
-                    </MenuItem>
-                    {/* <MenuItem onClick={handleClose}>
-                       <img src="/images/enterprise.png" style={{ width: 42, height: 42 }} alt=""/> Agency       
-                    </MenuItem> */}
-
-                    <Divider />
-                    <MenuItem onClick={handleClose}>
-                      <ListItemIcon>
-                        <PersonAdd fontSize="small" />
-                      </ListItemIcon>
-                      <Link to="/assignGroundstaff">Add Ground Satff</Link>
-                    </MenuItem>
-                    <MenuItem onClick={handleClose}>
-                      <ListItemIcon>
-                        <Settings fontSize="small" />
-                      </ListItemIcon>
-                      Settings
-                    </MenuItem>
-                    <MenuItem onClick={handleClose}>
-                      <ListItemIcon>
-                        <Logout fontSize="small" />
-                      </ListItemIcon>
-                      Logout
-                    </MenuItem>
-                  </Menu>
-                </React.Fragment>
-              </div>
+          <div className="header-content">
+            <div
+              className="logo"
+              onClick={() => navigate(`/dashboard/${reportData.AgencyId}`)}
+            >
+              <img src="/images/omnivision-logo.png" alt="Logo" />
             </div>
+            <div className="header-title">
+              <h1>{reportData.assignedAgency}</h1>
+            </div>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Tooltip title="Account settings">
+                <IconButton
+                  onClick={handleClick}
+                  size="small"
+                  aria-controls={open ? "account-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                >
+                  <Avatar sx={{ width: 48, height: 48, bgcolor: "#fff" }}>
+                    <img
+                      src="/images/adminlogo.ico"
+                      alt="Admin"
+                      style={{ width: "100%" }}
+                    />
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <Menu
+              anchorEl={anchorEl}
+              id="account-menu"
+              open={open}
+              onClose={handleClose}
+              onClick={handleClose}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            >
+              {/* <MenuItem onClick={handleClose}>
+                <img
+                  src="/images/enterprise.png"
+                  style={{ width: 42, height: 42, marginRight: 15 }}
+                  alt=""
+                />
+                <Link to="/dashboard">
+                  <h5 style={{ margin: 0 }}>AGENCY</h5>
+                </Link>
+              </MenuItem> */}
+              <Divider />
+              <MenuItem onClick={handleClose}>
+                <ListItemIcon>
+                  <PersonAdd fontSize="small" />
+                </ListItemIcon>
+                <Link to="/assignGroundstaff">Add Ground Staff</Link>
+              </MenuItem>
+              {/* <MenuItem onClick={handleClose}>
+                <ListItemIcon>
+                  <Settings fontSize="small" />
+                </ListItemIcon>
+                Settings
+              </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <ListItemIcon>
+                  <Logout fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem> */}
+            </Menu>
           </div>
         </div>
       </header>
 
-      <section
-        className="page-heading"
-        style={{ marginTop: "-2px", padding: "2px" }}
-      >
+      <div className="event-report-content">
         <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <h3>{reportData.assignedAgency}</h3>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="dashboard-report-con">
-        <div className="container">
-          <div className="row">
-            <div
-              className="col-md-6 "
-              id="report-coloumn"
-              style={{ marginTop: "-100px" }}
-            >
-              <div className="table-card-2">
-                <div
-                  className="table-card-heading"
-                  style={{ marginTop: "100px" }}
-                >
-                  <div className="table-card-heading-icon">
-                    <img
-                      src="/images/dashboard-icon.png"
-                      alt="Report "
-                    />
-                  </div>
-                  <h4 className="text-uppercase">Report</h4>
+          <div className="report-row">
+            <div className="report-col report-col-left">
+              <div className="info-card">
+                <div className="card-header">
+                  <img src="/images/dashboard-icon.png" alt="Report" />
+                  <h4>REPORT DETAILS</h4>
                 </div>
-
-                <div className="table-con-2 table-responsive">
-                  <table className="table table-striped">
+                <div className="card-body">
+                  <table className="info-table">
                     <tbody>
                       <tr>
                         <td>
-                          <b>Report Id :</b>
+                          <strong>Report ID:</strong>
                         </td>
                         <td>{reportData.event_id}</td>
                       </tr>
                       <tr>
                         <td>
-                          <b>Object Detected :</b>
+                          <strong>Object Detected:</strong>
                         </td>
                         <td>{reportData.description}</td>
                       </tr>
                       <tr>
                         <td>
-                          <b>Date of Reporting :</b>
+                          <strong>Date of Reporting:</strong>
                         </td>
                         <td>{formattedDate}</td>
                       </tr>
                       <tr>
                         <td>
-                          <b>Time of Reporting :</b>
+                          <strong>Time of Reporting:</strong>
                         </td>
                         <td>{formattedTime}</td>
                       </tr>
@@ -404,53 +360,58 @@ const EventReport = () => {
                 </div>
               </div>
             </div>
-            <div className="col-md-6">
-              <div className="dashboard-report-map">
-                <div className="table-card-heading">
-                  <div className="table-card-heading-icon">
-                    <img src="/images/location.png" alt="Location" />
-                    {/* <h4 className="text-uppercase">LOCATION</h4> */}
-                  </div>
-                </div>
 
-                {/* Map rendering here */}
-                <div
-                  className="map-container"
-                  style={{
-                    height: "300px",
-                    width: "100%",
-                    position: "relative", // Needed to position button inside
-                  }}
-                >
-                  {/* Map or fallback message */}
+            <div className="report-col report-col-right">
+              <div className="map-section-open">
+                <div className="map-header">
+                  <img src="/images/location.png" alt="Location" />
+                  <h4>LOCATION</h4>
+                </div>
+                <div className="map-container">
                   {mapCoordinates ? (
-                    <MapCanvas coordinates={mapCoordinates} />
+                    <MapContainer
+                      center={targetLocation}
+                      zoom={13}
+                      style={{ height: "100%", width: "100%" }}
+                    >
+                      <TileLayer
+                        attribution="&copy; OpenStreetMap contributors"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      {targetLocation && (
+                        <FlyToLocation targetLocation={targetLocation} />
+                      )}
+                      {markers.map((marker, idx) => (
+                        <Marker
+                          key={idx}
+                          position={marker.position}
+                          icon={marker.icon}
+                        >
+                          <Popup>{marker.name}</Popup>
+                        </Marker>
+                      ))}
+                    </MapContainer>
                   ) : (
-                    <p style={{ padding: "20px", textAlign: "center" }}>
+                    <p className="map-placeholder">
                       Click 📍 on an event to view its location.
                     </p>
                   )}
-
-                  {/* 📍 Button inside map section */}
                   <button
-                    style={{
-                      position: "absolute",
-                      top: "10px",
-                      right: "10px",
-                      background: "white",
-                      border: "1px solid #ccc",
-                      borderRadius: "50%",
-                      padding: "8px",
-                      cursor: "pointer",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                    }}
+                    className="map-pin-btn"
                     title="Go to Event Location"
-                    onClick={() =>
-                      setMapCoordinates({
-                        lat: parseFloat(reportData.latitude), // You need access to a `report` here
-                        lng: parseFloat(reportData.longitude),
-                      })
-                    }
+                    onClick={() => {
+                      if (reportData.latitude && reportData.longitude) {
+                        setMapCoordinates({
+                          lat: parseFloat(reportData.latitude),
+                          lng: parseFloat(reportData.longitude),
+                        });
+                        addFlagAt(
+                          parseFloat(reportData.latitude),
+                          parseFloat(reportData.longitude),
+                          "Event Location",
+                        );
+                      }
+                    }}
                   >
                     📍
                   </button>
@@ -458,184 +419,112 @@ const EventReport = () => {
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="assign-to-details">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-6">
-              <div
-                className="dashboard-report-img"
-                style={{ marginTop: "200px" }}
-              >
-                <div className="table-card-heading">
-                  <div className="table-card-heading-icon">
+          <div className="report-row">
+            <div className="report-col report-col-left">
+              <div className="info-card">
+                <div className="card-header">
+                  <img src="/images/image-icon.png" alt="Incident" />
+                  <h4>INCIDENT IMAGE</h4>
+                </div>
+                <div className="card-body image-body">
+                  <figure className="incident-image">
                     <img
-                      src="/images/image-icon.png"
+                      src={normalizeImageUrl(reportData.image_url)}
                       alt="Incident"
                     />
-                  </div>
-                  <h4 className="text-uppercase">IMAGE</h4>
+                  </figure>
                 </div>
-                <figure>
-                  <img
-                    src={normalizeImageUrl(reportData.image_url)}
-                    style={{
-                      width: "200px",
-                      transform: "rotate(-90deg)",
-                      objectFit: "contain", // Ensures the full image is visible
-                    }}
-                    alt="Accident"
-                  />
-                </figure>
               </div>
             </div>
-            <div className="col-md-6" style={{ marginTop: "-200px" }}>
-              <div
-                className="dashboard-report-assign"
-                style={{ marginTop: "100px" }}
-              >
-                <div className="table-card-heading">
-                  <h4 className="text-uppercase">Assign To</h4>
+
+            <div className="report-col report-col-right">
+              <div className="info-card">
+                <div className="card-header">
+                  <h4>ASSIGN TO GROUND STAFF</h4>
                 </div>
-
-                <button
-                  className="btn btn-success"
-                  onClick={handleAddGroundStaff}
-                  disabled={isAssigned}
-                  // Disable if already assigned
-                >
-                  Onboard GroundStaff
-                </button>
-
-                <button
-                  className="btn btn-success"
-                  style={{ marginLeft: "300px" }}
-                  onClick={() => navigate(`/dashboard/${reportData.AgencyId}`)}
-                  disabled={isAssigned} // Optional: disable only if needed
-                >
-                  Back
-                </button>
-
-                {/* Retained the second dropdown */}
-                <div className="form-group">
-                  <label htmlFor="agencyGroundStaffSelect">
-                    Select Ground Staff:
-                  </label>
-                  <select
-                    id="agencyGroundStaffSelect"
-                    className="form-control"
-                    value={selectedUser} // Bind the selected value to the state
-                    onChange={(e) => {
-                      const userId = e.target.value;
-                      setSelectedUser(userId); // Update selectedUser state
-                      const selectedStaff = agencyGroundStaff.find(
-                        (staff) => staff._id === userId
-                      );
-                      setUserDetails(selectedStaff || null); // Update userDetails state
-                    }}
-                  >
-                    <option value="">Select Ground Staff</option>
-                    {agencyGroundStaff.map((staff) => (
-                      <option key={staff._id} value={staff._id}>
-                        {staff.name} - {staff.number}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Display selected ground staff details */}
-                {/* {userDetails && (
-                  <div
-                    className="assign-details"
-                    style={{
-                      marginTop: "10px",
-                      background: "#f9f9f9",
-                      padding: "10px",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <ul style={{ listStyle: "none", padding: 0 }}>
-                      <li>
-                        <b>Name:</b> {userDetails.name}
-                      </li>
-                      <li>
-                        <b>Phone:</b> {userDetails.number}
-                      </li>
-                      <li>
-                        <b>Address:</b> {userDetails.address}
-                      </li>
-                    </ul>
-                    <div style={{ textAlign: "center", marginTop: "10px" }}>
-                      <button
-                        className="btn btn-success"
-                        onClick={handleAssign}
-                        disabled={isAssigned} // Disable if already assigned
-                      >
-                        Assign
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        disabled={isAssigned} // Disable if already assigned
-                      >
-                        Unassigned
-                      </button>
-                    </div>
+                <div className="card-body">
+                  <div className="action-buttons">
+                    <button
+                      className="btn mr-4 btn-primary"
+                      onClick={handleAddGroundStaff}
+                      disabled={isAssigned}
+                    >
+                      Onboard GroundStaff
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        navigate(`/dashboard/${reportData.AgencyId}`)
+                      }
+                    >
+                      Back to Dashboard
+                    </button>
                   </div>
-                )} */}
-                {userDetails && (
-                  <div
-                    className="assign-details"
-                    style={{
-                      marginTop: "10px",
-                      background: "#f9f9f9",
-                      padding: "10px",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <ul style={{ listStyle: "none", padding: 0 }}>
-                      <li>
-                        <b>Name:</b> {userDetails.name}
-                      </li>
-                      <li>
-                        <b>Phone:</b> {userDetails.number}
-                      </li>
-                      <li>
-                        <b>Address:</b> {userDetails.address}
-                      </li>
-                    </ul>
-                    <div style={{ textAlign: "center", marginTop: "10px" }}>
-                      <button
-                        className="btn btn-success"
-                        onClick={handleAssign}
-                        disabled={isAssigned}
-                      >
-                        Assign
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        onClick={handleUnassign} // <-- Add this handler
-                        // disabled={!isAssigned} // Only enable if currently assigned
-                      >
-                        Unassigned
-                      </button>
-                    </div>
-                  </div>
-                )}
 
-                <div>
-                  <span id="designation"></span>
+                  <div className="form-group">
+                    <label htmlFor="agencyGroundStaffSelect">
+                      Select Ground Staff:
+                    </label>
+                    <select
+                      id="agencyGroundStaffSelect"
+                      className="form-control"
+                      value={selectedUser}
+                      onChange={(e) => {
+                        const userId = e.target.value;
+                        setSelectedUser(userId);
+                        const selectedStaff = agencyGroundStaff.find(
+                          (staff) => staff._id === userId,
+                        );
+                        setUserDetails(selectedStaff || null);
+                      }}
+                    >
+                      <option value="">Select Ground Staff</option>
+                      {agencyGroundStaff.map((staff) => (
+                        <option key={staff._id} value={staff._id}>
+                          {staff.name} - {staff.number}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {userDetails && (
+                    <div className="assign-details-card">
+                      <h5>Selected Staff Details</h5>
+                      <ul>
+                        <li>
+                          <strong>Name:</strong> {userDetails.name}
+                        </li>
+                        <li>
+                          <strong>Phone:</strong> {userDetails.number}
+                        </li>
+                        <li>
+                          <strong>Address:</strong> {userDetails.address}
+                        </li>
+                      </ul>
+                      <div className="assign-actions">
+                        <button
+                          className="btn btn-success"
+                          onClick={handleAssign}
+                          disabled={isAssigned}
+                        >
+                          Assign
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          onClick={handleUnassign}
+                        >
+                          Unassign
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
-      <footer style={{ textAlign: "center", paddingBottom: "20px", backgroundColor: "#f8f9fa" }}>
-        <img src="/images/footer-bg.png" alt="" style={{marginBottom: "10px"}} />
-        <p style={{margin: 0, fontSize: "13px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
-      </footer>
+      </div>
     </section>
   );
 };
