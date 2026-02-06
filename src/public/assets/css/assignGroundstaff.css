@@ -59,7 +59,6 @@ body {
   height: 64px;
   width: auto;
   background: transparent;
-  border-radius: 8px;
   padding: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -398,11 +397,9 @@ body {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .assign-footer {
-  background: linear-gradient(180deg, #113655 0%, #0f2942 100%);
   text-align: center;
   padding: 24px 0;
   margin-top: auto;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .assign-footer-container {
