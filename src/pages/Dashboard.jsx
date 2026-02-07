@@ -73,6 +73,7 @@ const Dashboard = () => {
   const [markers, setMarkers] = useState([]);
   const [targetLocation, setTargetLocation] = useState([20.2961, 85.8245]);
   const [selectedEventType, setSelectedEventType] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   useEffect(() => {
     if (!agencyId) return;
@@ -96,6 +97,15 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, [agencyId]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const addFlagAt = (lat, lng, name) => {
     const newMarker = {
@@ -577,6 +587,36 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  if (!isDesktop) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+          color: "#fff",
+          textAlign: "center",
+          padding: "20px",
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: "28px", marginBottom: "12px" }}>
+            🖥️ Desktop Required
+          </h1>
+          <p style={{ fontSize: "16px", opacity: 0.9 }}>
+            This dashboard is optimized for desktop screens.
+          </p>
+          <p style={{ fontSize: "14px", opacity: 0.7 }}>
+            Please open it on a laptop or desktop device.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

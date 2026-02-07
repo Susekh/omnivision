@@ -67,6 +67,7 @@ const AdminAgencyManager = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   // ✅ MODIFIED: Always initialize with default lat/lng
   const [formData, setFormData] = useState({
@@ -88,6 +89,15 @@ const AdminAgencyManager = () => {
 
   const [modelLoading, setModelLoading] = useState(false);
   const [activeModel, setActiveModel] = useState("YOLO"); // optional, for UI
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const switchModel = async () => {
     try {
@@ -642,7 +652,7 @@ const AdminAgencyManager = () => {
     const previewPolygon = getPreviewPolygonCoords();
 
     return (
-      <div className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden">
+      <div className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden bg-dots">
         <Notification type="error" message={error} />
         <Notification type="success" message={success} />
 
@@ -1074,8 +1084,47 @@ const AdminAgencyManager = () => {
     );
   }
 
+  if (!isDesktop) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+          color: "#fff",
+          textAlign: "center",
+          padding: "20px",
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: "28px", marginBottom: "12px" }}>
+            🖥️ Desktop Required
+          </h1>
+          <p style={{ fontSize: "16px", opacity: 0.9 }}>
+            This dashboard is optimized for desktop screens.
+          </p>
+          <p style={{ fontSize: "14px", opacity: 0.7 }}>
+            Please open it on a laptop or desktop device.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col">
+    <div
+      className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col"
+      style={{
+        backgroundImage: `radial-gradient(
+      rgba(14, 165, 233, 0.15) 1px,
+      transparent 1px
+    )`,
+        backgroundSize: "20px 20px",
+      }}
+    >
       <Notification type="error" message={error} />
       <Notification type="success" message={success} />
 
