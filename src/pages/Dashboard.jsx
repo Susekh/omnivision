@@ -225,7 +225,7 @@ const Dashboard = () => {
         return (
           <>
             <button
-              className="btn btn-success"
+              className="btn me-2.5 btn-success"
               onClick={() => handleComplete(event.event_id)}
             >
               Complete
