@@ -557,172 +557,296 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   EVENT TYPE CARDS  –  new styles only, nothing above was changed
+   EVENT TYPE LIST  –  Modern flexbox list layout (Bootstrap compatible)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* outer wrapper – same white-card feel as the existing table-card */
+/* outer wrapper – using Bootstrap card styling conventions */
 .event-type-cards-wrapper {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e8ecf0;
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 1.5rem;
+  min-height: 620px;
 }
 
-/* header unchanged */
+/* header row – Bootstrap compatible */
 .event-type-cards-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #eef1f5;
+  gap: 0.625rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid #dee2e6;
 }
 
-/* grid → vertical list */
-.event-type-cards-grid {
+.event-type-cards-header-icon img {
+  width: 28px;
+  height: 28px;
+}
+
+.event-type-cards-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #212529;
+  font-weight: 600;
+}
+
+/* ── LIST CONTAINER ── */
+.event-type-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
-/* full-width row */
-.event-type-card {
+/* ── SINGLE ROW/ITEM ── */
+.event-type-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border: 1px solid #e0e6ed;
-  border-radius: 10px;
   background: #fff;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #007bff;
+  border-radius: 0.375rem;
+  padding: 1.125rem 1.25rem;
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.25s ease;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-.event-type-card:hover {
-  background: #f8fbff;
-  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.15);
+.event-type-row:hover {
+  transform: translateX(6px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 123, 255, 0.15);
+  border-left-color: #0056b3;
+  background: #f8f9fa;
 }
 
-/* remove top accent bar */
-.event-type-card-accent {
-  display: none;
+/* ── LEFT SECTION: Icon + Type Name + Total ── */
+.event-type-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-/* LEFT: icon + title */
-.event-type-card-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: #e8f4fd;
+.event-type-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0;
-}
-
-.event-type-card-icon {
-  font-size: 20px;
-}
-
-.event-type-card-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a2533;
-}
-
-/* middle stats */
-.event-type-card-stats {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.event-type-card-stat {
-  font-size: 13px;
-  padding: 4px 10px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.event-type-card-stat--open {
-  background: #fff3e0;
-}
-
-.event-type-card-stat--assigned {
-  background: #e3f2fd;
-}
-
-.event-type-card-stat--closed {
-  background: #e8f5e9;
-}
-
-/* dots */
-.event-type-card-stat-dot {
-  width: 8px;
-  height: 8px;
+  background: linear-gradient(135deg, #e7f3ff, #cfe2ff);
   border-radius: 50%;
 }
 
-.event-type-card-stat-dot--open {
-  background: #fb8c00;
+.event-type-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
-.event-type-card-stat-dot--assigned {
-  background: #1e88e5;
-}
-
-.event-type-card-stat-dot--closed {
-  background: #43a047;
-}
-
-/* right side */
-.event-type-card-total {
-  font-size: 13px;
+.event-type-info h5 {
+  margin: 0;
+  font-size: 1rem;
   font-weight: 600;
-  color: #1f6fb2;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.event-type-card-cta {
-  font-size: 13px;
+.event-type-total {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* ── MIDDLE SECTION: Status Stats ── */
+.event-type-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.event-type-stats .stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 50rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #007bff;
   white-space: nowrap;
 }
 
-/* empty state */
-.event-type-cards-empty {
+/* Colored indicator dots */
+.event-type-stats .stat i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Open status – warning/orange theme (Bootstrap warning color) */
+.event-type-stats .stat.open {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.event-type-stats .stat.open i {
+  background-color: #ffc107;
+}
+
+/* Assigned status – primary/blue theme (Bootstrap primary color) */
+.event-type-stats .stat.assigned {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+.event-type-stats .stat.assigned i {
+  background-color: #0d6efd;
+}
+
+/* Closed/Resolved status – success/green theme (Bootstrap success color) */
+.event-type-stats .stat.closed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+.event-type-stats .stat.closed i {
+  background-color: #198754;
+}
+
+/* ── RIGHT SECTION: View CTA ── */
+.event-type-action {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #007bff;
+  flex-shrink: 0;
+  padding-left: 1rem;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.event-type-row:hover .event-type-action {
+  color: #0056b3;
+  transform: translateX(4px);
+}
+
+/* ── EMPTY STATE ── */
+.event-type-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 240px;
-  color: #8a9bb0;
+  height: 280px;
+  color: #6c757d;
 }
 
-.event-type-cards-empty-icon {
-  font-size: 44px;
-  margin-bottom: 10px;
+.event-type-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
 }
 
-/* mobile */
-@media (max-width: 768px) {
-  .event-type-card {
+.event-type-empty p {
+  font-size: 1rem;
+  margin: 0;
+  color: #6c757d;
+}
+
+/* ── BACK BUTTON (Bootstrap button style) ── */
+.event-type-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #e9ecef;
+  color: #1f6fb2;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.event-type-back-btn:hover {
+  background-color: #dee2e6;
+  border-color: #1f6fb2;
+  color: #0056b3;
+}
+
+.event-type-back-btn:active {
+  transform: scale(0.98);
+}
+
+/* ── RESPONSIVE ADJUSTMENTS (Bootstrap breakpoints) ── */
+@media (max-width: 1199.98px) {
+  .event-type-stats {
+    gap: 0.625rem;
+  }
+  
+  .event-type-stats .stat {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .event-type-row {
+    padding: 1rem;
+  }
+  
+  .event-type-left {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .event-type-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 0.75rem;
   }
-
-  .event-type-card-stats {
-    gap: 10px;
+  
+  .event-type-left {
+    width: 100%;
   }
-
-  .event-type-card-cta {
+  
+  .event-type-stats {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .event-type-action {
     align-self: flex-end;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .event-type-cards-wrapper {
+    padding: 1rem;
+  }
+  
+  .event-type-cards-header {
+    margin-bottom: 1rem;
+  }
+  
+  .event-type-info h5 {
+    font-size: 0.9375rem;
+  }
+  
+  .event-type-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
   }
 }
