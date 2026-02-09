@@ -450,7 +450,7 @@ const EventReport = () => {
                 <div className="card-body">
                   <div className="action-buttons">
                     <button
-                      className="btn mr-4 btn-primary"
+                      className="btn me-4 btn-primary"
                       onClick={handleAddGroundStaff}
                       disabled={isAssigned}
                     >

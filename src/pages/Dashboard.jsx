@@ -347,46 +347,49 @@ const Dashboard = () => {
       </div>
 
       {eventTypeSummary.length === 0 ? (
-        <div className="event-type-cards-empty">
-          <span className="event-type-cards-empty-icon">📋</span>
+        <div className="event-type-empty">
+          <span className="event-type-empty-icon">📋</span>
           <p>No events available</p>
         </div>
       ) : (
-        <div className="event-type-cards-grid">
+        <div className="event-type-list">
           {eventTypeSummary.map((item, idx) => (
             <div
               key={idx}
-              className="event-type-card"
+              className="event-type-row"
               onClick={() => {
                 setSelectedEventType(item.type);
                 setActiveTab("RecentReports");
               }}
             >
-              <div className="event-type-card-accent" />
-              <div className="event-type-card-icon-wrap">
-                <span className="event-type-card-icon">
+              {/* Left: Icon + Type */}
+              <div className="event-type-left">
+                <span className="event-type-icon">
                   {getEventIcon(item.type)}
                 </span>
-              </div>
-              <h5 className="event-type-card-title">{item.type}</h5>
-              <div className="event-type-card-stats">
-                <div className="event-type-card-stat event-type-card-stat--open">
-                  <span className="event-type-card-stat-dot event-type-card-stat-dot--open" />
-                  <span>{item.open} Open</span>
-                </div>
-                <div className="event-type-card-stat event-type-card-stat--assigned">
-                  <span className="event-type-card-stat-dot event-type-card-stat-dot--assigned" />
-                  <span>{item.assigned} Assigned</span>
-                </div>
-                <div className="event-type-card-stat event-type-card-stat--closed">
-                  <span className="event-type-card-stat-dot event-type-card-stat-dot--closed" />
-                  <span>{item.closed} Resolved</span>
+                <div className="event-type-info">
+                  <h5>{item.type}</h5>
+                  <span className="event-type-total">
+                    {item.total} {item.total === 1 ? "Event" : "Events"}
+                  </span>
                 </div>
               </div>
-              <div className="event-type-card-total">
-                {item.total} {item.total === 1 ? "Event" : "Events"}
+
+              {/* Middle: Stats */}
+              <div className="event-type-stats">
+                <span className="stat open">
+                  <i /> {item.open} Open
+                </span>
+                <span className="stat assigned">
+                  <i /> {item.assigned} Assigned
+                </span>
+                <span className="stat closed">
+                  <i /> {item.closed} Resolved
+                </span>
               </div>
-              <div className="event-type-card-cta">View Details →</div>
+
+              {/* Right: CTA */}
+              <div className="event-type-action">View →</div>
             </div>
           ))}
         </div>
