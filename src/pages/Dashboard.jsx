@@ -85,7 +85,7 @@ const Dashboard = () => {
         setDashboardData(response.data?.assignedEvents || []);
         setAssignedAgency(response.data?.AgencyName || "Unknown Agency");
 
-        console.log(`Logged in as ${response.data?.AgencyName} (${agencyId})`);
+        console.log(`Logged in as ${response.data?.AgencyName} (${agencyId})`, dashboardData);
         console.log(
           `Showing ${response.data?.assignedEvents?.length || 0} incidents`,
         );
