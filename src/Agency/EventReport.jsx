@@ -247,45 +247,46 @@ const EventReport = () => {
     <section className="event-report-wrapper">
       <header className="event-report-header">
         <div className="container">
-          <div className="header-content">
+          <div className="flex">
             <div
               className="logo"
               onClick={() => navigate(`/dashboard/${reportData.AgencyId}`)}
             >
               <img src="/images/omnivision-logo.png" alt="Logo" />
             </div>
-            <div className="header-title">
-              <h1>{reportData.assignedAgency}</h1>
-            </div>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Tooltip title="Account settings">
-                <IconButton
-                  onClick={handleClick}
-                  size="small"
-                  aria-controls={open ? "account-menu" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                >
-                  <Avatar sx={{ width: 48, height: 48, bgcolor: "#fff" }}>
-                    <img
-                      src="/images/adminlogo.ico"
-                      alt="Admin"
-                      style={{ width: "100%" }}
-                    />
-                  </Avatar>
-                </IconButton>
-              </Tooltip>
-            </Box>
-            <Menu
-              anchorEl={anchorEl}
-              id="account-menu"
-              open={open}
-              onClose={handleClose}
-              onClick={handleClose}
-              transformOrigin={{ horizontal: "right", vertical: "top" }}
-              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-            >
-              {/* <MenuItem onClick={handleClose}>
+            <div className="header-content">
+              <div className="header-title">
+                <h1>{reportData.assignedAgency}</h1>
+              </div>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Tooltip title="Account settings">
+                  <IconButton
+                    onClick={handleClick}
+                    size="small"
+                    aria-controls={open ? "account-menu" : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={open ? "true" : undefined}
+                  >
+                    <Avatar sx={{ width: 48, height: 48, bgcolor: "#fff" }}>
+                      <img
+                        src="/images/adminlogo.ico"
+                        alt="Admin"
+                        style={{ width: "100%" }}
+                      />
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Menu
+                anchorEl={anchorEl}
+                id="account-menu"
+                open={open}
+                onClose={handleClose}
+                onClick={handleClose}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+              >
+                {/* <MenuItem onClick={handleClose}>
                 <img
                   src="/images/enterprise.png"
                   style={{ width: 42, height: 42, marginRight: 15 }}
@@ -295,18 +296,18 @@ const EventReport = () => {
                   <h5 style={{ margin: 0 }}>AGENCY</h5>
                 </Link>
               </MenuItem> */}
-              <Divider />
-              <MenuItem onClick={handleClose}>
-                <ListItemIcon>
-                  <PersonAdd fontSize="small" />
-                </ListItemIcon>
-                <Link
-                  to={`/assignGroundstaff/${reportData.AgencyId}?eventId=${reportData.event_id}`}
-                >
-                  Add Ground Staff
-                </Link>
-              </MenuItem>
-              {/* <MenuItem onClick={handleClose}>
+                <Divider />
+                <MenuItem onClick={handleClose}>
+                  <ListItemIcon>
+                    <PersonAdd fontSize="small" />
+                  </ListItemIcon>
+                  <Link
+                    to={`/assignGroundstaff/${reportData.AgencyId}?eventId=${reportData.event_id}`}
+                  >
+                    Add Ground Staff
+                  </Link>
+                </MenuItem>
+                {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>
                   <Settings fontSize="small" />
                 </ListItemIcon>
@@ -318,7 +319,8 @@ const EventReport = () => {
                 </ListItemIcon>
                 Logout
               </MenuItem> */}
-            </Menu>
+              </Menu>
+            </div>
           </div>
         </div>
       </header>

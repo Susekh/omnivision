@@ -36,13 +36,12 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 12px 0;
 }
 
 .event-report-header .container {
   max-width: 1200px;
   margin: auto;
-  padding: 0 20px;
+  padding: 12px 24px;
   height: 80px;
 }
 
