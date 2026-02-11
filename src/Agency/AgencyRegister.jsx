@@ -30,9 +30,9 @@ const AgencyRegister = () => {
         (error) => {
           console.error("Error fetching location:", error.message);
           setLocationError(
-            "Unable to fetch location. Please allow location access."
+            "Unable to fetch location. Please allow location access.",
           );
-        }
+        },
       );
     } else {
       setLocationError("Geolocation is not supported by your browser.");
@@ -82,7 +82,7 @@ const AgencyRegister = () => {
         alert("Agency Registered Successfully!");
       } else {
         alert(
-          "Registration Failed: " + (response.data?.message || "Unknown error")
+          "Registration Failed: " + (response.data?.message || "Unknown error"),
         );
       }
     } catch (error) {
@@ -93,7 +93,7 @@ const AgencyRegister = () => {
         console.error("Response Status:", error.response.status);
         console.error("Response Headers:", error.response.headers);
         alert(
-          `Error: ${error.response.data?.message || "Something went wrong!"}`
+          `Error: ${error.response.data?.message || "Something went wrong!"}`,
         );
       } else if (error.request) {
         console.error("No Response Received:", error.request);
@@ -106,77 +106,117 @@ const AgencyRegister = () => {
   };
 
   return (
-    <section className="main dashboard-hospital" style={{
-      backgroundColor: "#b3d9ff", 
-      minHeight: "100vh", 
-      display: "flex", 
-      flexDirection: "column",
-      flex: 1
-    }}>
-      <div className="pag-1-wrapper" style={{
-        backgroundColor: "#b3d9ff", 
-        paddingTop: window.innerWidth <= 768 ? "15px" : "20px", 
-        paddingBottom: window.innerWidth <= 768 ? "15px" : "20px",
-        paddingLeft: window.innerWidth <= 768 ? "15px" : "0px",
-        paddingRight: window.innerWidth <= 768 ? "15px" : "0px",
-        display: "flex", 
-        flexDirection: "column", 
-        justifyContent: "center", 
-        alignItems: "center",
+    <section
+      className="main dashboard-hospital"
+      style={{
+        backgroundColor: "#b3d9ff",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
         flex: 1,
-        width: "100%"
-      }}>
+      }}
+    >
+      <div
+        className="pag-1-wrapper"
+        style={{
+          backgroundColor: "#b3d9ff",
+          paddingTop: window.innerWidth <= 768 ? "15px" : "20px",
+          paddingBottom: window.innerWidth <= 768 ? "15px" : "20px",
+          paddingLeft: window.innerWidth <= 768 ? "15px" : "0px",
+          paddingRight: window.innerWidth <= 768 ? "15px" : "0px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          flex: 1,
+          width: "100%",
+        }}
+      >
         {/* Logo Section - Centered in middle */}
-        <div style={{
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          width: "100%", 
-          marginBottom: window.innerWidth <= 768 ? "12px" : "15px"
-        }}>
-          <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
-            <img 
-              src="/images/omnivision-logo.png" 
-              alt="Logo" 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: window.innerWidth <= 768 ? "12px" : "15px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src="/images/omnivision-logo.png"
+              alt="Logo"
               style={{
-                maxWidth: window.innerWidth <= 768 ? "150px" : "250px", 
-                width: "100%", 
-                height: "auto"
-              }} 
+                maxWidth: window.innerWidth <= 768 ? "150px" : "250px",
+                width: "100%",
+                height: "auto",
+              }}
             />
           </div>
         </div>
 
         {/* Welcome Title */}
-        <h1 style={{
-          color: "#000000",
-          fontFamily: "'Poppins Bold', sans-serif",
-          textTransform: "none",
-          fontWeight: 700,
-          fontSize: window.innerWidth <= 768 ? "22px" : "32px",
-          letterSpacing: window.innerWidth <= 768 ? "1px" : "2px",
-          margin: `0 0 ${window.innerWidth <= 768 ? "18px" : "25px"} 0`,
-          textAlign: "center"
-        }}>
+        <h1
+          style={{
+            color: "#000000",
+            fontFamily: "'Poppins Bold', sans-serif",
+            textTransform: "none",
+            fontWeight: 700,
+            fontSize: window.innerWidth <= 768 ? "22px" : "32px",
+            letterSpacing: window.innerWidth <= 768 ? "1px" : "2px",
+            margin: `0 0 ${window.innerWidth <= 768 ? "18px" : "25px"} 0`,
+            textAlign: "center",
+          }}
+        >
           Welcome to OmniVision
         </h1>
 
         {/* Sign-Up Form Section */}
         <section
           className="sign-up-form dashboard-hospital-sign-up"
-          style={{ 
+          style={{
             backgroundColor: "#b3d9ff",
             padding: "0",
-            margin: "0"
+            margin: "0",
           }}
         >
-          <div className="container" style={{padding: "0", maxWidth: window.innerWidth <= 768 ? "100%" : "500px"}}>
+          <div
+            className="container"
+            style={{
+              padding: "0",
+              maxWidth: window.innerWidth <= 768 ? "100%" : "500px",
+            }}
+          >
             <div className="row">
-              <div className="col-md-12" style={{padding: window.innerWidth <= 768 ? "0 15px" : "0"}}>
-                <form onSubmit={handleSubmit} style={{margin: "0", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
+              <div
+                className="col-md-12"
+                style={{ padding: window.innerWidth <= 768 ? "0 15px" : "0" }}
+              >
+                <form
+                  onSubmit={handleSubmit}
+                  style={{
+                    margin: "0",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    className="mb-3"
+                    style={{ marginBottom: "12px", width: "calc(100% - 48px)" }}
+                  >
                     <input
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                       type="text"
                       className="form-control"
                       placeholder="AGENCY NAME"
@@ -186,9 +226,16 @@ const AgencyRegister = () => {
                       required
                     />
                   </div>
-                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
+                  <div
+                    className="mb-3"
+                    style={{ marginBottom: "12px", width: "calc(100% - 48px)" }}
+                  >
                     <input
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                       type="text"
                       className="form-control"
                       placeholder="MOBILE NUMBER"
@@ -196,11 +243,11 @@ const AgencyRegister = () => {
                       autoComplete="off"
                       value={formData.mobileNumber}
                       onChange={(e) => {
-                        const onlyDigits = e.target.value.replace(/\D/g, '');
+                        const onlyDigits = e.target.value.replace(/\D/g, "");
                         if (onlyDigits.length <= 10) {
                           handleChange({
                             target: {
-                              name: 'mobileNumber',
+                              name: "mobileNumber",
                               value: onlyDigits,
                             },
                           });
@@ -214,9 +261,16 @@ const AgencyRegister = () => {
                     />
                   </div>
 
-                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
+                  <div
+                    className="mb-3"
+                    style={{ marginBottom: "12px", width: "calc(100% - 48px)" }}
+                  >
                     <input
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                       type="password"
                       className="form-control"
                       placeholder="PASSWORD"
@@ -226,9 +280,16 @@ const AgencyRegister = () => {
                       required
                     />
                   </div>
-                  <div className="mb-3" style={{marginBottom: "12px", width: "calc(100% - 48px)"}}>
+                  <div
+                    className="mb-3"
+                    style={{ marginBottom: "12px", width: "calc(100% - 48px)" }}
+                  >
                     <input
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                       type="password"
                       className="form-control"
                       placeholder="CONFIRM PASSWORD"
@@ -243,27 +304,41 @@ const AgencyRegister = () => {
                       {locationError}
                     </div>
                   )}
-                  <button type="submit" className="btn btn-primary" style={{ 
-                    backgroundColor: "#000",
-                    borderColor: "#000",
-                    padding: "12px 24px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    color: "#fff",
-                    textDecoration: "none",
-                    display: "block",
-                    margin: "20px auto 0",
-                    width: "calc(100% - 48px)",
-                    borderRadius: "8px",
-                    border: "none",
-                    cursor: "pointer"
-                  }}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      backgroundColor: "#000",
+                      borderColor: "#000",
+                      padding: "12px 24px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#fff",
+                      textDecoration: "none",
+                      display: "block",
+                      margin: "20px auto 0",
+                      width: "calc(100% - 48px)",
+                      borderRadius: "8px",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
                     Register
                   </button>
-                  <p className="mt-3" style={{textAlign: "center", margin: "15px 0 0 0"}}>
-                    <span style={{color: "#333", fontSize: "12px"}}>
+                  <p
+                    className="mt-3"
+                    style={{ textAlign: "center", margin: "15px 0 0 0" }}
+                  >
+                    <span style={{ color: "#333", fontSize: "12px" }}>
                       Have an account already?{" "}
-                      <Link to="/agencyLogin" style={{color: "#0d6efd", textDecoration: "none", fontWeight: "600"}}>
+                      <Link
+                        to="/agencyLogin"
+                        style={{
+                          color: "#0d6efd",
+                          textDecoration: "none",
+                          fontWeight: "600",
+                        }}
+                      >
                         Log In
                       </Link>
                     </span>
@@ -273,21 +348,24 @@ const AgencyRegister = () => {
             </div>
           </div>
         </section>
-
       </div>
 
       {/* Footer */}
-      <footer style={{
-        backgroundColor: "#b3d9ff", 
-        color: "#333", 
-        textAlign: "center", 
-        padding: window.innerWidth <= 768 ? "10px 15px" : "12px 20px", 
-        margin: 0, 
-        marginTop: "auto", 
-        width: "100%", 
-        fontSize: window.innerWidth <= 768 ? "11px" : "14px"
-      }}>
-        <p style={{margin: 0}}>© 2025 OmniVision. All rights reserved.</p>
+      <footer
+        style={{
+          backgroundColor: "#b3d9ff",
+          color: "#333",
+          textAlign: "center",
+          padding: window.innerWidth <= 768 ? "10px 15px" : "12px 20px",
+          margin: 0,
+          marginTop: "auto",
+          width: "100%",
+          fontSize: window.innerWidth <= 768 ? "11px" : "14px",
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          © 2026 OmniVision. All rights reserved by Neuradyne.
+        </p>
       </footer>
     </section>
   );

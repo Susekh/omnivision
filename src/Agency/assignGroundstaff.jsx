@@ -274,7 +274,7 @@ const AssignGroundstaff = () => {
       </main>
 
       <footer className="assign-footer">
-        © 2026 OmniVision. All rights reserved.
+        © 2026 OmniVision. All rights reserved by Neuradyne.
       </footer>
     </div>
   );

@@ -85,7 +85,10 @@ const Dashboard = () => {
         setDashboardData(response.data?.assignedEvents || []);
         setAssignedAgency(response.data?.AgencyName || "Unknown Agency");
 
-        console.log(`Logged in as ${response.data?.AgencyName} (${agencyId})`, dashboardData);
+        console.log(
+          `Logged in as ${response.data?.AgencyName} (${agencyId})`,
+          dashboardData,
+        );
         console.log(
           `Showing ${response.data?.assignedEvents?.length || 0} incidents`,
         );
@@ -225,7 +228,7 @@ const Dashboard = () => {
         return (
           <>
             <button
-              className="btn me-2.5 btn-success"
+              className="btn me-2.5 btn-success m-2"
               onClick={() => handleComplete(event.event_id)}
             >
               Complete
@@ -1025,7 +1028,7 @@ const Dashboard = () => {
           }}
         >
           <p style={{ margin: 0, fontSize: "14px", color: "#6c757d" }}>
-            © 2025 OmniVision. All rights reserved by Neuradyne.
+            © 2026 OmniVision. All rights reserved by Neuradyne.
           </p>
         </footer>
       </div>

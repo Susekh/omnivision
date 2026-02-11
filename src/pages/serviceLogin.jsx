@@ -1,5 +1,5 @@
-import React, { useState} from "react";
-import { useNavigate , Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "../public/assets/css/SServiceLogin.css";
 const ServiceLogin = () => {
   const [formData, setFormData] = useState({
@@ -46,7 +46,10 @@ const ServiceLogin = () => {
               <img src="/images/pag-2-logo-bg.png" alt="Background" />
             </figure>
             <figure>
-              <img src="/images/pag-2-logo-bg-right.png" alt="Background Right" />
+              <img
+                src="/images/pag-2-logo-bg-right.png"
+                alt="Background Right"
+              />
             </figure>
           </div>
           <div className="container">
@@ -99,9 +102,21 @@ const ServiceLogin = () => {
           </div>
         </section>
       </div>
-      <footer style={{ textAlign: "center", paddingBottom: "20px", backgroundColor: "#f8f9fa" }}>
-        <img src="/images/footer-bg.png" alt="Footer" style={{marginBottom: "10px"}} />
-        <p style={{margin: 0, fontSize: "13px", color: "#6c757d"}}>© 2025 OmniVision. All rights reserved.</p>
+      <footer
+        style={{
+          textAlign: "center",
+          paddingBottom: "20px",
+          backgroundColor: "#f8f9fa",
+        }}
+      >
+        <img
+          src="/images/footer-bg.png"
+          alt="Footer"
+          style={{ marginBottom: "10px" }}
+        />
+        <p style={{ margin: 0, fontSize: "13px", color: "#6c757d" }}>
+          © 2026 OmniVision. All rights reserved by Neuradyne.
+        </p>
       </footer>
     </section>
   );
