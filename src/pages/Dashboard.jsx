@@ -414,7 +414,6 @@ const Dashboard = () => {
           >
             ← Back
           </button>
-          <h4 style={{ margin: 0 }}>{selectedEventType}</h4>
         </div>
 
         <div className="table-card-heading-icon">
@@ -423,6 +422,7 @@ const Dashboard = () => {
             alt="Dashboard Icon"
             title="Dashboard Icon"
           />
+          <h4 style={{ margin: 0 }}>{selectedEventType}</h4>
         </div>
 
         <button onClick={() => setIsPopupOpen(true)} className="table-card-btn">
