@@ -886,124 +886,330 @@ const Dashboard = () => {
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,0.6)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             zIndex: 1000,
+            padding: "20px",
           }}
         >
           <div
             className="popup-content"
             style={{
               backgroundColor: "#fff",
-              padding: "20px",
-              borderRadius: "8px",
-              width: "80%",
-              maxHeight: "80%",
-              overflow: "hidden",
+              borderRadius: "12px",
+              width: "100%",
+              maxWidth: "900px",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
             }}
           >
-            <h3>All Events</h3>
-            <table
-              className="table table-striped"
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginBottom: "20px",
-              }}
-            >
-              <tr>
-                <th>ID</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Time</th>
-              </tr>
-              <tbody>
-                {currentEvents.map((event, index) => (
-                  <tr key={event.event_id || index}>
-                    <td>{index + 1 + startIndex}</td>
-                    <td>{event.description}</td>
-                    <td>
-                      {event.assignment_time
-                        ? new Date(event.assignment_time).toLocaleDateString()
-                        : "N/A"}
-                    </td>
-                    <td>
-                      {event.assignment_time
-                        ? new Date(event.assignment_time).toLocaleTimeString()
-                        : "N/A"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Header */}
             <div
-              className="pagination"
               style={{
+                padding: "24px",
+                borderBottom: "1px solid #e5e7eb",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
+              <h3 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>
+                All Events
+              </h3>
               <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
+                onClick={() => setIsPopupOpen(false)}
                 style={{
-                  padding: "10px 20px",
-                  backgroundColor: currentPage === 1 ? "#ccc" : "#007bff",
-                  color: "#fff",
+                  background: "none",
                   border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#6b7280",
+                  padding: "0",
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   borderRadius: "4px",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
                 }}
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of{" "}
-                {Math.ceil(dashboardData.length / eventsPerPage)}
-              </span>
-              <button
-                onClick={handleNextPage}
-                disabled={
-                  currentPage ===
-                  Math.ceil(dashboardData.length / eventsPerPage)
+                onMouseOver={(e) =>
+                  (e.target.style.backgroundColor = "#f3f4f6")
                 }
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor:
-                    currentPage ===
-                    Math.ceil(dashboardData.length / eventsPerPage)
-                      ? "#ccc"
-                      : "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor:
-                    currentPage ===
-                    Math.ceil(dashboardData.length / eventsPerPage)
-                      ? "not-allowed"
-                      : "pointer",
-                }}
+                onMouseOut={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
               >
-                Next
+                ×
               </button>
             </div>
-            <button
-              onClick={() => setIsPopupOpen(false)}
+
+            {/* Table Container with Scroll */}
+            <div
               style={{
-                marginTop: "20px",
-                padding: "10px 20px",
-                backgroundColor: "#dc3545",
-                color: "#fff",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
+                flex: 1,
+                overflow: "auto",
+                padding: "0 24px",
               }}
             >
-              Close
-            </button>
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  className="table table-striped"
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    marginTop: "16px",
+                    minWidth: "600px",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        backgroundColor: "#f9fafb",
+                        borderBottom: "2px solid #e5e7eb",
+                      }}
+                    >
+                      <th
+                        style={{
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          color: "#374151",
+                        }}
+                      >
+                        ID
+                      </th>
+                      <th
+                        style={{
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          color: "#374151",
+                        }}
+                      >
+                        Description
+                      </th>
+                      <th
+                        style={{
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          color: "#374151",
+                        }}
+                      >
+                        Date
+                      </th>
+                      <th
+                        style={{
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          color: "#374151",
+                        }}
+                      >
+                        Time
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentEvents.map((event, index) => (
+                      <tr
+                        key={event.event_id || index}
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: "14px",
+                            color: "#1f2937",
+                          }}
+                        >
+                          {index + 1 + startIndex}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: "14px",
+                            color: "#1f2937",
+                          }}
+                        >
+                          {event.description}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: "14px",
+                            color: "#1f2937",
+                          }}
+                        >
+                          {event.assignment_time
+                            ? new Date(
+                                event.assignment_time,
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: "14px",
+                            color: "#1f2937",
+                          }}
+                        >
+                          {event.assignment_time
+                            ? new Date(
+                                event.assignment_time,
+                              ).toLocaleTimeString()
+                            : "N/A"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer with Pagination */}
+            <div
+              style={{
+                padding: "24px",
+                borderTop: "1px solid #e5e7eb",
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              {/* Pagination Controls */}
+              <div
+                className="pagination"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                }}
+              >
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: currentPage === 1 ? "#e5e7eb" : "#3b82f6",
+                    color: currentPage === 1 ? "#9ca3af" : "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    transition: "all 0.2s",
+                    minWidth: "100px",
+                  }}
+                  onMouseOver={(e) => {
+                    if (currentPage !== 1) {
+                      e.target.style.backgroundColor = "#2563eb";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (currentPage !== 1) {
+                      e.target.style.backgroundColor = "#3b82f6";
+                    }
+                  }}
+                >
+                  Previous
+                </button>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    color: "#6b7280",
+                    fontWeight: "500",
+                  }}
+                >
+                  Page {currentPage} of{" "}
+                  {Math.ceil(dashboardData.length / eventsPerPage)}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={
+                    currentPage ===
+                    Math.ceil(dashboardData.length / eventsPerPage)
+                  }
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor:
+                      currentPage ===
+                      Math.ceil(dashboardData.length / eventsPerPage)
+                        ? "#e5e7eb"
+                        : "#3b82f6",
+                    color:
+                      currentPage ===
+                      Math.ceil(dashboardData.length / eventsPerPage)
+                        ? "#9ca3af"
+                        : "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor:
+                      currentPage ===
+                      Math.ceil(dashboardData.length / eventsPerPage)
+                        ? "not-allowed"
+                        : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    transition: "all 0.2s",
+                    minWidth: "100px",
+                  }}
+                  onMouseOver={(e) => {
+                    if (
+                      currentPage !==
+                      Math.ceil(dashboardData.length / eventsPerPage)
+                    ) {
+                      e.target.style.backgroundColor = "#2563eb";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (
+                      currentPage !==
+                      Math.ceil(dashboardData.length / eventsPerPage)
+                    ) {
+                      e.target.style.backgroundColor = "#3b82f6";
+                    }
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  width: "100%",
+                }}
+                onMouseOver={(e) =>
+                  (e.target.style.backgroundColor = "#dc2626")
+                }
+                onMouseOut={(e) => (e.target.style.backgroundColor = "#ef4444")}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
