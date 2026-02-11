@@ -60,7 +60,6 @@ body {
   width: auto;
   background: transparent;
   padding: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .assign-header-title {
@@ -438,7 +437,7 @@ body {
   }
 
   .assign-logo-image {
-    height: 50px;
+    height: 60px;
   }
 
   .assign-header-content {
