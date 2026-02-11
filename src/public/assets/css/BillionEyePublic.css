@@ -363,7 +363,7 @@
 .billionpublic-status-message {
   font-size: 18px;
   font-weight: 400;
-  color: black;
+  color: white;
   margin-bottom: 16px;
   min-height: 27px;
 }
@@ -430,7 +430,7 @@
 
 .billionpublic-footer-text {
   font-size: 12px;
-  color: black;
+  color: rgb(108, 117, 125);
   margin: 0;
   font-weight: 300;
   line-height: 1.5;
