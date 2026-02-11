@@ -168,17 +168,18 @@ body {
 }
 
 .assign-sidebar-menu-item {
-  width: 100%;
-  padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #113655;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 15px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f6fb2;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    width: 240px;
+    height: 54.5px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
 }
 
 .assign-sidebar-menu-item:hover {

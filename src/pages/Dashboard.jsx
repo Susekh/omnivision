@@ -670,12 +670,6 @@ const Dashboard = () => {
               <Link to={`/dashboard/${agencyId}`} className="sidebar-link">
                 <li className="sidebar-menu-item">Home</li>
               </Link>
-              <Link
-                to={`/assignGroundstaff/?agencyId=${agencyId}`}
-                className="sidebar-link"
-              >
-                <li className="sidebar-menu-item">Onboard GroundStaff</li>
-              </Link>
             </ul>
           </div>
           <button className="sidebar-logout-btn" onClick={handleLogout}>
