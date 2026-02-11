@@ -404,13 +404,6 @@ const Dashboard = () => {
   const renderDetailTable = () => (
     <div className="table-card" style={{ height: "700px" }}>
       <div className="table-card-heading">
-        <div className="table-card-heading-icon">
-          <img
-            src="/images/dashboard-icon.png"
-            alt="Dashboard Icon"
-            title="Dashboard Icon"
-          />
-        </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
             className="event-type-back-btn"
@@ -423,6 +416,15 @@ const Dashboard = () => {
           </button>
           <h4 style={{ margin: 0 }}>{selectedEventType}</h4>
         </div>
+
+        <div className="table-card-heading-icon">
+          <img
+            src="/images/dashboard-icon.png"
+            alt="Dashboard Icon"
+            title="Dashboard Icon"
+          />
+        </div>
+
         <button onClick={() => setIsPopupOpen(true)} className="table-card-btn">
           View All <i className="fa-solid fa-play"></i>
         </button>
