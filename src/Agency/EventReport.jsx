@@ -494,28 +494,38 @@ const EventReport = () => {
 
                   {userDetails && (
                     <div className="assign-details-card">
-                      <h5>Selected Staff Details</h5>
-                      <ul>
-                        <li>
-                          <strong>Name:</strong> {userDetails.name}
-                        </li>
-                        <li>
-                          <strong>Phone:</strong> {userDetails.number}
-                        </li>
-                        <li>
-                          <strong>Address:</strong> {userDetails.address}
-                        </li>
-                      </ul>
+                      <div className="card-header">
+                        <h5>Selected Staff Details</h5>
+                      </div>
+
+                      <div className="card-body">
+                        <div className="detail-row">
+                          <span className="label">Name</span>
+                          <span className="value">{userDetails.name}</span>
+                        </div>
+
+                        <div className="detail-row">
+                          <span className="label">Phone</span>
+                          <span className="value">{userDetails.number}</span>
+                        </div>
+
+                        <div className="detail-row">
+                          <span className="label">Address</span>
+                          <span className="value">{userDetails.address}</span>
+                        </div>
+                      </div>
+
                       <div className="assign-actions">
                         <button
-                          className="btn btn-success"
+                          className="assign-btn"
                           onClick={handleAssign}
                           disabled={isAssigned}
                         >
                           Assign
                         </button>
+
                         <button
-                          className="btn btn-danger"
+                          className="unassign-btn"
                           onClick={handleUnassign}
                         >
                           Unassign
