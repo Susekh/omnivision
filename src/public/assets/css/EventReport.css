@@ -307,6 +307,7 @@ body {
   background: #f9fafb;
   padding: 10px 14px;
   border-radius: 8px;
+  gap: 10px;
 }
 
 .label {
@@ -317,6 +318,12 @@ body {
 .value {
   font-weight: 600;
   color: #111827;
+  flex: 1;
+  min-width: 0;          /* VERY IMPORTANT for ellipsis in flex */
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Buttons Section */

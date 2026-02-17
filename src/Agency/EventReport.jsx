@@ -511,7 +511,9 @@ const EventReport = () => {
 
                         <div className="detail-row">
                           <span className="label">Address</span>
-                          <span className="value">{userDetails.address}</span>
+                          <span className="value" title={userDetails.address}>
+                            {userDetails.address}
+                          </span>
                         </div>
                       </div>
 
