@@ -27,6 +27,9 @@ const AssignGroundstaff = () => {
   const [numberPlaceholder, setNumberPlaceholder] = useState(
     "Enter 10-digit mobile number",
   );
+  const [addressPlaceholder, setAddressPlaceholder] = useState("Enter address");
+  const [passwordPlaceholder, setPasswordPlaceholder] =
+    useState("Enter password");
 
   useEffect(() => {
     if (!agencyId) return;
@@ -66,7 +69,7 @@ const AssignGroundstaff = () => {
 
       if (response.data?.success) {
         setMessage("Ground staff added successfully!");
-        setFormData({ name: "", number: "", address: "" });
+        setFormData({ name: "", number: "", address: "", password: "" });
 
         eventId
           ? navigate(`/eventReport/${eventId}`)
