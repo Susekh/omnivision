@@ -63,7 +63,7 @@ const AgencyLogin = () => {
 
         setTimeout(() => {
           if (agencyId) {
-            navigate(`/dashboard/${agencyId}`);
+            navigate(`/groundstaffdashboard/${agencyId}`);
           } else {
             setErrorMessage("Agency ID is missing. Please contact support.");
           }

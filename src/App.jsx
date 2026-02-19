@@ -20,6 +20,8 @@ import OngoingTax from "./Agency/OngoingTax";
 import AssignGroundStaff from "./Agency/assignGroundstaff";
 import ForgotPassword from "./Agency/ForgetPassword";
 import AdminAgencyManager from "./pages/AdminAgencyManager";
+import GroundStaffLogin from "./groundstaff/groundstaffLogin";
+import GroundStaffDashboard from "./groundstaff/groundstaffdashboard";
 
 // Protected Route Component
 const ProtectedRoute = ({ element: Element }) => {
@@ -61,6 +63,12 @@ function App() {
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin" element={<AdminAgencyManager />} />
+
+        <Route path="/groundstafflogin" element={<GroundStaffLogin />} />
+        <Route
+          path="/groundstaffdashboard/:agencyId"
+          element={<GroundStaffDashboard />}
+        />
 
         {/* Protected Routes */}
 
