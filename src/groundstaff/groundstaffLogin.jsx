@@ -3,8 +3,7 @@ import api from "../api";
 import "../public/assets/css/groundstaffLogin.css";
 import { Link, useNavigate } from "react-router-dom";
 
-const AgencyLogin = () => {
-  // const { AgencyId } = useParams();
+const GroundStaffLogin = () => {
   const [formData, setFormData] = useState({
     mobileNumber: "",
     password: "",
@@ -26,7 +25,7 @@ const AgencyLogin = () => {
     setSuccessMessage("");
 
     // Check if blocked
-    const blockedUntil = localStorage.getItem("agencyLoginBlockedUntil");
+    const blockedUntil = localStorage.getItem("groundstaffLoginBlockedUntil");
     if (blockedUntil && new Date() < new Date(blockedUntil)) {
       setErrorMessage(
         "Too many failed attempts. Login is blocked for 24 hours.",
@@ -46,19 +45,25 @@ const AgencyLogin = () => {
     setLoading(true);
 
     try {
-      const response = await api.post("backend/agency/login", {
+      const response = await api.post("backend/groundstaff/login", {
         mobileNumber: formData.mobileNumber.trim(),
         password: formData.password,
       });
 
       if (response.status === 200) {
         // Reset attempts on success
-        localStorage.removeItem("agencyLoginAttempts");
-        localStorage.removeItem("agencyLoginBlockedUntil");
-        const { token, agency } = response.data;
-        const agencyId = agency?.AgencyId;
+        localStorage.removeItem("groundstaffLoginAttempts");
+        localStorage.removeItem("groundstaffLoginBlockedUntil");
+        const { token, groundStaff } = response.data;
+        const agencyId = groundStaff?.agencyId;
 
+        // Store credentials and agency info
         localStorage.setItem("token", token);
+        localStorage.setItem("groundStaffId", groundStaff?.id);
+        localStorage.setItem("groundStaffName", groundStaff?.name);
+        localStorage.setItem("agencyId", agencyId);
+        localStorage.setItem("mobileNumber", groundStaff?.number);
+
         setSuccessMessage("Login Successful!");
 
         setTimeout(() => {
@@ -76,8 +81,9 @@ const AgencyLogin = () => {
     } catch (error) {
       // Track failed attempts
       let attempts =
-        parseInt(localStorage.getItem("agencyLoginAttempts") || "0", 10) + 1;
-      localStorage.setItem("agencyLoginAttempts", attempts);
+        parseInt(localStorage.getItem("groundstaffLoginAttempts") || "0", 10) +
+        1;
+      localStorage.setItem("groundstaffLoginAttempts", attempts);
 
       if (attempts === 3) {
         setErrorMessage(
@@ -89,7 +95,7 @@ const AgencyLogin = () => {
         );
       } else if (attempts >= 5) {
         const blockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-        localStorage.setItem("agencyLoginBlockedUntil", blockUntil);
+        localStorage.setItem("groundstaffLoginBlockedUntil", blockUntil);
         setErrorMessage(
           "Too many failed attempts. Login is blocked for 24 hours.",
         );
@@ -172,7 +178,7 @@ const AgencyLogin = () => {
             textAlign: "center",
           }}
         >
-          Welcome to OmniVision
+          Welcome to OmniVision - Ground Staff
         </h1>
 
         {/* Login Form Section */}
@@ -298,12 +304,7 @@ const AgencyLogin = () => {
                     className="mt-3"
                     style={{ textAlign: "center", margin: "15px 0 0 0" }}
                   >
-                    {/* {<span style={{color: "#333", fontSize: "12px"}}>
-                      Don't have an account?{" "}
-                      <Link to="/agencyRegister" style={{color: "#0d6efd", textDecoration: "none", fontWeight: "600"}}>
-                        Sign Up
-                      </Link>
-                    </span>} */}
+                    {/* Contact your agency for credentials */}
                   </p>
                 </form>
               </div>
@@ -333,4 +334,4 @@ const AgencyLogin = () => {
   );
 };
 
-export default AgencyLogin;
+export default GroundStaffLogin;
