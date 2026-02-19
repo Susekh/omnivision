@@ -8,6 +8,7 @@ const AssignGroundstaff = () => {
     name: "",
     number: "",
     address: "",
+    password: "",
   });
 
   const [message, setMessage] = useState("");
@@ -222,6 +223,24 @@ const AssignGroundstaff = () => {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="assign-form-group">
+                  <label className="assign-form-label">
+                    Password <span className="assign-required">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    placeholder={passwordPlaceholder}
+                    className="assign-form-input"
+                    onChange={(e) => {
+                      handleChange(e);
+                      setPasswordPlaceholder("Enter password");
+                    }}
+                    required
+                  />
                 </div>
 
                 <div className="assign-form-group">
