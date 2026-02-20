@@ -211,6 +211,7 @@ const EventReport = () => {
 
       const response = await api.put(`backend/events/status/${event_id}`, {
         status: "Assigned",
+        groundStaffId: selectedStaff._id,
         groundStaffName: selectedStaff.name,
         assignment_time: new Date().toISOString(),
       });

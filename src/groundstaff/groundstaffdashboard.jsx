@@ -36,12 +36,14 @@ const GroundStaffDashboard = () => {
 
       const token = localStorage.getItem("token");
       const storedAgencyId = localStorage.getItem("agencyId");
+      const groundStaffId = localStorage.getItem("groundStaffId");
 
       const response = await api.get(
         `backend/groundstaff/tasks/${storedAgencyId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "x-groundstaff-id": groundStaffId,
           },
         },
       );
