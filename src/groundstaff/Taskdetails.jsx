@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 
-// ─── THEME ────────────────────────────────────────────────────────────────────
 const P = "#1f6fb2";
 const P_LT = "#e8f2fb";
 const P_MID = "#d0e6f7";
@@ -14,10 +13,10 @@ const STATUS_CFG = {
 };
 
 const PRIORITY_CFG = {
-  Critical: { color: "#dc2626", bg: "#fee2e2" },
-  High: { color: "#d97706", bg: "#fef3c7" },
-  Medium: { color: "#1f6fb2", bg: "#e8f2fb" },
-  Low: { color: "#059669", bg: "#d1fae5" },
+  Critical: { color: "#dc2626", bg: "#fee2e2", stripe: "#dc2626" },
+  High: { color: "#d97706", bg: "#fef3c7", stripe: "#f59e0b" },
+  Medium: { color: "#1f6fb2", bg: "#e8f2fb", stripe: P },
+  Low: { color: "#059669", bg: "#d1fae5", stripe: "#10b981" },
 };
 
 const INCIDENT_ICONS = {
@@ -29,7 +28,39 @@ const INCIDENT_ICONS = {
   Violence: "⚠️",
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const c = STATUS_CFG[status] || STATUS_CFG.Assigned;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        background: c.bg,
+        color: c.color,
+        border: `1px solid ${c.border}`,
+        borderRadius: 20,
+        padding: "4px 11px",
+        fontSize: 12,
+        fontWeight: 700,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: c.color,
+          flexShrink: 0,
+        }}
+      />
+      {status}
+    </span>
+  );
+}
+
+// ─── Info row (label + value card) ───────────────────────────────────────────
 function InfoRow({ icon, label, value }) {
   if (!value) return null;
   return (
@@ -37,15 +68,15 @@ function InfoRow({ icon, label, value }) {
       style={{
         background: "#fff",
         borderRadius: 12,
-        padding: "14px 16px",
+        padding: "13px 14px",
         border: "1.5px solid #f1f5f9",
       }}
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: 10,
           color: "#94a3b8",
-          fontWeight: 600,
+          fontWeight: 700,
           marginBottom: 4,
           textTransform: "uppercase",
           letterSpacing: "0.4px",
@@ -58,7 +89,7 @@ function InfoRow({ icon, label, value }) {
           fontSize: 13,
           color: "#111",
           fontWeight: 600,
-          lineHeight: 1.4,
+          lineHeight: 1.45,
         }}
       >
         {value}
@@ -67,38 +98,7 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-function StatusBadge({ status }) {
-  const cfg = STATUS_CFG[status] || STATUS_CFG.Assigned;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        background: cfg.bg,
-        color: cfg.color,
-        border: `1px solid ${cfg.border}`,
-        borderRadius: 20,
-        padding: "4px 12px",
-        fontSize: 12,
-        fontWeight: 700,
-      }}
-    >
-      <span
-        style={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          background: cfg.color,
-          display: "inline-block",
-        }}
-      />
-      {status}
-    </span>
-  );
-}
-
-// ─── MAP ──────────────────────────────────────────────────────────────────────
+// ─── Full Map ─────────────────────────────────────────────────────────────────
 function FullMap({ lat, lng, location }) {
   if (!lat || !lng) return null;
   const d = 0.02;
@@ -108,34 +108,33 @@ function FullMap({ lat, lng, location }) {
       style={{
         background: "#fff",
         borderRadius: 16,
-        padding: 16,
+        padding: 14,
         border: `1.5px solid ${P_MID}`,
-        boxShadow: "0 2px 8px rgba(31,111,178,0.06)",
       }}
     >
       <div
         style={{
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: 700,
           color: "#374151",
-          marginBottom: 10,
+          marginBottom: 9,
           display: "flex",
           alignItems: "center",
-          gap: 6,
+          gap: 5,
         }}
       >
-        📍 Incident Location
+        📍 Incident Location on Map
       </div>
       <div
         style={{
           borderRadius: 12,
           overflow: "hidden",
-          height: 220,
+          height: 200,
           border: `1px solid ${P_MID}`,
         }}
       >
         <iframe
-          title="incident-map"
+          title="map"
           src={src}
           style={{ width: "100%", height: "100%", border: "none" }}
           loading="lazy"
@@ -144,14 +143,15 @@ function FullMap({ lat, lng, location }) {
       {location && (
         <div
           style={{
-            marginTop: 10,
-            fontSize: 13,
+            marginTop: 9,
+            fontSize: 12,
             color: "#64748b",
             display: "flex",
-            gap: 6,
+            gap: 5,
+            lineHeight: 1.4,
           }}
         >
-          <span style={{ color: P }}>📍</span>
+          <span style={{ color: P, flexShrink: 0 }}>📍</span>
           <span>{location}</span>
         </div>
       )}
@@ -173,18 +173,20 @@ function FullMap({ lat, lng, location }) {
   );
 }
 
-// ─── COMPLETION FORM ──────────────────────────────────────────────────────────
+// ─── Completion Form ──────────────────────────────────────────────────────────
 function CompleteForm({ onSubmit, onCancel, submitting }) {
   const [remark, setRemark] = useState("");
   const [photos, setPhotos] = useState([]);
   const [previews, setPreviews] = useState([]);
   const fileRef = useRef();
 
-  const handleFiles = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    setPhotos(files);
-    setPreviews(files.map((f) => URL.createObjectURL(f)));
+  const addFiles = (files) => {
+    const imgs = files.filter((f) => f.type.startsWith("image/"));
+    setPhotos((prev) => [...prev, ...imgs]);
+    setPreviews((prev) => [
+      ...prev,
+      ...imgs.map((f) => URL.createObjectURL(f)),
+    ]);
   };
 
   const removePhoto = (i) => {
@@ -198,7 +200,7 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
       return;
     }
     if (photos.length < 1) {
-      alert("Please upload at least one completion photo.");
+      alert("Please upload at least one photo.");
       return;
     }
     onSubmit({ remark, photos });
@@ -210,18 +212,18 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
         background: "#fff",
         border: `1.5px solid ${P_MID}`,
         borderRadius: 16,
-        padding: 24,
+        padding: 16,
         animation: "fadeUp 0.3s ease both",
       }}
     >
-      {/* Section Title */}
+      {/* Title */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
-          marginBottom: 20,
-          paddingBottom: 16,
+          gap: 9,
+          marginBottom: 16,
+          paddingBottom: 14,
           borderBottom: "1px solid #f1f5f9",
         }}
       >
@@ -236,37 +238,39 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
             alignItems: "center",
             justifyContent: "center",
             fontSize: 18,
+            flexShrink: 0,
           }}
         >
           ✓
         </div>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#111" }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#111" }}>
             Task Completion Report
           </div>
-          <div style={{ fontSize: 12, color: "#94a3b8" }}>
-            Upload photos and add remarks to close this incident
+          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
+            Upload photos & add remarks
           </div>
         </div>
       </div>
 
-      {/* Photo Upload */}
-      <div style={{ marginBottom: 20 }}>
+      {/* Photo upload */}
+      <div style={{ marginBottom: 16 }}>
         <label
           style={{
             display: "block",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 700,
             color: "#374151",
-            marginBottom: 8,
+            marginBottom: 7,
           }}
         >
           Completion Photos <span style={{ color: "#dc2626" }}>*</span>
-          <span style={{ fontWeight: 400, color: "#94a3b8", marginLeft: 6 }}>
-            (minimum 1)
+          <span style={{ fontWeight: 400, color: "#94a3b8", marginLeft: 5 }}>
+            (at least 1)
           </span>
         </label>
 
+        {/* Drop zone */}
         <div
           onClick={() => fileRef.current.click()}
           onDragOver={(e) => {
@@ -277,54 +281,49 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
           onDrop={(e) => {
             e.preventDefault();
             e.currentTarget.style.borderColor = P_MID;
-            const files = Array.from(e.dataTransfer.files).filter((f) =>
-              f.type.startsWith("image/"),
-            );
-            setPhotos(files);
-            setPreviews(files.map((f) => URL.createObjectURL(f)));
+            addFiles(Array.from(e.dataTransfer.files));
           }}
           style={{
             border: `2px dashed ${P_MID}`,
             borderRadius: 12,
-            padding: "24px 20px",
+            padding: "20px 16px",
             textAlign: "center",
             cursor: "pointer",
             background: P_LT,
-            transition: "border-color 0.2s",
+            touchAction: "manipulation",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = P)}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = P_MID)}
         >
-          <div style={{ fontSize: 32, marginBottom: 6 }}>📷</div>
+          <div style={{ fontSize: 28, marginBottom: 5 }}>📷</div>
           <div style={{ fontSize: 13, color: P, fontWeight: 700 }}>
-            Click to upload or drag & drop
+            Tap to upload photos
           </div>
-          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
-            JPG, PNG, HEIC — multiple files allowed
+          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+            JPG, PNG — multiple allowed
           </div>
           <input
             ref={fileRef}
             type="file"
             accept="image/*"
             multiple
-            onChange={handleFiles}
+            onChange={(e) => addFiles(Array.from(e.target.files))}
             style={{ display: "none" }}
+            capture="environment" /* opens camera directly on mobile */
           />
         </div>
 
         {/* Previews */}
         {previews.length > 0 && (
           <div
-            style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}
+            style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}
           >
             {previews.map((src, i) => (
               <div key={i} style={{ position: "relative" }}>
                 <img
                   src={src}
-                  alt={`photo-${i}`}
+                  alt=""
                   style={{
-                    width: 72,
-                    height: 72,
+                    width: 68,
+                    height: 68,
                     objectFit: "cover",
                     borderRadius: 10,
                     border: `2px solid ${P_MID}`,
@@ -335,31 +334,32 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
                   onClick={() => removePhoto(i)}
                   style={{
                     position: "absolute",
-                    top: -6,
-                    right: -6,
+                    top: -5,
+                    right: -5,
                     width: 20,
                     height: 20,
                     borderRadius: "50%",
                     background: "#dc2626",
                     color: "#fff",
                     border: "none",
-                    cursor: "pointer",
-                    fontSize: 10,
-                    fontWeight: 700,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    cursor: "pointer",
                   }}
                 >
                   ✕
                 </button>
               </div>
             ))}
+            {/* Add more */}
             <div
               onClick={() => fileRef.current.click()}
               style={{
-                width: 72,
-                height: 72,
+                width: 68,
+                height: 68,
                 borderRadius: 10,
                 border: `2px dashed ${P_MID}`,
                 background: P_LT,
@@ -373,23 +373,23 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
               }}
             >
               +
-              <span style={{ fontSize: 9, marginTop: 2, color: "#94a3b8" }}>
-                Add more
+              <span style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>
+                More
               </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Remark */}
-      <div style={{ marginBottom: 22 }}>
+      {/* Remark textarea */}
+      <div style={{ marginBottom: 18 }}>
         <label
           style={{
             display: "block",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 700,
             color: "#374151",
-            marginBottom: 8,
+            marginBottom: 7,
           }}
         >
           Completion Remarks <span style={{ color: "#dc2626" }}>*</span>
@@ -397,37 +397,31 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
         <textarea
           value={remark}
           onChange={(e) => setRemark(e.target.value)}
-          placeholder="Describe the actions taken, current situation at scene, handover details, any follow-up needed…"
-          rows={5}
+          placeholder="Describe actions taken, current situation, handover details…"
+          rows={4}
           style={{
             width: "100%",
             borderRadius: 12,
             border: "1.5px solid #e5eaf0",
-            padding: "12px 14px",
+            padding: "12px 13px",
             fontSize: 13,
             color: "#111",
             resize: "vertical",
             fontFamily: "inherit",
-            outline: "none",
             lineHeight: 1.6,
-            transition: "border-color 0.2s",
+            outline: "none",
+            /* prevent iOS zoom on focus (font-size must be >= 16px in the field) */
+            fontSize: "16px",
           }}
           onFocus={(e) => (e.target.style.borderColor = P)}
           onBlur={(e) => (e.target.style.borderColor = "#e5eaf0")}
         />
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 4,
-          }}
+          style={{ display: "flex", justifyContent: "flex-end", marginTop: 3 }}
         >
-          <span style={{ fontSize: 11, color: "#94a3b8" }}>
-            Be as detailed as possible
-          </span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 10,
               color: remark.length > 20 ? "#10b981" : "#94a3b8",
             }}
           >
@@ -436,47 +430,29 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          onClick={onCancel}
-          disabled={submitting}
-          style={{
-            flex: 1,
-            padding: 12,
-            borderRadius: 10,
-            border: "1.5px solid #e5eaf0",
-            background: "#fff",
-            color: "#64748b",
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: "pointer",
-            opacity: submitting ? 0.5 : 1,
-          }}
-        >
-          Cancel
-        </button>
+      {/* Buttons */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <button
           onClick={handleSubmit}
           disabled={submitting}
           style={{
-            flex: 2,
-            padding: 12,
-            borderRadius: 10,
+            width: "100%",
+            padding: 14,
+            borderRadius: 12,
             border: "none",
             background: submitting
               ? "#6ee7b7"
-              : "linear-gradient(135deg, #059669, #10b981)",
+              : "linear-gradient(135deg,#059669,#10b981)",
             color: "#fff",
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 15,
             cursor: submitting ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
             boxShadow: "0 4px 14px rgba(5,150,105,0.25)",
-            transition: "all 0.2s",
+            minHeight: 50,
           }}
         >
           {submitting ? (
@@ -495,12 +471,30 @@ function CompleteForm({ onSubmit, onCancel, submitting }) {
             "✓ Submit & Mark Completed"
           )}
         </button>
+        <button
+          onClick={onCancel}
+          disabled={submitting}
+          style={{
+            width: "100%",
+            padding: 12,
+            borderRadius: 12,
+            border: "1.5px solid #e5eaf0",
+            background: "#fff",
+            color: "#64748b",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer",
+            minHeight: 46,
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 const TaskDetails = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
@@ -508,32 +502,30 @@ const TaskDetails = () => {
   const [task, setTask] = useState(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [actLoading, setActLoading] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
   // ── Load task ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    // Try localStorage first (passed from dashboard)
     const cached = localStorage.getItem("selectedTask");
     if (cached) {
       try {
-        const parsed = JSON.parse(cached);
-        if (parsed._id === taskId || !taskId) {
-          setTask(parsed);
-          setStatus(parsed.status || "Assigned");
+        const p = JSON.parse(cached);
+        if (!taskId || p._id === taskId) {
+          setTask(p);
+          setStatus(p.status || "Assigned");
           setLoading(false);
           return;
         }
       } catch (_) {}
     }
-    // Otherwise fetch from API
-    fetchTaskFromApi();
+    fetchFromApi();
     // eslint-disable-next-line
   }, [taskId]);
 
-  const fetchTaskFromApi = async () => {
+  const fetchFromApi = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -543,51 +535,47 @@ const TaskDetails = () => {
       const t = res.data.data || res.data;
       setTask(t);
       setStatus(t.status || "Assigned");
-    } catch (err) {
+    } catch {
       setError("Failed to load task details.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Accept task → In Progress ──────────────────────────────────────────────
+  // ── Accept → In Progress ───────────────────────────────────────────────────
   const handleAccept = async () => {
     try {
-      setActionLoading(true);
+      setActLoading(true);
       setError("");
       const token = localStorage.getItem("token");
-
       await api.patch(
         `backend/groundstaff/task/${task._id}/status`,
         { status: "In Progress" },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-
       setStatus("In Progress");
       setTask((prev) => ({ ...prev, status: "In Progress" }));
       setSuccessMsg("Task accepted! You are now responding.");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          "Failed to accept task. Please try again.",
+        err.response?.data?.message || "Failed to accept task. Try again.",
       );
     } finally {
-      setActionLoading(false);
+      setActLoading(false);
     }
   };
 
-  // ── Complete task ──────────────────────────────────────────────────────────
+  // ── Complete ───────────────────────────────────────────────────────────────
   const handleComplete = async ({ remark, photos }) => {
     try {
-      setActionLoading(true);
+      setActLoading(true);
       setError("");
       const token = localStorage.getItem("token");
-
       const formData = new FormData();
       formData.append("status", "Completed");
       formData.append("remark", remark);
-      photos.forEach((photo, i) => formData.append(`photos`, photo));
+      photos.forEach((p) => formData.append("photos", p));
 
       await api.patch(
         `backend/groundstaff/task/${task._id}/complete`,
@@ -599,24 +587,20 @@ const TaskDetails = () => {
           },
         },
       );
-
       setStatus("Completed");
       setTask((prev) => ({ ...prev, status: "Completed" }));
       setShowComplete(false);
-      setSuccessMsg("Task marked as completed successfully!");
-      // Clear cached task
+      setSuccessMsg("Task marked as completed! Report submitted.");
       localStorage.removeItem("selectedTask");
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          "Failed to complete task. Please try again.",
+        err.response?.data?.message || "Failed to complete task. Try again.",
       );
     } finally {
-      setActionLoading(false);
+      setActLoading(false);
     }
   };
 
-  const sc = STATUS_CFG[status] || STATUS_CFG.Assigned;
   const pc = PRIORITY_CFG[task?.priority] || PRIORITY_CFG.Medium;
   const lat = task?.latitude || task?.lat || null;
   const lng = task?.longitude || task?.lng || null;
@@ -626,24 +610,30 @@ const TaskDetails = () => {
       style={{
         minHeight: "100vh",
         background: "#f4f8fc",
-        fontFamily: "'Nunito', 'Segoe UI', sans-serif",
+        fontFamily: "'Nunito','Segoe UI',sans-serif",
       }}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes spin   { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-        textarea:focus, input:focus { outline: none; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { -webkit-tap-highlight-color:transparent; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes spin   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        textarea,input { font-size:16px!important; } /* prevent iOS auto-zoom */
+        button { -webkit-appearance:none; cursor:pointer; }
+
+        /* Info grid: 1 col on mobile, 2 col on wider */
+        .info-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+        @media(min-width:480px){ .info-grid{ grid-template-columns:repeat(2,1fr); } }
       `}</style>
 
-      {/* ── NAV ──────────────────────────────────────────────────────────── */}
+      {/* ── STICKY NAV ── */}
       <nav
         style={{
           background: "#fff",
           borderBottom: "1px solid #e8f0f8",
-          padding: "0 24px",
-          height: 60,
+          padding: "0 14px",
+          height: 54,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -653,7 +643,9 @@ const TaskDetails = () => {
           boxShadow: "0 1px 8px rgba(31,111,178,0.07)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}
+        >
           <button
             onClick={() => navigate(-1)}
             style={{
@@ -661,13 +653,14 @@ const TaskDetails = () => {
               color: P,
               border: "none",
               borderRadius: 8,
-              padding: "6px 14px",
-              cursor: "pointer",
+              padding: "7px 13px",
               fontSize: 13,
               fontWeight: 700,
               display: "flex",
               alignItems: "center",
-              gap: 5,
+              gap: 4,
+              minHeight: 40,
+              flexShrink: 0,
             }}
           >
             ← Back
@@ -675,27 +668,20 @@ const TaskDetails = () => {
           <div
             style={{
               width: 1,
-              height: 24,
+              height: 22,
               background: "#e8eef5",
-              margin: "0 4px",
+              flexShrink: 0,
             }}
           />
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
-              background: `linear-gradient(135deg, ${P}, #2980c9)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-            }}
-          >
-            🛡️
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#111" }}>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                color: "#111",
+                lineHeight: 1.2,
+              }}
+            >
               Incident Details
             </div>
             {task && (
@@ -704,6 +690,9 @@ const TaskDetails = () => {
                   fontSize: 10,
                   color: "#94a3b8",
                   fontFamily: "monospace",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 #{task.event_id || task._id}
@@ -714,15 +703,17 @@ const TaskDetails = () => {
         {status && <StatusBadge status={status} />}
       </nav>
 
-      {/* ── CONTENT ──────────────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 20px" }}>
-        {/* Loading */}
+      {/* ── PAGE CONTENT ── */}
+      <div
+        style={{ maxWidth: 680, margin: "0 auto", padding: "14px 12px 80px" }}
+      >
+        {/* Spinner */}
         {loading && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
             <div
               style={{
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 borderRadius: "50%",
                 border: `3px solid ${P_MID}`,
                 borderTopColor: P,
@@ -736,44 +727,44 @@ const TaskDetails = () => {
           </div>
         )}
 
-        {/* Error */}
+        {/* Error banner */}
         {error && (
           <div
             style={{
               background: "#fee2e2",
               border: "1.5px solid #fca5a5",
               borderRadius: 12,
-              padding: "12px 16px",
-              marginBottom: 16,
+              padding: "11px 13px",
+              marginBottom: 12,
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 8,
             }}
           >
-            <span>⚠️</span>
-            <span style={{ fontSize: 13, color: "#dc2626", fontWeight: 600 }}>
+            <span style={{ flexShrink: 0 }}>⚠️</span>
+            <span style={{ fontSize: 12, color: "#dc2626", fontWeight: 600 }}>
               {error}
             </span>
           </div>
         )}
 
-        {/* Success */}
+        {/* Success banner */}
         {successMsg && (
           <div
             style={{
               background: "#d1fae5",
               border: "1.5px solid #a7f3d0",
               borderRadius: 12,
-              padding: "12px 16px",
-              marginBottom: 16,
+              padding: "11px 13px",
+              marginBottom: 12,
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 8,
               animation: "fadeUp 0.3s ease both",
             }}
           >
-            <span>✅</span>
-            <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>
+            <span style={{ flexShrink: 0 }}>✅</span>
+            <span style={{ fontSize: 12, color: "#059669", fontWeight: 600 }}>
               {successMsg}
             </span>
           </div>
@@ -781,115 +772,131 @@ const TaskDetails = () => {
 
         {!loading && task && (
           <>
-            {/* ── Header Card ── */}
+            {/* ── HEADER CARD ── */}
             <div
               style={{
                 background: "#fff",
                 borderRadius: 16,
-                padding: 24,
+                overflow: "hidden",
                 border: `1.5px solid ${P_MID}`,
                 boxShadow: "0 4px 20px rgba(31,111,178,0.08)",
-                marginBottom: 14,
+                marginBottom: 12,
                 animation: "fadeUp 0.35s ease both",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: 14,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 14,
-                      background: P_LT,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 26,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {INCIDENT_ICONS[task.incident_type] || "⚠️"}
-                  </div>
-                  <div>
-                    <h1
-                      style={{
-                        fontSize: 20,
-                        fontWeight: 800,
-                        color: "#111",
-                        margin: "0 0 3px",
-                      }}
-                    >
-                      {task.incident_type || "Incident"}
-                    </h1>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "#94a3b8",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      #{task.event_id || task._id}
-                    </div>
-                  </div>
-                </div>
+              {/* Priority stripe */}
+              <div style={{ height: 4, background: pc.stripe }} />
+
+              <div style={{ padding: 16 }}>
+                {/* Top row */}
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 6,
-                    alignItems: "flex-end",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: 8,
+                    marginBottom: 12,
                   }}
                 >
-                  <StatusBadge status={status} />
-                  {task.priority && (
-                    <span
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      minWidth: 0,
+                    }}
+                  >
+                    <div
                       style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: pc.color,
-                        background: pc.bg,
-                        borderRadius: 10,
-                        padding: "2px 10px",
+                        width: 48,
+                        height: 48,
+                        borderRadius: 14,
+                        background: P_LT,
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 24,
                       }}
                     >
-                      {task.priority} Priority
-                    </span>
-                  )}
+                      {INCIDENT_ICONS[task.incident_type] || "⚠️"}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 17,
+                          fontWeight: 800,
+                          color: "#111",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {task.incident_type || "Incident"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#94a3b8",
+                          fontFamily: "monospace",
+                          marginTop: 2,
+                        }}
+                      >
+                        #{task.event_id || task._id}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                      alignItems: "flex-end",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <StatusBadge status={status} />
+                    {task.priority && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: pc.color,
+                          background: pc.bg,
+                          borderRadius: 8,
+                          padding: "2px 9px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {task.priority} Priority
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {task.description && (
-                <p
-                  style={{
-                    fontSize: 14,
-                    color: "#374151",
-                    lineHeight: 1.7,
-                    margin: 0,
-                    padding: "14px",
-                    background: "#f8fafc",
-                    borderRadius: 10,
-                    border: "1px solid #f1f5f9",
-                  }}
-                >
-                  {task.description}
-                </p>
-              )}
+                {/* Description */}
+                {task.description && (
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "#374151",
+                      lineHeight: 1.65,
+                      margin: 0,
+                      padding: 12,
+                      background: "#f8fafc",
+                      borderRadius: 10,
+                      border: "1px solid #f1f5f9",
+                    }}
+                  >
+                    {task.description}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* ── Info Grid ── */}
+            {/* ── INFO GRID ── */}
             <div
+              className="info-grid"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 10,
-                marginBottom: 14,
+                marginBottom: 12,
                 animation: "fadeUp 0.35s ease 0.05s both",
               }}
             >
@@ -913,11 +920,11 @@ const TaskDetails = () => {
               <InfoRow icon="🏥" label="Casualties" value={task.casualties} />
             </div>
 
-            {/* ── Map ── */}
+            {/* ── MAP ── */}
             {lat && lng && (
               <div
                 style={{
-                  marginBottom: 14,
+                  marginBottom: 12,
                   animation: "fadeUp 0.35s ease 0.1s both",
                 }}
               >
@@ -925,12 +932,12 @@ const TaskDetails = () => {
               </div>
             )}
 
-            {/* ── ACTION SECTION ── */}
+            {/* ── ACTIONS ── */}
             <div
               style={{
                 background: "#fff",
                 borderRadius: 16,
-                padding: 20,
+                padding: 16,
                 border: `1.5px solid ${P_MID}`,
                 boxShadow: "0 2px 8px rgba(31,111,178,0.06)",
                 animation: "fadeUp 0.35s ease 0.15s both",
@@ -938,44 +945,44 @@ const TaskDetails = () => {
             >
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#374151",
-                  marginBottom: 14,
+                  marginBottom: 12,
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 5,
                 }}
               >
                 ⚡ Actions
               </div>
 
-              {/* ASSIGNED → Accept */}
+              {/* ASSIGNED → Accept button */}
               {status === "Assigned" && !showComplete && (
                 <button
                   onClick={handleAccept}
-                  disabled={actionLoading}
+                  disabled={actLoading}
                   style={{
                     width: "100%",
-                    padding: "14px",
+                    padding: 16,
                     borderRadius: 12,
                     border: "none",
-                    background: actionLoading
+                    background: actLoading
                       ? P_MID
-                      : `linear-gradient(135deg, ${P}, #2980c9)`,
+                      : `linear-gradient(135deg,${P},#2980c9)`,
                     color: "#fff",
                     fontWeight: 700,
-                    fontSize: 15,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
+                    fontSize: 16,
+                    cursor: actLoading ? "not-allowed" : "pointer",
                     boxShadow: `0 4px 16px rgba(31,111,178,0.28)`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 8,
-                    transition: "all 0.2s",
+                    minHeight: 54,
                   }}
                 >
-                  {actionLoading ? (
+                  {actLoading ? (
                     <>
                       <span
                         style={{
@@ -993,83 +1000,80 @@ const TaskDetails = () => {
                 </button>
               )}
 
-              {/* IN PROGRESS → Complete */}
+              {/* IN PROGRESS → Complete button */}
               {status === "In Progress" && !showComplete && (
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
                 >
                   <div
                     style={{
                       background: P_LT,
                       borderRadius: 10,
-                      padding: "10px 14px",
+                      padding: "10px 13px",
                       fontSize: 13,
                       color: P,
                       fontWeight: 600,
                       display: "flex",
                       alignItems: "center",
-                      gap: 8,
+                      gap: 7,
                     }}
                   >
-                    🔵 You have accepted this task and are currently responding
+                    🔵 You are currently responding to this incident
                   </div>
                   <button
                     onClick={() => setShowComplete(true)}
                     style={{
                       width: "100%",
-                      padding: "14px",
+                      padding: 16,
                       borderRadius: 12,
                       border: "none",
-                      background: "linear-gradient(135deg, #059669, #10b981)",
+                      background: "linear-gradient(135deg,#059669,#10b981)",
                       color: "#fff",
                       fontWeight: 700,
-                      fontSize: 15,
+                      fontSize: 16,
                       cursor: "pointer",
                       boxShadow: "0 4px 16px rgba(5,150,105,0.25)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
+                      minHeight: 54,
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.opacity = "0.9")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
                     ✓ Mark as Completed
                   </button>
                 </div>
               )}
 
-              {/* Completion Form */}
+              {/* Completion form */}
               {showComplete && (
                 <CompleteForm
                   onSubmit={handleComplete}
                   onCancel={() => setShowComplete(false)}
-                  submitting={actionLoading}
+                  submitting={actLoading}
                 />
               )}
 
-              {/* COMPLETED Banner */}
+              {/* COMPLETED banner */}
               {status === "Completed" && (
                 <div
                   style={{
-                    background: "linear-gradient(135deg, #d1fae5, #ecfdf5)",
+                    background: "linear-gradient(135deg,#d1fae5,#ecfdf5)",
                     border: "1.5px solid #a7f3d0",
                     borderRadius: 14,
-                    padding: "24px 20px",
+                    padding: "24px 16px",
                     textAlign: "center",
                     animation: "fadeUp 0.4s ease both",
                   }}
                 >
-                  <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+                  <div style={{ fontSize: 38, marginBottom: 8 }}>🎉</div>
                   <div
                     style={{ fontWeight: 800, fontSize: 17, color: "#059669" }}
                   >
-                    Task Completed
+                    Task Completed!
                   </div>
                   <div style={{ fontSize: 13, color: "#6ee7b7", marginTop: 4 }}>
-                    Your report has been submitted to the agency.
+                    Report has been submitted to the agency.
                   </div>
                   <button
                     onClick={() => navigate(-1)}
@@ -1079,10 +1083,11 @@ const TaskDetails = () => {
                       color: "#059669",
                       border: "1.5px solid #a7f3d0",
                       borderRadius: 10,
-                      padding: "8px 20px",
-                      cursor: "pointer",
+                      padding: "10px 24px",
                       fontSize: 13,
                       fontWeight: 700,
+                      cursor: "pointer",
+                      minHeight: 44,
                     }}
                   >
                     ← Back to Dashboard
@@ -1094,11 +1099,12 @@ const TaskDetails = () => {
         )}
       </div>
 
+      <div style={{ height: "env(safe-area-inset-bottom,0px)" }} />
       <div
         style={{
           textAlign: "center",
-          padding: "24px 20px",
-          fontSize: 12,
+          padding: "12px 20px 24px",
+          fontSize: 11,
           color: "#94a3b8",
         }}
       >
