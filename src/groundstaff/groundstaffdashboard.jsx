@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
+import logo from "../assets/logo.png";
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const P = "#1f6fb2";
@@ -484,7 +485,7 @@ const GroundStaffDashboard = () => {
               fontSize: 17,
             }}
           >
-            🛡️
+            <img src="./logo.png" alt="Logo" />
           </div>
           <div>
             <div
