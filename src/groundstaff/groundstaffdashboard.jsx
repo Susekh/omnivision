@@ -489,9 +489,7 @@ const GroundStaffDashboard = () => {
             style={{
               width: 32,
               height: 32,
-              borderRadius: 9,
               flexShrink: 0,
-              background: `linear-gradient(135deg,${P},#2980c9)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
