@@ -183,10 +183,12 @@ const TaskDetails = () => {
   const [loading, setLoading] = useState(true);
   const [actLoading, setActLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPickerSheet, setShowPickerSheet] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
   // ── New completion flow state ──────────────────────────────────────────────
   const fileInputRef = useRef();
+  const cameraInputRef = useRef();
   const [pendingPhoto, setPendingPhoto] = useState(null); // base64
   const [showMsgPrompt, setShowMsgPrompt] = useState(false);
   const [completionMsg, setCompletionMsg] = useState("");
@@ -236,7 +238,9 @@ const TaskDetails = () => {
         const canvas = document.createElement("canvas");
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas
+          .getContext("2d")
+          .drawImage(img, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
@@ -245,7 +249,7 @@ const TaskDetails = () => {
 
   // ── Step 1: open camera/gallery picker ────────────────────────────────────
   const handleOpenPicker = () => {
-    fileInputRef.current.click();
+    setShowPickerSheet(true);
   };
 
   // ── Step 2: file chosen → compress → show message prompt ──────────────────
@@ -329,6 +333,15 @@ const TaskDetails = () => {
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleFileChosen}
+      />
+      {/* Camera picker */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
         style={{ display: "none" }}
         onChange={handleFileChosen}
       />
@@ -728,10 +741,14 @@ const TaskDetails = () => {
                       ✓
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: "#111" }}>
+                      <div
+                        style={{ fontWeight: 700, fontSize: 14, color: "#111" }}
+                      >
                         Task Completion Report
                       </div>
-                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
+                      <div
+                        style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}
+                      >
                         Add a message and submit
                       </div>
                     </div>
@@ -786,7 +803,8 @@ const TaskDetails = () => {
                         marginBottom: 7,
                       }}
                     >
-                      Completion Remarks <span style={{ color: "#dc2626" }}>*</span>
+                      Completion Remarks{" "}
+                      <span style={{ color: "#dc2626" }}>*</span>
                     </label>
                     <textarea
                       value={completionMsg}
@@ -818,7 +836,8 @@ const TaskDetails = () => {
                       <span
                         style={{
                           fontSize: 10,
-                          color: completionMsg.length > 20 ? "#10b981" : "#94a3b8",
+                          color:
+                            completionMsg.length > 20 ? "#10b981" : "#94a3b8",
                         }}
                       >
                         {completionMsg.length} chars
@@ -950,6 +969,136 @@ const TaskDetails = () => {
       >
         © 2026 OmniVision · All rights reserved by Neuradyne
       </div>
+      {/* ── CAMERA / GALLERY BOTTOM SHEET ── */}
+      {showPickerSheet && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowPickerSheet(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.45)",
+              zIndex: 200,
+              animation: "fadeUp 0.2s ease both",
+            }}
+          />
+
+          {/* Sheet */}
+          <div
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: "#fff",
+              borderRadius: "20px 20px 0 0",
+              padding: "20px 16px calc(20px + env(safe-area-inset-bottom))",
+              zIndex: 201,
+              animation: "fadeUp 0.25s ease both",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.12)",
+            }}
+          >
+            {/* Handle bar */}
+            <div
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 4,
+                background: "#e2e8f0",
+                margin: "0 auto 20px",
+              }}
+            />
+
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#94a3b8",
+                textAlign: "center",
+                marginBottom: 16,
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Add Completion Photo
+            </div>
+
+            {/* Camera button */}
+            <button
+              onClick={() => {
+                setShowPickerSheet(false);
+                setTimeout(() => cameraInputRef.current.click(), 100);
+              }}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: 14,
+                border: "none",
+                background: `linear-gradient(135deg,${P},#2980c9)`,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 10,
+                minHeight: 54,
+              }}
+            >
+              📷 Take Photo
+            </button>
+
+            {/* Gallery button */}
+            <button
+              onClick={() => {
+                setShowPickerSheet(false);
+                setTimeout(() => fileInputRef.current.click(), 100);
+              }}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: 14,
+                border: `1.5px solid ${P_MID}`,
+                background: P_LT,
+                color: P,
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 10,
+                minHeight: 54,
+              }}
+            >
+              🖼️ Choose from Gallery
+            </button>
+
+            {/* Cancel */}
+            <button
+              onClick={() => setShowPickerSheet(false)}
+              style={{
+                width: "100%",
+                padding: "13px",
+                borderRadius: 14,
+                border: "1.5px solid #e5eaf0",
+                background: "#fff",
+                color: "#64748b",
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: "pointer",
+                minHeight: 48,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
