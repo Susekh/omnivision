@@ -61,7 +61,7 @@ const GroundStaffLogin = () => {
 
         // Store credentials and agency info
         localStorage.setItem("token", token);
-        localStorage.setItem("groundStaffId", groundStaff?.id);
+        localStorage.setItem("groundStaffId", groundStaff.id ? groundStaff.id : ""); // Store ID if available
         localStorage.setItem("groundStaffName", groundStaff?.name);
         localStorage.setItem("agencyId", agencyId);
         localStorage.setItem("mobileNumber", groundStaff?.number);
