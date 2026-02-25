@@ -55,6 +55,8 @@ const GroundStaffLogin = () => {
         localStorage.removeItem("groundstaffLoginAttempts");
         localStorage.removeItem("groundstaffLoginBlockedUntil");
         const { token, groundStaff } = response.data;
+        console.log("ground staff :", groundStaff);
+        
         const agencyId = groundStaff?.agencyId;
 
         // Store credentials and agency info
