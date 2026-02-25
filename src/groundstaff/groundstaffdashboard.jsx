@@ -362,6 +362,8 @@ const GroundStaffDashboard = () => {
           "x-groundstaff-id": storedSId,
         },
       });
+      console.log("events for gr staff", res.data);
+      
       if (res.status === 200) {
         const all = res.data.data || [];
         // Filter: only this staff member's tasks
