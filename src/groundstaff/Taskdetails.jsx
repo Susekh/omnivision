@@ -280,9 +280,11 @@ const TaskDetails = () => {
       await api.patch(
         `backend/groundstaff/task/${task._id}/complete`,
         {
-          status: "Completed",
+          status: "closed",
           remark: completionMsg,
-          photo: pendingPhoto, // base64 stringrouter.patch("/groundstaff/task/:taskId/complete", AgencyController.completeGroundStaffTask);
+          photo: pendingPhoto,
+          groundStaffId: localStorage.getItem("groundStaffId"), // ← add these
+          agencyId: localStorage.getItem("agencyId"),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );

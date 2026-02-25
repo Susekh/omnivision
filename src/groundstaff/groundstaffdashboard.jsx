@@ -414,12 +414,12 @@ const GroundStaffDashboard = () => {
     All: allTasks.length,
     Assigned: allTasks.filter((t) => t.status === "Assigned").length,
     "In Progress": allTasks.filter((t) => t.status === "In Progress").length,
-    Completed: allTasks.filter((t) => t.status === "Completed").length,
+    Completed: allTasks.filter((t) => t.status === "closed").length,
   };
   const filtered =
     filter === "All" ? allTasks : allTasks.filter((t) => t.status === filter);
   const criticalActive = allTasks.filter(
-    (t) => t.priority === "Critical" && t.status !== "Completed",
+    (t) => t.priority === "Critical" && t.status !== "closed",
   ).length;
   const initials =
     groundStaffName
@@ -797,7 +797,7 @@ const GroundStaffDashboard = () => {
               { key: "All", label: "All" },
               { key: "Assigned", label: "Assigned" },
               { key: "In Progress", label: "In Progress" },
-              { key: "Completed", label: "Completed" },
+              { key: "closed", label: "Completed" },
             ].map(({ key, label }) => (
               <button
                 key={key}
