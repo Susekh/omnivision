@@ -9,6 +9,7 @@ const P_MID = "#d0e6f7";
 const STATUS_CFG = {
   Assigned: { color: "#d97706", bg: "#fef3c7", border: "#fde68a" },
   "In Progress": { color: "#1f6fb2", bg: "#e8f2fb", border: "#bfdbfe" },
+  closed: { color: "#059669", bg: "#d1fae5", border: "#a7f3d0" },
   Completed: { color: "#059669", bg: "#d1fae5", border: "#a7f3d0" },
 };
 
@@ -61,7 +62,12 @@ function MiniMap({ lat, lng }) {
 }
 
 function StatusBadge({ status }) {
-  const c = STATUS_CFG[status] || STATUS_CFG.Assigned;
+  const normalizedStatus = status === "closed" ? "Completed" : status;
+
+  const cfgKey = status === "closed" ? "closed" : status;
+
+  const c = STATUS_CFG[cfgKey] || STATUS_CFG.Assigned;
+
   return (
     <span
       style={{
@@ -87,7 +93,7 @@ function StatusBadge({ status }) {
           flexShrink: 0,
         }}
       />
-      {status}
+      {normalizedStatus}
     </span>
   );
 }
@@ -363,7 +369,7 @@ const GroundStaffDashboard = () => {
         },
       });
       console.log("events for gr staff", res.data);
-      
+
       if (res.status === 200) {
         const all = res.data.data || [];
         // Filter: only this staff member's tasks
@@ -414,10 +420,18 @@ const GroundStaffDashboard = () => {
     All: allTasks.length,
     Assigned: allTasks.filter((t) => t.status === "Assigned").length,
     "In Progress": allTasks.filter((t) => t.status === "In Progress").length,
-    Completed: allTasks.filter((t) => t.status === "closed").length,
+    Completed: allTasks.filter(
+      (t) => t.status === "closed" || t.status === "Completed",
+    ).length,
   };
   const filtered =
-    filter === "All" ? allTasks : allTasks.filter((t) => t.status === filter);
+    filter === "All"
+      ? allTasks
+      : filter === "closed"
+        ? allTasks.filter(
+            (t) => t.status === "closed" || t.status === "Completed",
+          )
+        : allTasks.filter((t) => t.status === filter);
   const criticalActive = allTasks.filter(
     (t) => t.priority === "Critical" && t.status !== "closed",
   ).length;
