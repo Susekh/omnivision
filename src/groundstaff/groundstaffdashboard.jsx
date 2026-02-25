@@ -423,6 +423,9 @@ const GroundStaffDashboard = () => {
     Completed: allTasks.filter(
       (t) => t.status === "closed" || t.status === "Completed",
     ).length,
+    closed: allTasks.filter(
+      (t) => t.status === "closed" || t.status === "Completed",
+    ).length,
   };
   const filtered =
     filter === "All"
