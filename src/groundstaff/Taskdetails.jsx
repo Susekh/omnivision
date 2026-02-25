@@ -278,7 +278,7 @@ const TaskDetails = () => {
         {
           status: "Completed",
           remark: completionMsg,
-          photo: pendingPhoto, // base64 string
+          photo: pendingPhoto, // base64 stringrouter.patch("/groundstaff/task/:taskId/complete", AgencyController.completeGroundStaffTask);
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
