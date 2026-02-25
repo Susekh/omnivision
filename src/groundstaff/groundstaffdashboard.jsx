@@ -377,7 +377,7 @@ const GroundStaffDashboard = () => {
               aName.toLowerCase().trim() === storedName.toLowerCase().trim())
           );
         });
-        setAllTasks(mine);
+        setAllTasks(all);
         setLastRefreshed(new Date());
       }
     } catch (err) {
