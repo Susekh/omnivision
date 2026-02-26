@@ -31,19 +31,35 @@ const PRIORITY_CFG = {
 };
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
+function parseTs(ts) {
+  if (!ts) return null;
+  if (typeof ts === "object" && ts["$date"]) return new Date(ts["$date"]);
+  return new Date(ts);
+}
+
+function formatDate(ts) {
+  if (!ts) return null;
+  const d = parseTs(ts);
+  if (!d || isNaN(d)) return null;
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const day  = String(d.getDate()).padStart(2, "0");
+  const mon  = months[d.getMonth()];
+  const year = d.getFullYear();
+  const hh   = String(d.getHours()).padStart(2, "0");
+  const mm   = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${mon} ${year}, ${hh}:${mm}`;
+}
+
 function timeAgo(ts) {
-  const m = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (!ts) return null;
+  const d = parseTs(ts);
+  if (!d || isNaN(d)) return null;
+  const m = Math.floor((Date.now() - d) / 60000);
   if (m < 1) return "Just now";
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
-}
-
-function formatDate(ts) {
-  if (!ts) return "—";
-  const d = new Date(ts);
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 // ── LIGHTBOX ───────────────────────────────────────────────────────────────
