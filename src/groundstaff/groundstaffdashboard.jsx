@@ -1,34 +1,36 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
+import normalizeImageUrl from "../utils/normalizeMinioImgUrl"
 
-const P = "#1f6fb2";
-const P_LT = "#e8f2fb";
-const P_MID = "#d0e6f7";
+// ── THEME ──────────────────────────────────────────────────────────────────
+const T = {
+  primary: "#0f4c8a",
+  primaryLight: "#1a65b5",
+  primaryGlow: "rgba(15,76,138,0.12)",
+  bg: "#f0f4f9",
+  card: "#ffffff",
+  border: "#dde5f0",
+  text: "#0d1b2a",
+  muted: "#6b7e99",
+  faint: "#e8eef6",
+};
 
 const STATUS_CFG = {
-  Assigned: { color: "#d97706", bg: "#fef3c7", border: "#fde68a" },
-  "In Progress": { color: "#1f6fb2", bg: "#e8f2fb", border: "#bfdbfe" },
-  closed: { color: "#059669", bg: "#d1fae5", border: "#a7f3d0" },
-  Completed: { color: "#059669", bg: "#d1fae5", border: "#a7f3d0" },
+  Assigned:      { color: "#b45309", bg: "#fef3c7", dot: "#d97706", label: "Assigned" },
+  "In Progress": { color: "#1a65b5", bg: "#dbeafe", dot: "#2563eb", label: "In Progress" },
+  closed:        { color: "#065f46", bg: "#d1fae5", dot: "#059669", label: "Completed" },
+  Completed:     { color: "#065f46", bg: "#d1fae5", dot: "#059669", label: "Completed" },
 };
 
 const PRIORITY_CFG = {
-  Critical: { color: "#dc2626", bg: "#fee2e2", stripe: "#dc2626" },
-  High: { color: "#d97706", bg: "#fef3c7", stripe: "#f59e0b" },
-  Medium: { color: "#1f6fb2", bg: "#e8f2fb", stripe: P },
-  Low: { color: "#059669", bg: "#d1fae5", stripe: "#10b981" },
+  Critical: { color: "#dc2626", bg: "#fee2e2", bar: "#dc2626" },
+  High:     { color: "#d97706", bg: "#fef3c7", bar: "#f59e0b" },
+  Medium:   { color: "#1a65b5", bg: "#dbeafe", bar: "#2563eb" },
+  Low:      { color: "#059669", bg: "#d1fae5", bar: "#10b981" },
 };
 
-const INCIDENT_ICONS = {
-  "Road Accident": "🚗",
-  "Fire Outbreak": "🔥",
-  "Medical Emergency": "🚑",
-  "Flood Alert": "🌊",
-  Theft: "🔓",
-  Violence: "⚠️",
-};
-
+// ── HELPERS ────────────────────────────────────────────────────────────────
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - new Date(ts)) / 60000);
   if (m < 1) return "Just now";
@@ -38,294 +40,383 @@ function timeAgo(ts) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function MiniMap({ lat, lng }) {
-  if (!lat || !lng) return null;
-  const d = 0.012;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
-  return (
-    <div
-      style={{
-        borderRadius: 10,
-        overflow: "hidden",
-        height: 130,
-        border: `1px solid ${P_MID}`,
-      }}
-    >
-      <iframe
-        title={`m-${lat}`}
-        src={src}
-        style={{ width: "100%", height: "100%", border: "none" }}
-        loading="lazy"
-      />
-    </div>
-  );
+function formatDate(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function StatusBadge({ status }) {
-  const normalizedStatus = status === "closed" ? "Completed" : status;
+// ── LIGHTBOX ───────────────────────────────────────────────────────────────
+function Lightbox({ src, onClose }) {
+  useEffect(() => {
+    const fn = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", fn);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", fn);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
-  const cfgKey = status === "closed" ? "closed" : status;
-
-  const c = STATUS_CFG[cfgKey] || STATUS_CFG.Assigned;
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        background: c.bg,
-        color: c.color,
-        border: `1px solid ${c.border}`,
-        borderRadius: 20,
-        padding: "3px 9px",
-        fontSize: 11,
-        fontWeight: 700,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: c.color,
-          flexShrink: 0,
-        }}
-      />
-      {normalizedStatus}
-    </span>
-  );
-}
-
-function TaskCard({ task, index, onView }) {
-  const pc = PRIORITY_CFG[task.priority] || PRIORITY_CFG.Medium;
-  const icon = INCIDENT_ICONS[task.incident_type] || "⚠️";
   return (
     <div
+      onClick={onClose}
       style={{
-        background: "#fff",
-        border: "1.5px solid #e8eef5",
-        borderRadius: 16,
-        overflow: "hidden",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-        display: "flex",
-        flexDirection: "column",
-        animation: `fadeUp 0.35s ease ${index * 0.07}s both`,
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.88)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20, animation: "lbIn 0.18s ease both",
       }}
     >
-      {/* Priority stripe */}
-      <div style={{ height: 4, background: pc.stripe, flexShrink: 0 }} />
-
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          padding: 15,
-          display: "flex",
-          flexDirection: "column",
-          gap: 11,
-          flex: 1,
+          position: "relative", maxWidth: "92vw", maxHeight: "88vh",
+          borderRadius: 14, overflow: "hidden",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.7)",
+          animation: "lbScale 0.18s ease both",
         }}
       >
-        {/* Header */}
-        <div
+        <img
+          src={src}
+          alt="Incident"
+          style={{ display: "block", maxWidth: "92vw", maxHeight: "82vh", objectFit: "contain" }}
+          onError={(e) => { e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23374151' width='400' height='300'/%3E%3Ctext fill='%23aaa' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='16'%3EImage unavailable%3C/text%3E%3C/svg%3E"; }}
+        />
+        <button
+          onClick={onClose}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 8,
+            position: "absolute", top: 10, right: 10,
+            width: 34, height: 34, borderRadius: "50%",
+            background: "rgba(0,0,0,0.6)", border: "1.5px solid rgba(255,255,255,0.3)",
+            color: "#fff", fontSize: 16, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
           }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-              minWidth: 0,
-            }}
-          >
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background: P_LT,
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 18,
-              }}
-            >
-              {icon}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 14,
-                  color: "#111",
-                  lineHeight: 1.3,
-                }}
-              >
-                {task.incident_type || "Incident"}
-              </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: "#94a3b8",
-                  fontFamily: "monospace",
-                  marginTop: 1,
-                }}
-              >
-                #{task.event_id || task._id}
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
-              gap: 4,
-              flexShrink: 0,
-            }}
-          >
-            <StatusBadge status={task.status || "Assigned"} />
-            {task.priority && (
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: pc.color,
-                  background: pc.bg,
-                  borderRadius: 8,
-                  padding: "2px 7px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {task.priority}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Description */}
-        {task.description && (
-          <p
-            style={{
-              fontSize: 13,
-              color: "#64748b",
-              margin: 0,
-              lineHeight: 1.5,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {task.description}
-          </p>
-        )}
-
-        {/* Map */}
-        {(task.latitude || task.lat) && (task.longitude || task.lng) && (
-          <MiniMap
-            lat={task.latitude || task.lat}
-            lng={task.longitude || task.lng}
-          />
-        )}
-
-        {/* Location */}
-        {task.location && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 5,
-              fontSize: 12,
-              color: "#64748b",
-            }}
-          >
-            <span style={{ color: P, flexShrink: 0, marginTop: 1 }}>📍</span>
-            <span style={{ lineHeight: 1.4 }}>{task.location}</span>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingTop: 10,
-            borderTop: "1px solid #f1f5f9",
-            marginTop: "auto",
-          }}
-        >
-          <span style={{ fontSize: 11, color: "#94a3b8" }}>
-            🕐 {task.timestamp ? timeAgo(task.timestamp) : "—"}
-          </span>
-          <button
-            onClick={() => onView(task)}
-            style={{
-              background: P,
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "9px 16px",
-              cursor: "pointer",
-              fontWeight: 700,
-              fontSize: 13,
-              minHeight: 40,
-            }}
-          >
-            View Details →
-          </button>
-        </div>
+        >✕</button>
       </div>
     </div>
   );
 }
 
-function SkeletonCard() {
+// ── MINI MAP ───────────────────────────────────────────────────────────────
+function MiniMap({ lat, lng }) {
+  if (!lat || !lng) return null;
+  const d = 0.012;
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 16,
-        overflow: "hidden",
-        border: "1.5px solid #e8eef5",
-      }}
-    >
-      <div style={{ height: 4, background: "#e8eef5" }} />
-      <div
-        style={{
-          padding: 15,
-          display: "flex",
-          flexDirection: "column",
-          gap: 11,
-        }}
-      >
-        {[70, 50, 100, 40].map((w, i) => (
+    <div style={{ borderRadius: 10, overflow: "hidden", height: 140, border: `1px solid ${T.border}` }}>
+      <iframe title={`m-${lat}`} src={src} style={{ width: "100%", height: "100%", border: "none" }} loading="lazy" />
+    </div>
+  );
+}
+
+// ── STATUS BADGE ───────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const c = STATUS_CFG[status] || STATUS_CFG.Assigned;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 5,
+      background: c.bg, color: c.color,
+      borderRadius: 20, padding: "3px 10px",
+      fontSize: 11, fontWeight: 700, whiteSpace: "nowrap",
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, flexShrink: 0 }} />
+      {c.label}
+    </span>
+  );
+}
+
+// ── INCIDENT IMAGE STRIP ───────────────────────────────────────────────────
+function IncidentImages({ incidents, onImageClick }) {
+  const images = incidents?.filter(i => i.image_url) || [];
+  if (!images.length) return null;
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>
+        Incident Photos ({images.length})
+      </div>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+        {images.map((inc, idx) => (
           <div
-            key={i}
+            key={idx}
+            onClick={() => onImageClick(normalizeImageUrl(inc.image_url))}
             style={{
-              height: i === 2 ? 130 : 14,
-              width: `${w}%`,
-              borderRadius: 8,
-              background:
-                "linear-gradient(90deg,#f1f5f9 25%,#e8eef5 50%,#f1f5f9 75%)",
-              backgroundSize: "200% 100%",
-              animation: "shimmer 1.4s infinite",
+              flexShrink: 0, width: 100, height: 72,
+              borderRadius: 10, overflow: "hidden",
+              border: `2px solid ${T.border}`,
+              cursor: "pointer", position: "relative",
+              transition: "transform 0.15s, border-color 0.15s",
             }}
-          />
+            onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.03)"; e.currentTarget.style.borderColor = T.primaryLight; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.borderColor = T.border; }}
+          >
+            <img
+              src={normalizeImageUrl(inc.image_url)}
+              alt={`Incident ${idx + 1}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+            />
+            <div style={{
+              display: "none", position: "absolute", inset: 0,
+              background: "#374151", alignItems: "center", justifyContent: "center",
+              fontSize: 20,
+            }}>📷</div>
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)",
+              display: "flex", alignItems: "flex-end", padding: "4px 6px",
+            }}>
+              <span style={{ fontSize: 9, color: "#fff", fontWeight: 600, opacity: 0.9 }}>
+                🔍 View
+              </span>
+            </div>
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ── TASK ROW (List Item) ────────────────────────────────────────────────────
+function TaskRow({ task, index, onView, onImageClick }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Extract lat/lng from first incident
+  const firstIncident = task.incidents?.[0];
+  const coords = firstIncident?.location?.coordinates;
+  const lng = coords?.[0];
+  const lat = coords?.[1];
+
+  const pc = PRIORITY_CFG[task.priority] || PRIORITY_CFG.Medium;
+
+  const detectedObjects = task.incidents?.flatMap(i => i.detected_objects || []) || [];
+  const uniqueObjects = [...new Set(detectedObjects)];
+
+  return (
+    <div
+      style={{
+        background: T.card,
+        border: `1.5px solid ${T.border}`,
+        borderRadius: 16,
+        overflow: "hidden",
+        boxShadow: "0 2px 10px rgba(15,76,138,0.05)",
+        animation: `fadeUp 0.3s ease ${index * 0.06}s both`,
+        transition: "box-shadow 0.2s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 6px 24px rgba(15,76,138,0.12)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 2px 10px rgba(15,76,138,0.05)"; }}
+    >
+      {/* Left accent bar */}
+      <div style={{ display: "flex" }}>
+        <div style={{ width: 4, background: task.priority ? pc.bar : T.primaryLight, flexShrink: 0 }} />
+
+        <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+          {/* ── ROW 1: Header ── */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontFamily: "monospace", fontSize: 11, color: T.muted, background: T.faint, borderRadius: 6, padding: "2px 8px" }}>
+                  {task.event_id || `#${task._id?.slice(-6)}`}
+                </span>
+                <StatusBadge status={task.status} />
+                {task.priority && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    color: pc.color, background: pc.bg,
+                    borderRadius: 8, padding: "2px 8px",
+                  }}>
+                    {task.priority}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ marginTop: 7, fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.3 }}>
+                {firstIncident?.incident_type || task.description || "Incident"}
+              </div>
+              {task.description && task.description !== firstIncident?.incident_type && (
+                <div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.4 }}>{task.description}</div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={() => setExpanded(!expanded)}
+                style={{
+                  background: expanded ? T.faint : "#fff",
+                  color: T.primary, border: `1.5px solid ${T.border}`,
+                  borderRadius: 9, padding: "7px 12px",
+                  fontSize: 12, fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 4,
+                }}
+              >
+                {expanded ? "▲ Less" : "▼ More"}
+              </button>
+              <button
+                onClick={() => onView(task)}
+                style={{
+                  background: T.primary, color: "#fff",
+                  border: "none", borderRadius: 9,
+                  padding: "7px 14px", fontSize: 12,
+                  fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 4,
+                }}
+              >
+                Details →
+              </button>
+            </div>
+          </div>
+
+          {/* ── ROW 2: Meta pills ── */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {firstIncident?.timestamp && (
+              <span style={{ fontSize: 11, color: T.muted, display: "flex", alignItems: "center", gap: 4 }}>
+                🕐 {timeAgo(firstIncident.timestamp)}
+              </span>
+            )}
+            {task.assignment_time && (
+              <span style={{ fontSize: 11, color: T.muted, display: "flex", alignItems: "center", gap: 4 }}>
+                📋 Assigned {timeAgo(task.assignment_time)}
+              </span>
+            )}
+            {task.incidents?.length > 0 && (
+              <span style={{ fontSize: 11, color: T.muted }}>
+                📁 {task.incidents.length} incident{task.incidents.length > 1 ? "s" : ""}
+              </span>
+            )}
+            {uniqueObjects.length > 0 && uniqueObjects.map((obj, i) => (
+              <span key={i} style={{
+                fontSize: 10, fontWeight: 600, color: "#7c3aed",
+                background: "#ede9fe", borderRadius: 6, padding: "2px 8px",
+              }}>
+                {obj}
+              </span>
+            ))}
+          </div>
+
+          {/* ── Incident Images (always visible) ── */}
+          <IncidentImages incidents={task.incidents} onImageClick={onImageClick} />
+
+          {/* ── EXPANDED SECTION ── */}
+          {expanded && (
+            <div style={{
+              borderTop: `1px solid ${T.border}`, paddingTop: 14,
+              display: "flex", flexDirection: "column", gap: 14,
+              animation: "fadeUp 0.2s ease both",
+            }}>
+
+              {/* Incidents detail */}
+              {task.incidents?.map((inc, iIdx) => (
+                <div key={iIdx} style={{
+                  background: T.faint, borderRadius: 12, padding: 14,
+                  border: `1px solid ${T.border}`,
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: T.primary }}>
+                      Incident #{iIdx + 1} · {inc.incident_id}
+                    </span>
+                    <span style={{ fontSize: 10, color: T.muted }}>{formatDate(inc.timestamp)}</span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {/* Map */}
+                    {inc.location?.coordinates && (
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <MiniMap lat={inc.location.coordinates[1]} lng={inc.location.coordinates[0]} />
+                      </div>
+                    )}
+
+                    {inc.detected_objects?.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.4px" }}>Detected</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {inc.detected_objects.map((obj, oi) => (
+                            <span key={oi} style={{
+                              fontSize: 11, fontWeight: 600, color: "#7c3aed",
+                              background: "#ede9fe", borderRadius: 6, padding: "2px 8px",
+                            }}>{obj}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {inc.userId && (
+                      <div>
+                        <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.4px" }}>Reporter</div>
+                        <div style={{ fontSize: 12, color: T.text, fontFamily: "monospace" }}>{inc.userId}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Assigned agencies */}
+              {task.assigned_agency?.agencies?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                    Assigned Agencies ({task.assigned_agency.type})
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {task.assigned_agency.agencies.map((ag, ai) => (
+                      <span key={ai} style={{
+                        fontSize: 11, fontWeight: 600,
+                        color: T.primary, background: T.faint,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: 8, padding: "3px 10px",
+                        fontFamily: "monospace",
+                      }}>{ag}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ground staff */}
+              {task.ground_staff && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: "50%",
+                    background: `linear-gradient(135deg, ${T.primary}, ${T.primaryLight})`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", fontSize: 11, fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {task.ground_staff.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: T.muted, fontWeight: 600 }}>Assigned Staff</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{task.ground_staff}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SKELETON ───────────────────────────────────────────────────────────────
+function SkeletonRow() {
+  return (
+    <div style={{ background: T.card, borderRadius: 16, overflow: "hidden", border: `1.5px solid ${T.border}` }}>
+      <div style={{ display: "flex" }}>
+        <div style={{ width: 4, background: T.border, flexShrink: 0 }} />
+        <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+          {[40, 65, 30].map((w, i) => (
+            <div key={i} style={{
+              height: i === 1 ? 18 : 12, width: `${w}%`,
+              borderRadius: 6, background: "linear-gradient(90deg,#f1f5f9 25%,#e8eef5 50%,#f1f5f9 75%)",
+              backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite",
+            }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const GroundStaffDashboard = () => {
   const { agencyId } = useParams();
   const navigate = useNavigate();
@@ -338,16 +429,14 @@ const GroundStaffDashboard = () => {
   const [groundStaffId, setGroundStaffId] = useState("");
   const [agencyIdState, setAgencyIdState] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const aId = localStorage.getItem("agencyId");
     const name = localStorage.getItem("groundStaffName") || "Ground Staff";
     const staffId = localStorage.getItem("groundStaffId") || "";
-    if (!token || !aId) {
-      navigate("/groundstafflogin");
-      return;
-    }
+    if (!token || !aId) { navigate("/groundstafflogin"); return; }
     setGroundStaffName(name);
     setGroundStaffId(staffId);
     setAgencyIdState(aId);
@@ -363,26 +452,10 @@ const GroundStaffDashboard = () => {
       setLoading(true);
       setError("");
       const res = await api.get(`backend/groundstaff/tasks/${storedAId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "x-groundstaff-id": storedSId,
-        },
+        headers: { Authorization: `Bearer ${token}`, "x-groundstaff-id": storedSId },
       });
-      console.log("events for gr staff", res.data);
-
       if (res.status === 200) {
         const all = res.data.data || [];
-        // Filter: only this staff member's tasks
-        const mine = all.filter((t) => {
-          const aId = t.ground_staff_id || t.groundStaffId || "";
-          const aName =
-            t.ground_staff_name || t.ground_staff || t.assigned_to || "";
-          return (
-            (storedSId && aId === storedSId) ||
-            (storedName &&
-              aName.toLowerCase().trim() === storedName.toLowerCase().trim())
-          );
-        });
         setAllTasks(all);
         setLastRefreshed(new Date());
       }
@@ -399,15 +472,8 @@ const GroundStaffDashboard = () => {
   }, [groundStaffId, groundStaffName, fetchTasks]);
 
   const handleLogout = () => {
-    [
-      "token",
-      "groundStaffId",
-      "groundStaffName",
-      "agencyId",
-      "mobileNumber",
-      "groundstaffLoginAttempts",
-      "groundstaffLoginBlockedUntil",
-    ].forEach((k) => localStorage.removeItem(k));
+    ["token","groundStaffId","groundStaffName","agencyId","mobileNumber",
+     "groundstaffLoginAttempts","groundstaffLoginBlockedUntil"].forEach(k => localStorage.removeItem(k));
     navigate("/groundstafflogin");
   };
 
@@ -418,534 +484,261 @@ const GroundStaffDashboard = () => {
 
   const counts = {
     All: allTasks.length,
-    Assigned: allTasks.filter((t) => t.status === "Assigned").length,
-    "In Progress": allTasks.filter((t) => t.status === "In Progress").length,
-    Completed: allTasks.filter(
-      (t) => t.status === "closed" || t.status === "Completed",
-    ).length,
-    closed: allTasks.filter(
-      (t) => t.status === "closed" || t.status === "Completed",
-    ).length,
+    Assigned: allTasks.filter(t => t.status === "Assigned").length,
+    "In Progress": allTasks.filter(t => t.status === "In Progress").length,
+    closed: allTasks.filter(t => t.status === "closed" || t.status === "Completed").length,
   };
+
   const filtered =
-    filter === "All"
-      ? allTasks
-      : filter === "closed"
-        ? allTasks.filter(
-            (t) => t.status === "closed" || t.status === "Completed",
-          )
-        : allTasks.filter((t) => t.status === filter);
-  const criticalActive = allTasks.filter(
-    (t) => t.priority === "Critical" && t.status !== "closed",
-  ).length;
-  const initials =
-    groundStaffName
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2) || "GS";
+    filter === "All" ? allTasks :
+    filter === "closed" ? allTasks.filter(t => t.status === "closed" || t.status === "Completed") :
+    allTasks.filter(t => t.status === filter);
+
+  const criticalActive = allTasks.filter(t => t.priority === "Critical" && t.status !== "closed").length;
   const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const initials = groundStaffName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "GS";
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f4f8fc",
-        fontFamily: "'Nunito','Segoe UI',sans-serif",
-      }}
-    >
+    <div style={{ minHeight: "100vh", background: T.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        body { -webkit-tap-highlight-color:transparent; }
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-        @keyframes spin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.5} }
-
-        /* Grid: single col mobile, 2 col tablet+ */
-        .tgrid { display:grid; grid-template-columns:1fr; gap:13px; }
-        @media(min-width:600px){ .tgrid{ grid-template-columns:repeat(2,1fr); gap:16px; } }
-
-        /* Horizontal scroll rows */
-        .hscroll {
-          display:flex; gap:8px;
-          overflow-x:auto; -webkit-overflow-scrolling:touch;
-          scrollbar-width:none; padding-bottom:2px;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { -webkit-tap-highlight-color: transparent; }
+        @keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer  { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        @keyframes spin     { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @keyframes lbIn     { from{opacity:0} to{opacity:1} }
+        @keyframes lbScale  { from{transform:scale(0.92)} to{transform:scale(1)} }
+        .hscroll            { display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px; }
         .hscroll::-webkit-scrollbar { display:none; }
-
-        /* Tap targets */
-        button { -webkit-appearance:none; cursor:pointer; }
-        .tap   { min-height:44px; }
-
-        /* Staff name in nav — show only on wide screens */
-        .nav-name { display:none; }
+        button              { -webkit-appearance:none; cursor:pointer; }
+        .task-list          { display:flex; flex-direction:column; gap:12px; }
+        .nav-name           { display:none; }
         @media(min-width:480px){ .nav-name { display:block; } }
       `}</style>
 
+      {/* ── LIGHTBOX ── */}
+      {lightboxSrc && <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
+
       {/* ── NAV ── */}
-      <nav
-        style={{
-          background: "#fff",
-          borderBottom: "1px solid #e8f0f8",
-          padding: "0 14px",
-          height: 54,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          boxShadow: "0 1px 8px rgba(31,111,178,0.07)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-            }}
-          >
-            <img src="/images/omnivision-logo.png" alt="OmniVision Logo" />
-          </div>
+      <nav style={{
+        background: "#fff",
+        borderBottom: `1px solid ${T.border}`,
+        padding: "0 16px",
+        height: 56,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "sticky", top: 0, zIndex: 200,
+        boxShadow: "0 1px 12px rgba(15,76,138,0.08)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="/images/omnivision-logo.png" alt="OmniVision Logo" style={{ height: 28, width: "auto" }} />
           <div>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#111",
-                lineHeight: 1.2,
-              }}
-            >
-              OmniVision
-            </div>
-            <div
-              style={{
-                fontSize: 9,
-                color: "#94a3b8",
-                textTransform: "uppercase",
-                letterSpacing: "0.4px",
-              }}
-            >
-              Ground Staff
-            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: T.text, lineHeight: 1.2 }}>OmniVision</div>
+            <div style={{ fontSize: 9, color: T.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>Ground Staff</div>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                flexShrink: 0,
-                background: `linear-gradient(135deg,${P},#2980c9)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 11,
-                fontWeight: 800,
-                color: "#fff",
-              }}
-            >
-              {initials}
-            </div>
-            <div className="nav-name" style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#111" }}>
-                {groundStaffName}
-              </div>
-              <div style={{ fontSize: 9, color: "#10b981", fontWeight: 600 }}>
-                ● Online
-              </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: "50%",
+              background: `linear-gradient(135deg, ${T.primary}, ${T.primaryLight})`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 800, color: "#fff", flexShrink: 0,
+            }}>{initials}</div>
+            <div className="nav-name">
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{groundStaffName}</div>
+              <div style={{ fontSize: 9, color: "#10b981", fontWeight: 600 }}>● Online</div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="tap"
             style={{
-              background: "#fff1f2",
-              color: "#dc2626",
+              background: "#fff1f2", color: "#dc2626",
               border: "1.5px solid #fca5a5",
-              borderRadius: 8,
-              padding: "6px 12px",
-              fontSize: 12,
-              fontWeight: 700,
+              borderRadius: 9, padding: "7px 13px",
+              fontSize: 12, fontWeight: 700,
+              minHeight: 36,
             }}
-          >
-            Logout
-          </button>
+          >Logout</button>
         </div>
       </nav>
 
       {/* ── CONTENT ── */}
-      <div
-        style={{ maxWidth: 900, margin: "0 auto", padding: "14px 12px 80px" }}
-      >
-        {/* Hero */}
-        <div
-          style={{
-            background: `linear-gradient(130deg,${P} 0%,#2980c9 100%)`,
-            borderRadius: 18,
-            padding: "18px 16px",
-            marginBottom: 12,
-            color: "#fff",
-            boxShadow: `0 6px 24px rgba(31,111,178,0.22)`,
-            animation: "fadeUp 0.35s ease both",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
+      <div style={{ maxWidth: 840, margin: "0 auto", padding: "16px 14px 80px" }}>
+
+        {/* ── HERO CARD ── */}
+        <div style={{
+          background: `linear-gradient(135deg, ${T.primary} 0%, #1565c0 100%)`,
+          borderRadius: 20, padding: "20px 18px",
+          marginBottom: 14, color: "#fff",
+          boxShadow: "0 8px 28px rgba(15,76,138,0.28)",
+          animation: "fadeUp 0.3s ease both",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  opacity: 0.75,
-                  marginBottom: 2,
-                  fontWeight: 700,
-                  letterSpacing: "0.5px",
-                  textTransform: "uppercase",
-                }}
-              >
+              <div style={{ fontSize: 10, opacity: 0.7, fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", marginBottom: 3 }}>
                 {greeting}
               </div>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 800,
-                  letterSpacing: "-0.3px",
-                  lineHeight: 1.2,
-                  marginBottom: 4,
-                }}
-              >
-                Welcome, {groundStaffName.split(" ")[0]} 👋
+              <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.4px", lineHeight: 1.2, marginBottom: 5 }}>
+                {groundStaffName.split(" ")[0]} 👋
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  opacity: 0.8,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 4,
-                  alignItems: "center",
-                }}
-              >
+              <div style={{ fontSize: 11, opacity: 0.75, display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center" }}>
                 <span>Agency:</span>
-                <span
-                  style={{
-                    fontFamily: "monospace",
-                    background: "rgba(255,255,255,0.15)",
-                    padding: "1px 7px",
-                    borderRadius: 5,
-                  }}
-                >
+                <span style={{ fontFamily: "monospace", background: "rgba(255,255,255,0.15)", padding: "1px 8px", borderRadius: 6 }}>
                   {agencyIdState}
                 </span>
-                {lastRefreshed && (
-                  <span style={{ opacity: 0.6 }}>
-                    · {timeAgo(lastRefreshed)}
-                  </span>
-                )}
+                {lastRefreshed && <span style={{ opacity: 0.55 }}>· Updated {timeAgo(lastRefreshed)}</span>}
               </div>
             </div>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#fff",
-                flexShrink: 0,
-                marginLeft: 8,
-              }}
-            >
-              {initials}
-            </div>
+            <div style={{
+              width: 42, height: 42, borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0,
+            }}>{initials}</div>
           </div>
 
-          {/* Scrollable stat pills */}
-          <div className="hscroll" style={{ marginTop: 14 }}>
+          {/* Stat pills */}
+          <div className="hscroll" style={{ marginTop: 16 }}>
             {[
-              { l: "Total", v: counts.All, c: "rgba(255,255,255,.95)" },
-              { l: "Assigned", v: counts.Assigned, c: "#fde68a" },
-              { l: "Active", v: counts["In Progress"], c: "#7dd3fc" },
-              { l: "Done", v: counts.Completed, c: "#a7f3d0" },
-            ].map((s) => (
-              <div
-                key={s.l}
-                style={{
-                  background: "rgba(255,255,255,0.15)",
-                  borderRadius: 12,
-                  padding: "9px 14px",
-                  textAlign: "center",
-                  flexShrink: 0,
-                  minWidth: 68,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 800,
-                    color: s.c,
-                    letterSpacing: "-0.5px",
-                  }}
-                >
-                  {s.v}
-                </div>
-                <div
-                  style={{
-                    fontSize: 9,
-                    opacity: 0.75,
-                    marginTop: 1,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.4px",
-                  }}
-                >
-                  {s.l}
-                </div>
+              { l: "Total",    v: counts.All,          c: "rgba(255,255,255,0.95)" },
+              { l: "Assigned", v: counts.Assigned,     c: "#fde68a" },
+              { l: "Active",   v: counts["In Progress"], c: "#93c5fd" },
+              { l: "Done",     v: counts.closed,       c: "#6ee7b7" },
+            ].map(s => (
+              <div key={s.l} style={{
+                background: "rgba(255,255,255,0.14)", borderRadius: 14,
+                padding: "10px 16px", textAlign: "center", flexShrink: 0, minWidth: 72,
+              }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: s.c, letterSpacing: "-0.5px" }}>{s.v}</div>
+                <div style={{ fontSize: 9, opacity: 0.7, marginTop: 1, textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.l}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Critical alert */}
+        {/* ── CRITICAL ALERT ── */}
         {criticalActive > 0 && (
-          <div
-            style={{
-              background: "#fee2e2",
-              border: "1.5px solid #fca5a5",
-              borderRadius: 12,
-              padding: "10px 13px",
-              marginBottom: 11,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              animation: "pulse 2s ease-in-out infinite",
-            }}
-          >
-            <span style={{ fontSize: 16, flexShrink: 0 }}>🚨</span>
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#dc2626",
-                lineHeight: 1.4,
-              }}
-            >
-              {criticalActive} critical task{criticalActive > 1 ? "s" : ""} —
-              respond immediately!
+          <div style={{
+            background: "#fee2e2", border: "1.5px solid #fca5a5",
+            borderRadius: 12, padding: "10px 14px", marginBottom: 12,
+            display: "flex", alignItems: "center", gap: 8,
+            animation: "pulse 2s ease-in-out infinite",
+          }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>🚨</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#dc2626" }}>
+              {criticalActive} critical task{criticalActive > 1 ? "s" : ""} require immediate attention!
             </span>
           </div>
         )}
 
-        {/* Error */}
+        {/* ── ERROR ── */}
         {error && (
-          <div
-            style={{
-              background: "#fee2e2",
-              border: "1.5px solid #fca5a5",
-              borderRadius: 12,
-              padding: "10px 13px",
-              marginBottom: 11,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
+          <div style={{
+            background: "#fee2e2", border: "1.5px solid #fca5a5",
+            borderRadius: 12, padding: "10px 14px", marginBottom: 12,
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
             <span style={{ flexShrink: 0 }}>⚠️</span>
-            <span
-              style={{
-                fontSize: 12,
-                color: "#dc2626",
-                fontWeight: 600,
-                flex: 1,
-              }}
-            >
-              {error}
-            </span>
-            <button
-              onClick={fetchTasks}
-              style={{
-                fontSize: 11,
-                color: "#dc2626",
-                fontWeight: 700,
-                background: "none",
-                border: "1px solid #fca5a5",
-                borderRadius: 6,
-                padding: "4px 10px",
-                minHeight: 32,
-              }}
-            >
-              Retry
-            </button>
+            <span style={{ fontSize: 12, color: "#dc2626", fontWeight: 600, flex: 1 }}>{error}</span>
+            <button onClick={fetchTasks} style={{
+              fontSize: 11, color: "#dc2626", fontWeight: 700,
+              background: "none", border: "1px solid #fca5a5",
+              borderRadius: 6, padding: "4px 10px", minHeight: 30,
+            }}>Retry</button>
           </div>
         )}
 
-        {/* Filter tabs + refresh */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 14,
-          }}
-        >
+        {/* ── FILTER BAR ── */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
           <div className="hscroll" style={{ flex: 1 }}>
             {[
-              { key: "All", label: "All" },
-              { key: "Assigned", label: "Assigned" },
+              { key: "All",         label: "All" },
+              { key: "Assigned",    label: "Assigned" },
               { key: "In Progress", label: "In Progress" },
-              { key: "closed", label: "Completed" },
+              { key: "closed",      label: "Completed" },
             ].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className="tap"
                 style={{
-                  background: filter === key ? P : "#fff",
-                  color: filter === key ? "#fff" : "#64748b",
-                  border: `1.5px solid ${filter === key ? P : "#e5eaf0"}`,
-                  borderRadius: 10,
-                  padding: "7px 11px",
-                  fontSize: 12,
-                  fontWeight: filter === key ? 700 : 500,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                  flexShrink: 0,
+                  background: filter === key ? T.primary : "#fff",
+                  color: filter === key ? "#fff" : T.muted,
+                  border: `1.5px solid ${filter === key ? T.primary : T.border}`,
+                  borderRadius: 10, padding: "8px 12px",
+                  fontSize: 12, fontWeight: filter === key ? 700 : 500,
+                  display: "flex", alignItems: "center", gap: 5,
+                  flexShrink: 0, minHeight: 38,
                 }}
               >
                 {label}
-                <span
-                  style={{
-                    background:
-                      filter === key ? "rgba(255,255,255,0.25)" : "#f1f5f9",
-                    borderRadius: 8,
-                    padding: "0 6px",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: filter === key ? "#fff" : "#94a3b8",
-                    minWidth: 18,
-                    textAlign: "center",
-                  }}
-                >
+                <span style={{
+                  background: filter === key ? "rgba(255,255,255,0.2)" : T.faint,
+                  borderRadius: 8, padding: "0 6px",
+                  fontSize: 10, fontWeight: 700,
+                  color: filter === key ? "#fff" : T.muted,
+                  minWidth: 18, textAlign: "center",
+                }}>
                   {counts[key]}
                 </span>
               </button>
             ))}
           </div>
-
           <button
             onClick={fetchTasks}
             disabled={loading}
-            className="tap"
             style={{
-              background: "#fff",
-              color: P,
-              border: `1.5px solid ${P_MID}`,
-              borderRadius: 10,
-              padding: "7px 11px",
-              fontSize: 16,
-              flexShrink: 0,
-              opacity: loading ? 0.5 : 1,
+              background: "#fff", color: T.primary,
+              border: `1.5px solid ${T.border}`,
+              borderRadius: 10, padding: "8px 12px",
+              fontSize: 16, flexShrink: 0,
+              opacity: loading ? 0.5 : 1, minHeight: 38,
             }}
           >
-            <span
-              style={
-                loading
-                  ? {
-                      animation: "spin 1s linear infinite",
-                      display: "inline-block",
-                    }
-                  : {}
-              }
-            >
-              🔄
-            </span>
+            <span style={loading ? { animation: "spin 1s linear infinite", display: "inline-block" } : {}}>🔄</span>
           </button>
         </div>
 
-        {/* Grid */}
+        {/* ── TASK LIST ── */}
         {loading ? (
-          <div className="tgrid">
-            {[...Array(3)].map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
+          <div className="task-list">
+            {[...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
           </div>
         ) : filtered.length > 0 ? (
-          <div className="tgrid">
+          <div className="task-list">
             {filtered.map((task, i) => (
-              <TaskCard
+              <TaskRow
                 key={task._id || i}
                 task={task}
                 index={i}
                 onView={handleView}
+                onImageClick={setLightboxSrc}
               />
             ))}
           </div>
         ) : (
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 16,
-              padding: "44px 20px",
-              textAlign: "center",
-              border: "1.5px solid #f1f5f9",
-              animation: "fadeUp 0.35s ease both",
-            }}
-          >
-            <div style={{ fontSize: 42, marginBottom: 10 }}>
-              {allTasks.length === 0 ? "📭" : "🔍"}
+          <div style={{
+            background: T.card, borderRadius: 16,
+            padding: "50px 20px", textAlign: "center",
+            border: `1.5px solid ${T.border}`,
+            animation: "fadeUp 0.3s ease both",
+          }}>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>{allTasks.length === 0 ? "📭" : "🔍"}</div>
+            <div style={{ color: T.text, fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
+              {allTasks.length === 0 ? "No tasks assigned yet" : `No ${filter} tasks`}
             </div>
-            <div
-              style={{
-                color: "#374151",
-                fontWeight: 700,
-                fontSize: 15,
-                marginBottom: 6,
-              }}
-            >
-              {allTasks.length === 0
-                ? "No tasks assigned to you yet"
-                : `No ${filter} tasks`}
-            </div>
-            <div style={{ color: "#94a3b8", fontSize: 13 }}>
-              {allTasks.length === 0
-                ? "Your agency will assign incidents here."
-                : "Try a different filter."}
+            <div style={{ color: T.muted, fontSize: 13 }}>
+              {allTasks.length === 0 ? "Your agency will assign incidents here." : "Try a different filter."}
             </div>
           </div>
         )}
       </div>
 
       <div style={{ height: "env(safe-area-inset-bottom,0px)" }} />
-      <div
-        style={{
-          textAlign: "center",
-          padding: "12px 20px 24px",
-          fontSize: 11,
-          color: "#94a3b8",
-        }}
-      >
+      <div style={{ textAlign: "center", padding: "12px 20px 24px", fontSize: 11, color: T.muted }}>
         © 2026 OmniVision · All rights reserved by Neuradyne
       </div>
     </div>
