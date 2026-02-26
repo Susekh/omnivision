@@ -33,10 +33,15 @@ const PRIORITY_CFG = {
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function formatDate(ts) {
   if (!ts) return null;
-  return new Date(ts).toLocaleString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
+  const d = new Date(ts);
+  if (isNaN(d)) return null;
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const day  = String(d.getDate()).padStart(2, "0");
+  const mon  = months[d.getMonth()];
+  const year = d.getFullYear();
+  const hh   = String(d.getHours()).padStart(2, "0");
+  const mm   = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${mon} ${year}, ${hh}:${mm}`;
 }
 
 function timeAgo(ts) {
@@ -471,6 +476,7 @@ const TaskDetails = () => {
 
   // ── Derived values ─────────────────────────────────────────────────────
   const firstIncident = task?.incidents?.[0];
+  console.log("Frist incident ::", firstIncident);
   const coords = firstIncident?.location?.coordinates;
   const lat = coords?.[1] || task?.latitude || task?.lat || null;
   const lng = coords?.[0] || task?.longitude || task?.lng || null;
