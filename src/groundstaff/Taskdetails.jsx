@@ -623,6 +623,12 @@ const TaskDetails = () => {
   const [showMsgPrompt, setShowMsgPrompt] = useState(false);
   const [completionMsg, setCompletionMsg] = useState("");
 
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const [showCamera, setShowCamera] = useState(false);
+
   // ── Load task ──────────────────────────────────────────────────────────
   useEffect(() => {
     const cached = localStorage.getItem("selectedTask");
@@ -736,6 +742,55 @@ const TaskDetails = () => {
     }
   };
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      setShowCamera(true);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to access camera");
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const base64 = canvas.toDataURL("image/jpeg", 0.7);
+
+    stopCamera();
+
+    setPendingPhoto(base64);
+    setShowMsgPrompt(true);
+  };
+
   // ── Derived values ─────────────────────────────────────────────────────
   const firstIncident = task?.incidents?.[0];
   console.log("Frist incident ::", firstIncident);
@@ -782,14 +837,6 @@ const TaskDetails = () => {
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleFileChosen}
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
         style={{ display: "none" }}
         onChange={handleFileChosen}
       />
@@ -1633,7 +1680,7 @@ const TaskDetails = () => {
             <button
               onClick={() => {
                 setShowPickerSheet(false);
-                setTimeout(() => cameraInputRef.current.click(), 100);
+                startCamera();
               }}
               style={{
                 width: "100%",
@@ -1673,6 +1720,66 @@ const TaskDetails = () => {
             </button>
           </div>
         </>
+      )}
+
+      {showCamera && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "#000",
+            zIndex: 9999,
+          }}
+        >
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              bottom: 40,
+              left: 0,
+              right: 0,
+              display: "flex",
+              justifyContent: "center",
+              gap: 20,
+            }}
+          >
+            <button
+              onClick={capturePhoto}
+              style={{
+                width: 70,
+                height: 70,
+                borderRadius: "50%",
+                border: "6px solid white",
+                background: "transparent",
+              }}
+            />
+
+            <button
+              onClick={stopCamera}
+              style={{
+                padding: "10px 20px",
+                borderRadius: 10,
+                border: "none",
+                background: "rgba(0,0,0,0.6)",
+                color: "#fff",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+
+          <canvas ref={canvasRef} style={{ display: "none" }} />
+        </div>
       )}
     </div>
   );
