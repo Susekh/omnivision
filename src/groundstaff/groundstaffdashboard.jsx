@@ -444,19 +444,6 @@ function TaskRow({ task, index, onView, onImageClick }) {
               >
                 {firstIncident?.incident_type || task.description || "Incident"}
               </div>
-              {task.description &&
-                task.description !== firstIncident?.incident_type && (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: T.muted,
-                      marginTop: 3,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {task.description}
-                  </div>
-                )}
             </div>
 
             <div
@@ -626,143 +613,9 @@ function TaskRow({ task, index, onView, onImageClick }) {
                         />
                       </div>
                     )}
-
-                    {inc.detected_objects?.length > 0 && (
-                      <div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: T.muted,
-                            fontWeight: 700,
-                            marginBottom: 5,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.4px",
-                          }}
-                        >
-                          Detected
-                        </div>
-                        <div
-                          style={{ display: "flex", flexWrap: "wrap", gap: 4 }}
-                        >
-                          {inc.detected_objects.map((obj, oi) => (
-                            <span
-                              key={oi}
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 600,
-                                color: "#7c3aed",
-                                background: "#ede9fe",
-                                borderRadius: 6,
-                                padding: "2px 8px",
-                              }}
-                            >
-                              {obj}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {inc.userId && (
-                      <div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: T.muted,
-                            fontWeight: 700,
-                            marginBottom: 5,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.4px",
-                          }}
-                        >
-                          Reporter
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            color: T.text,
-                            fontFamily: "monospace",
-                          }}
-                        >
-                          {inc.userId}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
-
-              {/* Assigned agencies */}
-              {task.assigned_agency?.agencies?.length > 0 && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: T.muted,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.4px",
-                    }}
-                  >
-                    Assigned Agencies ({task.assigned_agency.type})
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {task.assigned_agency.agencies.map((ag, ai) => (
-                      <span
-                        key={ai}
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: T.primary,
-                          background: T.faint,
-                          border: `1px solid ${T.border}`,
-                          borderRadius: 8,
-                          padding: "3px 10px",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        {ag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Ground staff */}
-              {task.ground_staff && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${T.primary}, ${T.primaryLight})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {task.ground_staff.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div
-                      style={{ fontSize: 11, color: T.muted, fontWeight: 600 }}
-                    >
-                      Assigned Staff
-                    </div>
-                    <div
-                      style={{ fontSize: 13, fontWeight: 700, color: T.text }}
-                    >
-                      {task.ground_staff}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
