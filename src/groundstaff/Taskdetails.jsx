@@ -1021,6 +1021,21 @@ const TaskDetails = () => {
                   )}
                 </div>
 
+                {/* Incident type */}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: T.text,
+                    lineHeight: 1.2,
+                    marginBottom: 8,
+                  }}
+                >
+                  {firstIncident?.incident_type ||
+                    task.description ||
+                    "Incident"}
+                </div>
+
                 {/* Detected objects */}
                 {uniqueObjects.length > 0 && (
                   <div
