@@ -1757,25 +1757,31 @@ const TaskDetails = () => {
               left: 0,
               right: 0,
               display: "flex",
+              alignItems: "center",
               justifyContent: "center",
-              gap: 20,
             }}
           >
             <button
               onClick={capturePhoto}
               style={{
-                width: 70,
-                height: 70,
+                width: 75,
+                height: 75,
                 borderRadius: "50%",
-                border: "6px solid white",
+                border: "5px solid white",
                 background: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             />
 
             <button
               onClick={stopCamera}
               style={{
-                padding: "10px 20px",
+                position: "absolute",
+                right: 25,
+                bottom: 5,
+                padding: "10px 18px",
                 borderRadius: 10,
                 border: "none",
                 background: "rgba(0,0,0,0.6)",
