@@ -744,21 +744,28 @@ const TaskDetails = () => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
+      setShowCamera(true); // render camera UI first
 
-      streamRef.current = stream;
+      setTimeout(async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+          },
+          audio: false,
+        });
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
+        streamRef.current = stream;
 
-      setShowCamera(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play();
+          };
+        }
+      }, 200);
     } catch (err) {
-      console.error(err);
+      console.error("Camera error:", err);
       setError("Unable to access camera");
     }
   };
@@ -1735,6 +1742,7 @@ const TaskDetails = () => {
             ref={videoRef}
             autoPlay
             playsInline
+            muted
             style={{
               width: "100%",
               height: "100%",
