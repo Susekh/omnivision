@@ -23,12 +23,6 @@ const STATUS_CFG = {
     dot: "#d97706",
     label: "Assigned",
   },
-  "In Progress": {
-    color: "#1a65b5",
-    bg: "#dbeafe",
-    dot: "#2563eb",
-    label: "In Progress",
-  },
   closed: {
     color: "#065f46",
     bg: "#d1fae5",
@@ -749,7 +743,7 @@ const TaskDetails = () => {
   const lat = coords?.[1] || task?.latitude || task?.lat || null;
   const lng = coords?.[0] || task?.longitude || task?.lng || null;
   const pc = PRIORITY_CFG[task?.priority] || PRIORITY_CFG.Medium;
-  const isActionable = status === "Assigned" || status === "In Progress";
+  const isActionable = status === "Assigned" || status === "Assigned";
   const isCompleted = status === "Completed" || status === "closed";
   const detectedObjects =
     task?.incidents?.flatMap((i) => i.detected_objects || []) || [];
@@ -1026,38 +1020,6 @@ const TaskDetails = () => {
                     </span>
                   )}
                 </div>
-
-                {/* Incident type */}
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: T.text,
-                    lineHeight: 1.2,
-                    marginBottom: 8,
-                  }}
-                >
-                  {firstIncident?.incident_type ||
-                    task.description ||
-                    "Incident"}
-                </div>
-
-                {/* Description */}
-                {task.description && (
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: T.muted,
-                      lineHeight: 1.6,
-                      padding: "10px 13px",
-                      background: T.faint,
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}
-                  >
-                    {task.description}
-                  </div>
-                )}
 
                 {/* Detected objects */}
                 {uniqueObjects.length > 0 && (
