@@ -56,14 +56,18 @@ const GroundStaffLogin = () => {
         localStorage.removeItem("groundstaffLoginBlockedUntil");
         const { token, groundStaff } = response.data;
         console.log("ground staff :", groundStaff);
-        
+
         const agencyId = groundStaff?.agencyId;
 
         // Store credentials and agency info
         localStorage.setItem("token", token);
-        localStorage.setItem("groundStaffId", groundStaff.id ? groundStaff.id : ""); // Store ID if available
+        localStorage.setItem(
+          "groundStaffId",
+          groundStaff.id ? groundStaff.id : "",
+        ); // Store ID if available
         localStorage.setItem("groundStaffName", groundStaff?.name);
         localStorage.setItem("agencyId", agencyId);
+        localStorage.setItem("agencyName", groundStaff?.agencyName);
         localStorage.setItem("mobileNumber", groundStaff?.number);
 
         setSuccessMessage("Login Successful!");

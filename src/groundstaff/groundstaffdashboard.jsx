@@ -677,22 +677,22 @@ const GroundStaffDashboard = () => {
   const [filter, setFilter] = useState("All");
   const [groundStaffName, setGroundStaffName] = useState("");
   const [groundStaffId, setGroundStaffId] = useState("");
-  const [agencyIdState, setAgencyIdState] = useState("");
+  const [agencyName, setAgencyName] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const aId = localStorage.getItem("agencyId");
+    const aName = localStorage.getItem("agencyName");
     const name = localStorage.getItem("groundStaffName") || "Ground Staff";
     const staffId = localStorage.getItem("groundStaffId") || "";
-    if (!token || !aId) {
+    if (!token || !aName) {
       navigate("/groundstafflogin");
       return;
     }
     setGroundStaffName(name);
     setGroundStaffId(staffId);
-    setAgencyIdState(aId);
+    setAgencyName(aName);
   }, [navigate]);
 
   const fetchTasks = useCallback(async () => {
@@ -966,7 +966,7 @@ const GroundStaffDashboard = () => {
                     borderRadius: 6,
                   }}
                 >
-                  {agencyIdState}
+                  {agencyName}
                 </span>
                 {lastRefreshed && (
                   <span style={{ opacity: 0.55 }}>
