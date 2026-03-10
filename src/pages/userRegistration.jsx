@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../public/assets/css/Register.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import api from "../api";
 
@@ -16,6 +16,7 @@ const RegisterPage = () => {
     password: "",
   });
 
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -159,6 +160,8 @@ const RegisterPage = () => {
 
       console.log("Success response:", response.data);
       setSuccess("Registration successful!");
+      navigate("/login");
+      
     } catch (error) {
       window.alert(error);
       console.error("Error:", error.response?.data || error.message);

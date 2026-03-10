@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../src/public/assets/css/BillionEyePublic.css";
 import { CameraAltRounded } from "@mui/icons-material";
+import { User } from "lucide-react";
 
 const BillionEyePublic = () => {
   const navigate = useNavigate();
@@ -69,6 +70,14 @@ const BillionEyePublic = () => {
           >
             <CameraAltRounded className="billionpublic-btn-icon" />
             <span>Incident & Report</span>
+          </button>
+
+          <button
+            className="billionpublic-login-btn"
+            onClick={() => navigate("/login")}
+          >
+            <User className="billionpublic-btn-icon" />
+            <span>Switch Account</span>
           </button>
         </div>
 

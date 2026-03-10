@@ -15,9 +15,8 @@
     180deg,
     #1f6fb2 0%,
      #4fa3e3 45%,
-    #9fd3ff 100% /* bright sky horizon */
+    #9fd3ff 100%
   );
-
   color: #fff;
   position: relative;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -129,7 +128,7 @@
   }
 }
 
-/* Animated background particles - tiny dots pattern */
+/* Animated background particles */
 .billionpublic-container::before {
   content: "";
   position: absolute;
@@ -157,7 +156,6 @@
   background-size: 60px 60px;
 }
 
-
 @keyframes billionpublic-float {
   0% {
     transform: translateY(0);
@@ -180,7 +178,7 @@
   z-index: 1;
 }
 
-/* Top section with AI core and branding */
+/* Top section */
 .billionpublic-top-section {
   display: flex;
   flex-direction: column;
@@ -190,7 +188,7 @@
   margin-top: -40px;
 }
 
-/* AI Core with 3D effect */
+/* AI Core */
 .billionpublic-ai-core {
   position: relative;
   width: 140px;
@@ -368,7 +366,6 @@
   min-height: 27px;
 }
 
-
 @keyframes billionpublic-bounce {
   0%,
   80%,
@@ -382,61 +379,160 @@
   }
 }
 
-/* Action Section */
+/* ── Action Section ───────────────────────────────────────────── */
 .billionpublic-action-section {
   width: 100%;
   max-width: 450px;
   margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.billionpublic-camera-btn {
+/* ── Shared button base ───────────────────────────────────────── */
+.billionpublic-camera-btn,
+.billionpublic-login-btn {
+  position: relative;
   width: 100%;
-  padding: 16px 24px;
-  background: rgba(220, 53, 69, 0.95);
+  height: 56px;
+  padding: 0 24px;
   border: none;
   border-radius: 16px;
   color: #fff;
-  font-size: 18px;
+  font-size: 14.5px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+  gap: 10px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* Subtle noise texture for depth without looking old */
+.billionpublic-camera-btn::before,
+.billionpublic-login-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Clean shimmer on hover — just a faint diagonal pass */
+.billionpublic-camera-btn::after,
+.billionpublic-login-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.billionpublic-camera-btn:hover::after,
+.billionpublic-login-btn:hover::after {
+  opacity: 1;
+}
+
+.billionpublic-camera-btn:hover,
+.billionpublic-login-btn:hover {
+  transform: translateY(-2px);
+}
+
+.billionpublic-camera-btn:active,
+.billionpublic-login-btn:active {
+  transform: translateY(0px) scale(0.98);
+  opacity: 0.9;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* ── Camera — clean crimson with a warm glow ─────────────────── */
+.billionpublic-camera-btn {
+  background: linear-gradient(135deg, #ff4d6d 0%, #e5173a 100%);
+  box-shadow:
+    0 4px 24px rgba(229, 23, 58, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .billionpublic-camera-btn:hover {
-  background: rgba(220, 53, 69, 1);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(220, 53, 69, 0.5);
+  box-shadow:
+    0 8px 32px rgba(229, 23, 58, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.billionpublic-camera-btn:active {
-  transform: translateY(0);
+/* ── Login — clean royal blue with cool glow ─────────────────── */
+.billionpublic-login-btn {
+  background: linear-gradient(135deg, #5b7cff 0%, #243ccc 100%);
+  box-shadow:
+    0 4px 24px rgba(36, 60, 204, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.billionpublic-login-btn:hover {
+  box-shadow:
+    0 8px 32px rgba(36, 60, 204, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Icon ─────────────────────────────────────────────────────── */
 .billionpublic-btn-icon {
-  font-size: 24px;
+  font-size: 19px !important;
+  flex-shrink: 0;
 }
 
 /* Footer */
 .billionpublic-footer {
   text-align: center;
   width: 100%;
-  padding: 20px 16px;
+  padding: 16px 24px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.billionpublic-footer::before,
+.billionpublic-footer::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(10, 60, 120, 0.3));
+}
+
+.billionpublic-footer::after {
+  background: linear-gradient(90deg, rgba(10, 60, 120, 0.3), transparent);
 }
 
 .billionpublic-footer-text {
-  font-size: 12px;
-  color: rgb(108, 117, 125);
+  font-size: 11px;
+  color: rgba(10, 50, 110, 0.7);
   margin: 0;
-  font-weight: 300;
-  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Responsive Design */
+/* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .billionpublic-wrapper {
     padding: 30px 20px 16px;
@@ -499,13 +595,33 @@
     font-size: 16px;
   }
 
+  .billionpublic-action-section {
+    gap: 10px;
+    padding: 0;
+  }
+
+  .billionpublic-camera-btn,
+  .billionpublic-login-btn {
+    height: 54px;
+    border-radius: 12px;
+    font-size: 14px;
+    padding: 0 20px;
+  }
+
   .billionpublic-camera-btn {
-    padding: 14px 20px;
-    font-size: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.12) inset,
+      0 5px 14px rgba(200, 0, 26, 0.38);
+  }
+
+  .billionpublic-login-btn {
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.1) inset,
+      0 5px 14px rgba(13, 31, 138, 0.42);
   }
 
   .billionpublic-btn-icon {
-    font-size: 22px;
+    font-size: 18px !important;
   }
 
   .billionpublic-footer-text {
@@ -537,9 +653,11 @@
     font-size: 15px;
   }
 
-  .billionpublic-camera-btn {
-    font-size: 15px;
-    padding: 12px 18px;
+  .billionpublic-camera-btn,
+  .billionpublic-login-btn {
+    font-size: 13.5px;
+    padding: 0 16px;
+    height: 50px;
   }
 
   .billionpublic-footer-text {
@@ -562,9 +680,18 @@
   }
 }
 
+/* ── Accessibility: reduced motion ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .billionpublic-camera-btn,
+  .billionpublic-login-btn,
+  .billionpublic-camera-btn::after,
+  .billionpublic-login-btn::after {
+    transition: none;
+  }
+}
 
 /* =========================================
-   DOTTED FLOATING BACKGROUND (EXTRACTED)
+   DOTTED FLOATING BACKGROUND
    ========================================= */
 
 .dotted-bg {
@@ -574,14 +701,12 @@
   height: 200%;
   pointer-events: none;
   z-index: 0;
-
   background-image:
     radial-gradient(
       circle,
       rgba(255, 255, 255, 0.18) 1.5px,
       transparent 1.5px
     );
-
   background-size: 36px 36px;
   animation: dotted-float 22s linear infinite;
   opacity: 0.75;
@@ -595,7 +720,6 @@
       rgba(255, 255, 255, 0.1) 2px,
       transparent 2px
     );
-
   background-size: 58px 58px;
   background-position: 18px 18px;
   animation-duration: 28s;
@@ -603,7 +727,6 @@
   opacity: 0.55;
 }
 
-/* Animation */
 @keyframes dotted-float {
   0% {
     transform: translate(0, 0) rotate(0deg);
