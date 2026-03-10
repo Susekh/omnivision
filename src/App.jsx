@@ -25,10 +25,9 @@ import GroundStaffDashboard from "./groundstaff/groundstaffdashboard";
 import TaskDetails from "./groundstaff/Taskdetails";
 
 // Protected Route Component
-const ProtectedRoute = ({ element: Element }) => {
+const ProtectedRoute = ({ element: Element, redirectTo = "/agencyLogin" }) => {
   const isAuthenticated = !!localStorage.getItem("token");
-
-  return isAuthenticated ? <Element /> : <Navigate to="/agencyLogin" replace />;
+  return isAuthenticated ? <Element /> : <Navigate to={redirectTo} replace />;
 };
 
 function App() {
@@ -43,7 +42,8 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/home" element={<BillionEyePublic />} />
-        <Route path="/Camera" element={<CameraPage />} />
+        <Route path="/Camera" 
+        element={<ProtectedRoute element={CameraPage} redirectTo="/login" />} />
         <Route
           path="/onBoardingStaff"
           element={<ProtectedRoute element={OnBoardingStaff} />}

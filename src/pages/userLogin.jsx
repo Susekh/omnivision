@@ -40,7 +40,7 @@ const LoginPage = () => {
       if (response.status === 200) {
         setSuccess("Login successful!");
         localStorage.setItem("token", response.data.token);
-        navigate("/bmcreport");
+        navigate("/Camera");
       } else {
         setError("Invalid email or password.");
       }

@@ -23,6 +23,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import api from "../api";
+import AdminAuth from "./AdminAuth";
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -68,6 +69,7 @@ const AdminAgencyManager = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // ✅ MODIFIED: Always initialize with default lat/lng
   const [formData, setFormData] = useState({
@@ -97,6 +99,12 @@ const AdminAgencyManager = () => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Check login status on mount
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    setIsLoggedIn(!!token);
   }, []);
 
   const switchModel = async () => {
@@ -135,11 +143,13 @@ const AdminAgencyManager = () => {
     }
   };
 
-  // Fetch agencies on component mount
+  // Fetch agencies on component mount when logged in
   useEffect(() => {
-    fetchAgencies();
-    fetchActiveModel();
-  }, []);
+    if (isLoggedIn) {
+      fetchAgencies();
+      fetchActiveModel();
+    }
+  }, [isLoggedIn]);
 
   // Auto-dismiss notifications
   useEffect(() => {
@@ -151,6 +161,32 @@ const AdminAgencyManager = () => {
       return () => clearTimeout(timer);
     }
   }, [error, success]);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      localStorage.removeItem("adminToken");
+      setIsLoggedIn(false);
+      return;
+    }
+
+    try {
+      await api.post("/backend/admin/logout", {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("adminToken");
+      setIsLoggedIn(false);
+    }
+  };
 
   const fetchAgencies = async () => {
     setLoading(true);
@@ -652,7 +688,13 @@ const AdminAgencyManager = () => {
     const previewPolygon = getPreviewPolygonCoords();
 
     return (
-      <div className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden bg-dots">
+      <div
+        className="h-screen flex flex-col bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden"
+        style={{
+          backgroundImage: `radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px)`,
+          backgroundSize: "20px 20px",
+        }}
+      >
         <Notification type="error" message={error} />
         <Notification type="success" message={success} />
 
@@ -1093,7 +1135,7 @@ const AdminAgencyManager = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+          background: "linear-linear(135deg, #0f2027, #203a43, #2c5364)",
           color: "#fff",
           textAlign: "center",
           padding: "20px",
@@ -1114,14 +1156,15 @@ const AdminAgencyManager = () => {
     );
   }
 
+  if (!isLoggedIn) {
+    return <AdminAuth onLogin={handleLogin} />;
+  }
+
   return (
     <div
       className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col"
       style={{
-        backgroundImage: `radial-gradient(
-      rgba(14, 165, 233, 0.15) 1px,
-      transparent 1px
-    )`,
+        backgroundImage: `radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
       }}
     >
@@ -1172,6 +1215,12 @@ const AdminAgencyManager = () => {
               >
                 <Plus size={18} />
                 Add Agency
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all flex items-center gap-1.5 font-medium text-sm"
+              >
+                Logout
               </button>
             </div>
           </div>
