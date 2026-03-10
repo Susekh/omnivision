@@ -175,12 +175,16 @@ const LoginPage = () => {
   return (
     <section style={sectionStyle} className="login-page-container">
       <div style={wrapperStyle}>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: isMobile ? "12px" : "15px" }}>
-          <img
-            src="/images/omnivision-logo.png"
-            alt="Logo"
-            style={logoStyle}
-          />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: isMobile ? "12px" : "15px",
+          }}
+        >
+          <img src="/images/omnivision-logo.png" alt="Logo" style={logoStyle} />
         </div>
 
         <h1 style={titleStyle}>Welcome to OmniVision</h1>
@@ -210,7 +214,11 @@ const LoginPage = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                     />
                   </div>
                   <div style={inputStyle}>
@@ -222,11 +230,19 @@ const LoginPage = () => {
                       value={formData.password}
                       onChange={handleChange}
                       required
-                      style={{ color: "black", fontSize: "14px", width: "100%" }}
+                      style={{
+                        color: "black",
+                        fontSize: "14px",
+                        width: "100%",
+                      }}
                     />
                   </div>
 
-                  <button type="submit" className="btn btn-primary" style={buttonStyle}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={buttonStyle}
+                  >
                     Login
                   </button>
                   <p style={linkStyle}>
@@ -237,6 +253,46 @@ const LoginPage = () => {
                       </Link>
                     </span>
                   </p>
+
+                  <p style={{ ...linkStyle, marginTop: "12px" }}>
+                    <Link
+                      to="/home"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "8px 18px",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        letterSpacing: "0.04em",
+                        color: "#fff",
+                        textDecoration: "none",
+                        background: "rgba(15, 60, 130, 0.55)",
+                        border: "1px solid rgba(15, 60, 130, 0.8)",
+                        borderRadius: "20px",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        boxShadow: "0 2px 12px rgba(10, 40, 100, 0.25)",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background =
+                          "rgba(15, 60, 130, 0.8)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 18px rgba(10, 40, 100, 0.4)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background =
+                          "rgba(15, 60, 130, 0.55)";
+                        e.currentTarget.style.boxShadow =
+                          "0 2px 12px rgba(10, 40, 100, 0.25)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      ← Back to Home
+                    </Link>
+                  </p>
                 </form>
               </div>
             </div>
@@ -245,7 +301,9 @@ const LoginPage = () => {
       </div>
 
       <footer style={footerStyle}>
-        <p style={{ margin: 0 }}>© 2026 OmniVision. All rights reserved by Neuradyne.</p>
+        <p style={{ margin: 0 }}>
+          © 2026 OmniVision. All rights reserved by Neuradyne.
+        </p>
       </footer>
     </section>
   );

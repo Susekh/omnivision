@@ -41,7 +41,7 @@ function App() {
         <Route path="/Agency" element={<BillionEye />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/home" element={<BillionEyePublic />} />
+        <Route path="/home" element={<ProtectedRoute element={BillionEyePublic} redirectTo="/login" />} />
         <Route path="/Camera" 
         element={<ProtectedRoute element={CameraPage} redirectTo="/login" />} />
         <Route
