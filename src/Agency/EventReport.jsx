@@ -144,7 +144,7 @@ const EventReport = () => {
   }, [reportData]);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

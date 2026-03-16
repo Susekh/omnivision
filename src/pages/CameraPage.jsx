@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../public/assets/css/CameraPage.css";
 import api from "../api";
 import ExifReader from "exifreader";
+import Loader from "../components/loader";
 
 const CameraPage = () => {
   const videoRef = useRef(null);
@@ -314,7 +315,7 @@ const CameraPage = () => {
   }, [navigate, stopCameraStream]);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

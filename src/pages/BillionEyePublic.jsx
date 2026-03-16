@@ -4,6 +4,7 @@ import "../../src/public/assets/css/BillionEyePublic.css";
 import { CameraAltRounded } from "@mui/icons-material";
 import { User } from "lucide-react";
 import api from "../api";
+import Loader from "../components/loader";
 
 const BillionEyePublic = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const BillionEyePublic = () => {
   }, [statusMessages.length]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
+import Loader from "../components/loader";
 
 // ── THEME ──────────────────────────────────────────────────────────────────
 const T = {
@@ -740,7 +741,7 @@ const GroundStaffDashboard = () => {
   }, [groundStaffId, groundStaffName, fetchTasks]);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

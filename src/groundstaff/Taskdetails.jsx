@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
+import Loader from "../components/loader";
 
 // ── THEME (matches dashboard) ──────────────────────────────────────────────
 const T = {
@@ -691,7 +692,7 @@ const TaskDetails = () => {
   }, [taskId]);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

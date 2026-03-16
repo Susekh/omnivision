@@ -129,6 +129,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
+import Loader from "../components/loader";
 
 const OnBoardingStaff = () => {
   const [incidents, setIncidents] = useState([]); // Store incidents data
@@ -175,7 +176,7 @@ const OnBoardingStaff = () => {
   }, []);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

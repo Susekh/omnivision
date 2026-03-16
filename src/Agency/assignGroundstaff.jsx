@@ -2,6 +2,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import api from "../api";
 import "../public/assets/css/assignGroundstaff.css";
+import Loader from "../components/loader";
 
 const AssignGroundstaff = () => {
   const [formData, setFormData] = useState({
@@ -69,7 +70,7 @@ const AssignGroundstaff = () => {
   }, [agencyId]);
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {
