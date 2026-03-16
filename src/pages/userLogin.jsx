@@ -39,19 +39,21 @@ const LoginPage = () => {
 
       if (response.status === 200) {
         setSuccess("Login successful!");
-        localStorage.setItem("token", response.data.token);
         navigate("/Camera");
       } else {
         setError("Invalid email or password.");
       }
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
-      setError("Login failed. Please try again.");
-    }
-  };
 
-  const handleLogin = () => {
-    console.log("Login button clicked");
+      // Prefer the server-provided message when available.
+      const serverMessage =
+        error.response?.data?.message || error.response?.data?.error;
+      setError(
+        serverMessage ||
+          "Login failed. Please check your credentials and try again."
+      );
+    }
   };
 
   const isMobile = window.innerWidth <= 768;

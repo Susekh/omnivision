@@ -102,8 +102,6 @@ const AdminAuth = ({ onLogin }) => {
       });
 
       if (response.status === 200) {
-        const { token } = response.data;
-        localStorage.setItem("adminToken", token);
         setSuccessMessage("Login successful!");
         setTimeout(() => {
           onLogin();
@@ -136,7 +134,7 @@ const AdminAuth = ({ onLogin }) => {
             <h2 className="auth-title">Admin Portal</h2>
           </div>
 
-          <div className="auth-tabs">
+          {/* <div className="auth-tabs">
             <button
               onClick={() => setActiveTab("register")}
               className={`auth-tab${activeTab === "register" ? " auth-tab--active" : ""}`}
@@ -149,7 +147,7 @@ const AdminAuth = ({ onLogin }) => {
             >
               Login
             </button>
-          </div>
+          </div> */}
 
           {errorMessage && (
             <div className="auth-alert auth-alert--error">

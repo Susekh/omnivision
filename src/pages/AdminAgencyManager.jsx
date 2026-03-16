@@ -103,8 +103,18 @@ const AdminAgencyManager = () => {
 
   // Check login status on mount
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    setIsLoggedIn(!!token);
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/admin/check-auth");
+        if (response.status === 200) {
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   const switchModel = async () => {
@@ -167,23 +177,11 @@ const AdminAgencyManager = () => {
   };
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-      localStorage.removeItem("adminToken");
-      setIsLoggedIn(false);
-      return;
-    }
-
     try {
-      await api.post("/backend/admin/logout", {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.post("/backend/admin/logout");
+      setIsLoggedIn(false);
     } catch (error) {
       console.error("Logout error:", error);
-    } finally {
-      localStorage.removeItem("adminToken");
       setIsLoggedIn(false);
     }
   };

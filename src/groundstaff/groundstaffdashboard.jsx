@@ -681,33 +681,45 @@ const GroundStaffDashboard = () => {
   const [lastRefreshed, setLastRefreshed] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const aName = localStorage.getItem("agencyName");
-    const name = localStorage.getItem("groundStaffName") || "Ground Staff";
-    const staffId = localStorage.getItem("groundStaffId") || "";
-    if (!token || !aName) {
-      navigate("/groundstafflogin");
-      return;
-    }
-    setGroundStaffName(name);
-    setGroundStaffId(staffId);
-    setAgencyName(aName);
+    const checkAuth = async () => {
+      try {
+        // Try to get groundstaff data from localStorage (set during login)
+        const storedData = localStorage.getItem("groundstaffData");
+        if (storedData) {
+          const groundStaff = JSON.parse(storedData);
+          setGroundStaffName(groundStaff.name || "Ground Staff");
+          setGroundStaffId(groundStaff.id || "");
+          setAgencyName(groundStaff.agencyName || "");
+          setIsAuthenticated(true);
+        } else {
+          // If no stored data, redirect to login
+          console.error("No groundstaff data found");
+          navigate("/groundstafflogin");
+          return;
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/groundstafflogin");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
   }, [navigate]);
 
   const fetchTasks = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    const storedAId = localStorage.getItem("agencyId");
-    const storedSId = localStorage.getItem("groundStaffId");
-    const storedName = localStorage.getItem("groundStaffName") || "";
-    if (!token || !storedAId) return;
+    if (!agencyId || !groundStaffId) return;
     try {
       setLoading(true);
       setError("");
-      const res = await api.get(`backend/groundstaff/tasks/${storedAId}`, {
+      const res = await api.get(`backend/groundstaff/tasks/${agencyId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          "x-groundstaff-id": storedSId,
+          "x-groundstaff-id": groundStaffId,
         },
       });
       if (res.status === 200) {
@@ -721,23 +733,34 @@ const GroundStaffDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [agencyId, groundStaffId]);
 
   useEffect(() => {
     if (groundStaffId || groundStaffName) fetchTasks();
   }, [groundStaffId, groundStaffName, fetchTasks]);
 
-  const handleLogout = () => {
-    [
-      "token",
-      "groundStaffId",
-      "groundStaffName",
-      "agencyId",
-      "mobileNumber",
-      "groundstaffLoginAttempts",
-      "groundstaffLoginBlockedUntil",
-    ].forEach((k) => localStorage.removeItem(k));
-    navigate("/groundstafflogin");
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    try {
+      await api.post("backend/groundstaff/logout");
+      // Clear non-auth localStorage items
+      localStorage.removeItem("selectedTask");
+      localStorage.removeItem("groundstaffLoginAttempts");
+      localStorage.removeItem("groundstaffLoginBlockedUntil");
+      localStorage.removeItem("groundstaffData");
+      navigate("/groundstafflogin");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still navigate even if logout fails
+      navigate("/groundstafflogin");
+    }
   };
 
   const handleView = (task) => {

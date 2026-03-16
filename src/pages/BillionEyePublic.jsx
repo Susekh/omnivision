@@ -3,17 +3,39 @@ import { useNavigate } from "react-router-dom";
 import "../../src/public/assets/css/BillionEyePublic.css";
 import { CameraAltRounded } from "@mui/icons-material";
 import { User } from "lucide-react";
+import api from "../api";
 
 const BillionEyePublic = () => {
   const navigate = useNavigate();
   const [statusIndex, setStatusIndex] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const statusMessages = [
-    "System Online & Monitoring",
-    "AI Detection Active",
-    "Secure Connection Established",
-    "Ready for Surveillance",
+    "System Online - Monitoring Active",
+    "AI Surveillance Running",
+    "All Cameras Operational",
+    "Real-time Incident Detection",
+    "Network Status: Connected"
   ];
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/user/check-auth");
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/login");
+        return;
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     // Cycle through status messages every 3 seconds
@@ -22,7 +44,15 @@ const BillionEyePublic = () => {
     }, 3000);
 
     return () => clearInterval(messageTimer);
-  }, []);
+  }, [statusMessages.length]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <section className="billionpublic-container">

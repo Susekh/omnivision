@@ -76,6 +76,21 @@ const Dashboard = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/check-auth");
+        if (response.status === 200) {
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/agencyLogin");
+        return;
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
     if (!agencyId) return;
 
     const fetchDashboardData = async () => {
@@ -87,7 +102,6 @@ const Dashboard = () => {
 
         console.log(
           `Logged in as ${response.data?.AgencyName} (${agencyId})`,
-          dashboardData,
         );
         console.log(
           `Showing ${response.data?.assignedEvents?.length || 0} incidents`,
@@ -109,6 +123,50 @@ const Dashboard = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!zoomedImageUrl) return;
+    const img = imgRef.current;
+    const canvas = document.getElementById("zoomed-canvas");
+    const ctx = canvas?.getContext("2d");
+    if (img && canvas && ctx) {
+      img.onload = () => {
+        const { naturalWidth, naturalHeight, width, height } = img;
+        const scaleX = width / naturalWidth;
+        const scaleY = height / naturalHeight;
+        const report = dashboardData.find(
+          (event) => normalizeImageUrl(event.image_url) === zoomedImageUrl,
+        );
+        if (
+          report &&
+          Array.isArray(report.boundingBoxes) &&
+          report.boundingBoxes.length > 0 &&
+          report.boundingBoxes[0].length === 4
+        ) {
+          const [x1, y1, x2, y2] = report.boundingBoxes[0];
+          const adjustedBox = {
+            left: x1 * scaleX,
+            top: y1 * scaleY,
+            width: (x2 - x1) * scaleX,
+            height: (y2 - y1) * scaleY,
+          };
+          canvas.width = width;
+          canvas.height = height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = "red";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(
+            adjustedBox.left,
+            adjustedBox.top,
+            adjustedBox.width,
+            adjustedBox.height,
+          );
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      };
+    }
+  }, [zoomedImageUrl, dashboardData]);
 
   const addFlagAt = (lat, lng, name) => {
     const newMarker = {
@@ -251,75 +309,18 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    if (!zoomedImageUrl) return;
-    const img = imgRef.current;
-    const canvas = document.getElementById("zoomed-canvas");
-    const ctx = canvas?.getContext("2d");
-    if (img && canvas && ctx) {
-      img.onload = () => {
-        const { naturalWidth, naturalHeight, width, height } = img;
-        const scaleX = width / naturalWidth;
-        const scaleY = height / naturalHeight;
-        const report = dashboardData.find(
-          (event) => normalizeImageUrl(event.image_url) === zoomedImageUrl,
-        );
-        if (
-          report &&
-          Array.isArray(report.boundingBoxes) &&
-          report.boundingBoxes.length > 0 &&
-          report.boundingBoxes[0].length === 4
-        ) {
-          const [x1, y1, x2, y2] = report.boundingBoxes[0];
-          const adjustedBox = {
-            left: x1 * scaleX,
-            top: y1 * scaleY,
-            width: (x2 - x1) * scaleX,
-            height: (y2 - y1) * scaleY,
-          };
-          canvas.width = width;
-          canvas.height = height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.strokeStyle = "red";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(
-            adjustedBox.left,
-            adjustedBox.top,
-            adjustedBox.width,
-            adjustedBox.height,
-          );
-        } else {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      };
-    }
-  }, [zoomedImageUrl, dashboardData]);
-
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You are not logged in.");
-        navigate("/login");
-        return;
-      }
-      const response = await api.post(
-        "backend/agency/logout",
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await api.post("backend/agency/logout");
       if (response.status === 200) {
-        localStorage.removeItem("token");
         alert("Logout Successful!");
         navigate("/agencyLogin");
       } else {
         alert("Logout Failed: " + (response.data?.message || "Unknown error"));
       }
     } catch (error) {
-      console.error("Error Logging Out:", error);
-      alert(error.response?.data?.message || "Logout failed!");
+      console.error("Logout error:", error);
+      alert("Logout Failed: " + (error.response?.data?.message || "Unknown error"));
     }
   };
 

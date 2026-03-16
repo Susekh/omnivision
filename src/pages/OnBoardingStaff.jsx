@@ -126,6 +126,7 @@
 // export default OnBoardingStaff;
 import React from "react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 
@@ -133,8 +134,31 @@ const OnBoardingStaff = () => {
   const [incidents, setIncidents] = useState([]); // Store incidents data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/user/check-auth");
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/login");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchIncidents = async () => {
       try {
         const response = await api.get("backend/user/incidents"); // Replace with your backend URL
@@ -149,6 +173,14 @@ const OnBoardingStaff = () => {
 
     fetchIncidents();
   }, []);
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) return <p>Loading incidents...</p>;
   if (error) return <p>{error}</p>;

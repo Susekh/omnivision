@@ -616,6 +616,9 @@ const TaskDetails = () => {
   const [showPickerSheet, setShowPickerSheet] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [groundStaffId, setGroundStaffId] = useState("");
 
   const fileInputRef = useRef();
   const cameraInputRef = useRef();
@@ -628,6 +631,46 @@ const TaskDetails = () => {
   const streamRef = useRef(null);
 
   const [showCamera, setShowCamera] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Try to get groundstaff data from localStorage (set during login)
+        const storedData = localStorage.getItem("groundstaffData");
+        if (storedData) {
+          const groundStaff = JSON.parse(storedData);
+          setGroundStaffId(groundStaff.id || "");
+          setIsAuthenticated(true);
+        } else {
+          // If no stored data, redirect to login
+          console.error("No groundstaff data found");
+          navigate("/groundstafflogin");
+          return;
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/groundstafflogin");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  const fetchFromApi = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`backend/groundstaff/task/${taskId}`);
+      const t = res.data.data || res.data;
+      setTask(t);
+      setStatus(t.status || "Assigned");
+    } catch {
+      setError("Failed to load task details.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ── Load task ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -647,22 +690,13 @@ const TaskDetails = () => {
     // eslint-disable-next-line
   }, [taskId]);
 
-  const fetchFromApi = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await api.get(`backend/groundstaff/task/${taskId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const t = res.data.data || res.data;
-      setTask(t);
-      setStatus(t.status || "Assigned");
-    } catch {
-      setError("Failed to load task details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // ── Compress image ─────────────────────────────────────────────────────
   const compressImage = (file, maxPx, quality) =>
@@ -704,17 +738,15 @@ const TaskDetails = () => {
     try {
       setActLoading(true);
       setError("");
-      const token = localStorage.getItem("token");
       await api.patch(
         `backend/groundstaff/task/${task._id}/complete`,
         {
           status: "closed",
           remark: completionMsg,
           photo: pendingPhoto,
-          groundStaffId: localStorage.getItem("groundStaffId"),
-          agencyId: localStorage.getItem("agencyId"),
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
+          groundStaffId: groundStaffId,
+          agencyId: task?.agencyId,
+        }
       );
       setStatus("Completed");
       setTask((prev) => ({

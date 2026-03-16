@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import api from "../api";
 import "../public/assets/css/groundstaffLogin.css";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const GroundStaffLogin = () => {
   const [formData, setFormData] = useState({
@@ -54,21 +54,13 @@ const GroundStaffLogin = () => {
         // Reset attempts on success
         localStorage.removeItem("groundstaffLoginAttempts");
         localStorage.removeItem("groundstaffLoginBlockedUntil");
-        const { token, groundStaff } = response.data;
+        const { groundStaff } = response.data;
         console.log("ground staff :", groundStaff);
 
-        const agencyId = groundStaff?.agencyId;
+        // Store groundstaff data for dashboard use
+        localStorage.setItem("groundstaffData", JSON.stringify(groundStaff));
 
-        // Store credentials and agency info
-        localStorage.setItem("token", token);
-        localStorage.setItem(
-          "groundStaffId",
-          groundStaff.id ? groundStaff.id : "",
-        ); // Store ID if available
-        localStorage.setItem("groundStaffName", groundStaff?.name);
-        localStorage.setItem("agencyId", agencyId);
-        localStorage.setItem("agencyName", groundStaff?.agencyName);
-        localStorage.setItem("mobileNumber", groundStaff?.number);
+        const agencyId = groundStaff?.agencyId;
 
         setSuccessMessage("Login Successful!");
 

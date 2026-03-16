@@ -20,8 +20,28 @@ const CameraPage = () => {
   const [imageId, setImageId] = useState(null);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isCameraLoading, setIsCameraLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/user/check-auth");
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/login");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   // Cleanup camera stream helper
   const stopCameraStream = useCallback(() => {
@@ -292,6 +312,14 @@ const CameraPage = () => {
     stopCameraStream();
     navigate("/home", { replace: true });
   }, [navigate, stopCameraStream]);
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <section className="main camera-page">

@@ -20,8 +20,6 @@ import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
 import Loader from "../components/loader";
 
 // Leaflet icon setup
@@ -56,7 +54,6 @@ const EventReport = () => {
   const [anchorEl, setAnchorEl] = React.useState();
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
   const { event_id } = useParams();
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState(null);
@@ -65,28 +62,30 @@ const EventReport = () => {
   const [isAssigned, setIsAssigned] = useState(false);
   const [mapCoordinates, setMapCoordinates] = useState(null);
   const [agencyGroundStaff, setAgencyGroundStaff] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Map states for interactive features
   const [markers, setMarkers] = useState([]);
   const [targetLocation, setTargetLocation] = useState([20.2961, 85.8245]);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const addFlagAt = (lat, lng, name) => {
-    const newMarker = {
-      position: [lat, lng],
-      name: name || "Flag",
-      icon: createFlagIcon(),
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/check-auth");
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/agencyLogin");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
     };
-    setMarkers((prev) => [...prev, newMarker]);
-    setTargetLocation([lat, lng]);
-  };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     if (!event_id) {
@@ -144,12 +143,30 @@ const EventReport = () => {
     fetchAgencyGroundStaff();
   }, [reportData]);
 
-  const handleUserChange = (event) => {
-    const userId = event.target.value;
-    setSelectedUser(userId);
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
 
-    const user = users.find((u) => u.id === userId);
-    setUserDetails(user || null);
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const addFlagAt = (lat, lng, name) => {
+    const newMarker = {
+      position: [lat, lng],
+      name: name || "Flag",
+      icon: createFlagIcon(),
+    };
+    setMarkers((prev) => [...prev, newMarker]);
+    setTargetLocation([lat, lng]);
   };
 
   const handleUnassign = async () => {
@@ -176,20 +193,6 @@ const EventReport = () => {
       );
     } else {
       console.error("Agency ID or Event ID is not available");
-    }
-  };
-
-  const updateEventStatus = async (newStatus) => {
-    try {
-      const response = await api.put(`backend/events/status/${event_id}`, {
-        status: newStatus,
-      });
-      if (response.status === 200) {
-        console.log(`Event ${event_id} status updated to ${newStatus}`);
-        setIsAssigned(newStatus === "Assigned");
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
     }
   };
 

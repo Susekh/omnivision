@@ -16,6 +16,7 @@ const api = axios.create({
     ? "http://localhost:5000/" // Local development backend
     : "https://backend.omnivision.neuradyne.in/", // Production backend
   timeout: 10000000,
+  withCredentials: true, // Enable sending cookies
 });
 
 export default api;

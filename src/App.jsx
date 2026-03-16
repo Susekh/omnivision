@@ -25,10 +25,10 @@ import GroundStaffDashboard from "./groundstaff/groundstaffdashboard";
 import TaskDetails from "./groundstaff/Taskdetails";
 
 // Protected Route Component
-const ProtectedRoute = ({ element: Element, redirectTo = "/agencyLogin" }) => {
-  const isAuthenticated = !!localStorage.getItem("token");
-  return isAuthenticated ? <Element /> : <Navigate to={redirectTo} replace />;
-};
+// const ProtectedRoute = ({ element: Element, redirectTo = "/agencyLogin" }) => {
+//   const isAuthenticated = !!localStorage.getItem("token");
+//   return isAuthenticated ? <Element /> : <Navigate to={redirectTo} replace />;
+// };
 
 function App() {
   return (
@@ -41,16 +41,12 @@ function App() {
         <Route path="/Agency" element={<BillionEye />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/home" element={<ProtectedRoute element={BillionEyePublic} redirectTo="/login" />} />
-        <Route path="/Camera" 
-        element={<ProtectedRoute element={CameraPage} redirectTo="/login" />} />
-        <Route
-          path="/onBoardingStaff"
-          element={<ProtectedRoute element={OnBoardingStaff} />}
-        />
+        <Route path="/home" element={<BillionEyePublic />} />
+        <Route path="/Camera" element={<CameraPage />} />
+        <Route path="/onBoardingStaff" element={<OnBoardingStaff />} />
         <Route
           path="/eventReport/:event_id"
-          element={<ProtectedRoute element={EventReport} />}
+          element={<EventReport />}
         />
         <Route path="/gomaps" element={<GoMapsTest />} />
         <Route path="/agencyLogin" element={<AgencyLogin />} />
@@ -59,7 +55,7 @@ function App() {
         <Route path="/dashboard/:agencyId" element={<Dashboard />} />
         <Route
           path="/assignGroundstaff/:agencyId"
-          element={<ProtectedRoute element={AssignGroundStaff} />}
+          element={<AssignGroundStaff />}
         />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -72,14 +68,14 @@ function App() {
         />
         <Route
           path="/task-details/:taskId"
-          element={<ProtectedRoute element={TaskDetails} />}
+          element={<TaskDetails />}
         />
 
         {/* Protected Routes */}
 
         <Route
           path="/ServiceLogin"
-          element={<ProtectedRoute element={ServiceLogin} />}
+          element={<ServiceLogin />}
         />
       </Routes>
     </BrowserRouter>

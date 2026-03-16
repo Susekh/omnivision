@@ -55,10 +55,9 @@ const AgencyLogin = () => {
         // Reset attempts on success
         localStorage.removeItem("agencyLoginAttempts");
         localStorage.removeItem("agencyLoginBlockedUntil");
-        const { token, agency } = response.data;
+        const { agency } = response.data;
         const agencyId = agency?.AgencyId;
 
-        localStorage.setItem("token", token);
         setSuccessMessage("Login Successful!");
 
         setTimeout(() => {

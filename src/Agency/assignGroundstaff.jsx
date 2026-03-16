@@ -14,13 +14,8 @@ const AssignGroundstaff = () => {
   const [message, setMessage] = useState("");
   const [assignedAgency, setAssignedAgency] = useState("Loading...");
   const [isOpen, setIsOpen] = useState(false);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { agencyId } = useParams();
-
-  const queryParams = new URLSearchParams(location.search);
-  const eventId = queryParams.get("eventId");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const [namePlaceholder, setNamePlaceholder] = useState(
     "Name of ground staff",
@@ -31,6 +26,28 @@ const AssignGroundstaff = () => {
   const [addressPlaceholder, setAddressPlaceholder] = useState("Enter address");
   const [passwordPlaceholder, setPasswordPlaceholder] =
     useState("Enter password");
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { agencyId } = useParams();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("backend/check-auth");
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        navigate("/agencyLogin");
+        return;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     if (!agencyId) return;
@@ -50,6 +67,17 @@ const AssignGroundstaff = () => {
 
     fetchAgencyName();
   }, [agencyId]);
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const queryParams = new URLSearchParams(location.search);
+  const eventId = queryParams.get("eventId");
 
   const handleChange = (e) => {
     const { name, value } = e.target;

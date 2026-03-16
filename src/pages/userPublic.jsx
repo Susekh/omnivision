@@ -111,7 +111,6 @@ const PublicRegister = () => {
       if (response.status === 200) {
         setSuccess("OTP verified successfully!");
        localStorage.setItem("isVerified", "true");
-       localStorage.setItem("token", response.data.token);
         sessionStorage.removeItem("encryptedOtp"); // Remove OTP after use
         
         navigate("/dashboard");
