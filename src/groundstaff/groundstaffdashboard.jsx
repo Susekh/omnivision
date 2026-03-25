@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
@@ -172,8 +173,6 @@ function Lightbox({ src, onClose }) {
 // ── MINI MAP ───────────────────────────────────────────────────────────────
 function MiniMap({ lat, lng }) {
   if (!lat || !lng) return null;
-  const d = 0.012;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
   return (
     <div
       style={{
@@ -183,12 +182,20 @@ function MiniMap({ lat, lng }) {
         border: `1px solid ${T.border}`,
       }}
     >
-      <iframe
-        title={`m-${lat}`}
-        src={src}
-        style={{ width: "100%", height: "100%", border: "none" }}
-        loading="lazy"
-      />
+      <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
+        <GoogleMap
+          center={{ lat, lng }}
+          zoom={15}
+          mapContainerStyle={{ width: "100%", height: "100%" }}
+          options={{
+            disableDefaultUI: true,
+            clickableIcons: false,
+            gestureHandling: "cooperative",
+          }}
+        >
+          <Marker position={{ lat, lng }} />
+        </GoogleMap>
+      </LoadScript>
     </div>
   );
 }

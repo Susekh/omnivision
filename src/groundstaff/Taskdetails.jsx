@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
@@ -164,8 +165,6 @@ function InfoCard({ icon, label, value, mono }) {
 // ── FULL MAP ───────────────────────────────────────────────────────────────
 function FullMap({ lat, lng }) {
   if (!lat || !lng) return null;
-  const d = 0.02;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
   return (
     <div
       style={{
@@ -195,12 +194,20 @@ function FullMap({ lat, lng }) {
           border: `1px solid ${T.border}`,
         }}
       >
-        <iframe
-          title="map"
-          src={src}
-          style={{ width: "100%", height: "100%", border: "none" }}
-          loading="lazy"
-        />
+        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
+          <GoogleMap
+            center={{ lat, lng }}
+            zoom={15}
+            mapContainerStyle={{ width: "100%", height: "100%" }}
+            options={{
+              disableDefaultUI: true,
+              clickableIcons: false,
+              gestureHandling: "cooperative",
+            }}
+          >
+            <Marker position={{ lat, lng }} />
+          </GoogleMap>
+        </LoadScript>
       </div>
       <a
         href={`https://www.google.com/maps?q=${lat},${lng}`}
