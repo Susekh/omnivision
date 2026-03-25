@@ -470,6 +470,14 @@ const AdminAgencyManager = () => {
     console.log("Viewing agency on map:", agency);
     if (agency.location) {
       setMapCenter([agency.location.latitude, agency.location.longitude]);
+      return;
+    }
+
+    if (agency.jurisdiction && Array.isArray(agency.jurisdiction.coordinates)) {
+      const first = agency.jurisdiction.coordinates[0];
+      if (Array.isArray(first) && first.length === 2) {
+        setMapCenter([first[0], first[1]]);
+      }
     }
   };
 
@@ -1399,38 +1407,68 @@ const AdminAgencyManager = () => {
                         );
 
                         return (
-                          <Polygon
-                            key={agency._id}
-                            paths={paths}
-                            options={{
-                              strokeColor: "#0284c7",
-                              strokeOpacity: 1,
-                              strokeWeight: 2,
-                              fillColor: "#7dd3fc",
-                              fillOpacity: 0.4,
-                            }}
-                            onClick={() => {
-                              const pos = paths[0];
-                              setActiveInfo({
-                                position: pos,
-                                content: (
-                                  <div>
-                                    <strong className="text-sky-700">
-                                      {agency.AgencyName}
-                                    </strong>
-                                    <br />
-                                    <span className="text-xs text-gray-600">
-                                      Jurisdiction Area
-                                    </span>
-                                    <br />
-                                    <span className="text-xs text-gray-600">
-                                      📱 {agency.mobileNumber}
-                                    </span>
-                                  </div>
-                                ),
-                              });
-                            }}
-                          />
+                          <React.Fragment key={agency._id}>
+                            <Polygon
+                              paths={paths}
+                              options={{
+                                strokeColor: "#0284c7",
+                                strokeOpacity: 1,
+                                strokeWeight: 2,
+                                fillColor: "#7dd3fc",
+                                fillOpacity: 0.4,
+                              }}
+                              onClick={() => {
+                                const pos = paths[0];
+                                setActiveInfo({
+                                  position: pos,
+                                  content: (
+                                    <div>
+                                      <strong className="text-sky-700">
+                                        {agency.AgencyName}
+                                      </strong>
+                                      <br />
+                                      <span className="text-xs text-gray-600">
+                                        Jurisdiction Area
+                                      </span>
+                                      <br />
+                                      <span className="text-xs text-gray-600">
+                                        📱 {agency.mobileNumber}
+                                      </span>
+                                    </div>
+                                  ),
+                                });
+                              }}
+                            />
+
+                            {/* Keep the same "point" marker behavior as before */}
+                            {agency.location && (
+                              <Marker
+                                position={{
+                                  lat: agency.location.latitude,
+                                  lng: agency.location.longitude,
+                                }}
+                                onClick={() =>
+                                  setActiveInfo({
+                                    position: {
+                                      lat: agency.location.latitude,
+                                      lng: agency.location.longitude,
+                                    },
+                                    content: (
+                                      <div>
+                                        <strong className="text-sky-700">
+                                          {agency.AgencyName}
+                                        </strong>
+                                        <br />
+                                        <span className="text-xs text-gray-600">
+                                          📱 {agency.mobileNumber}
+                                        </span>
+                                      </div>
+                                    ),
+                                  })
+                                }
+                              />
+                            )}
+                          </React.Fragment>
                         );
                       }
 

@@ -27,12 +27,38 @@ const flagIconUrl = "/images/map-pin.png";
 
 const FlyToLocation = ({ targetLocation }) => {
   const map = useGoogleMap();
+
   useEffect(() => {
-    if (targetLocation && map) {
-      map.panTo({ lat: targetLocation[0], lng: targetLocation[1] });
-      map.setZoom(17);
+    if (!targetLocation || !map) return;
+
+    const [lat, lng] = targetLocation;
+    map.panTo({ lat, lng });
+
+    // Smooth-ish zoom animation to mimic Leaflet flyTo.
+    const targetZoom = 17;
+    const startZoom = map.getZoom() ?? 13;
+    if (startZoom >= targetZoom) {
+      map.setZoom(targetZoom);
+      return;
     }
+
+    let cancelled = false;
+    let z = startZoom;
+    const tick = () => {
+      if (cancelled) return;
+      z += 1;
+      map.setZoom(z);
+      if (z < targetZoom) {
+        window.setTimeout(tick, 80);
+      }
+    };
+    window.setTimeout(tick, 80);
+
+    return () => {
+      cancelled = true;
+    };
   }, [targetLocation, map]);
+
   return null;
 };
 
