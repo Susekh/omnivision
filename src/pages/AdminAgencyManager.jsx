@@ -45,6 +45,32 @@ const MapUpdater = ({ center }) => {
   return null;
 };
 
+const renderVertexMarkers = (points, keyPrefix, onClick) =>
+  Array.isArray(points)
+    ? points.map((p, idx) => (
+        <Marker
+          key={`${keyPrefix}-${idx}`}
+          position={p}
+          label={{
+            text: String(idx + 1),
+            color: "#0f172a",
+            fontWeight: "700",
+            fontSize: "11px",
+          }}
+          onClick={onClick}
+        />
+      ))
+    : null;
+
+const centroidOfPoints = (pts) => {
+  if (!Array.isArray(pts) || pts.length === 0) return null;
+  const sum = pts.reduce(
+    (acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }),
+    { lat: 0, lng: 0 },
+  );
+  return { lat: sum.lat / pts.length, lng: sum.lng / pts.length };
+};
+
 const AdminAgencyManager = () => {
   const [agencies, setAgencies] = useState([]);
   const [view, setView] = useState("list");
@@ -474,10 +500,11 @@ const AdminAgencyManager = () => {
     }
 
     if (agency.jurisdiction && Array.isArray(agency.jurisdiction.coordinates)) {
-      const first = agency.jurisdiction.coordinates[0];
-      if (Array.isArray(first) && first.length === 2) {
-        setMapCenter([first[0], first[1]]);
-      }
+      const paths = agency.jurisdiction.coordinates
+        .filter((c) => Array.isArray(c) && c.length === 2)
+        .map((coord) => ({ lat: coord[0], lng: coord[1] }));
+      const c = centroidOfPoints(paths) || paths[0];
+      if (c) setMapCenter([c.lat, c.lng]);
     }
   };
 
@@ -1133,6 +1160,16 @@ const AdminAgencyManager = () => {
                             }}
                           />
                         )}
+                      {formData.locationType === "jurisdiction" &&
+                        previewPolygon &&
+                        previewPolygon.length >= 3 &&
+                        renderVertexMarkers(
+                          previewPolygon
+                            .slice(0, -1) // don't duplicate closing point label
+                            .map(([lat, lng]) => ({ lat, lng })),
+                          "preview-vtx",
+                          () => {},
+                        )}
                         {activeInfo && (
                           <InfoWindow
                             position={activeInfo.position}
@@ -1439,6 +1476,17 @@ const AdminAgencyManager = () => {
                                 });
                               }}
                             />
+
+                            {/* Vertex markers: show the "structure" from coordinates array */}
+                            {renderVertexMarkers(
+                              paths
+                                .slice(0, -1) // if polygon is already closed, avoid duplicate label
+                                .length >= 3
+                                ? paths.slice(0, -1)
+                                : paths,
+                              `agency-vtx-${agency._id}`,
+                              () => {},
+                            )}
 
                             {/* Keep the same "point" marker behavior as before */}
                             {agency.location && (
