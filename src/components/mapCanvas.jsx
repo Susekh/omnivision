@@ -50,58 +50,64 @@
 // export default MapCanvas;
 
 
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css'
-// import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import React, { useEffect, useState } from 'react';
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  InfoWindow,
+  useGoogleMap,
+} from '@react-google-maps/api';
 
-// Fix Leaflet default icon path (important in React apps)
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-// Helper component to move and zoom the map
 const FlyToLocation = ({ location }) => {
-  const map = useMap();
-
+  const map = useGoogleMap();
   useEffect(() => {
-    if (location) {
-      map.flyTo(location, 17); // zoom in to level 17
+    if (location && map) {
+      map.panTo({ lat: location[0], lng: location[1] });
+      map.setZoom(17);
     }
   }, [location, map]);
-
   return null;
 };
 
 const ZoomToLocationMap = ({ location }) => {
-  return (
-    <MapContainer
-      center={[20.2961, 85.8245]} // Default center
-      zoom={13}
-      scrollWheelZoom={true}
-      style={{ height: '400px', width: '100%' }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="© OpenStreetMap contributors"
-      />
+  const [activeInfo, setActiveInfo] = useState(null);
 
-      {location && (
-        <>
-          <FlyToLocation location={location} />
-          <Marker position={location}>
-            <Popup>Selected Location</Popup>
-          </Marker>
-        </>
-      )}
-    </MapContainer>
+  return (
+    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
+      <GoogleMap
+        center={{ lat: 20.2961, lng: 85.8245 }}
+        zoom={13}
+        mapContainerStyle={{ height: '400px', width: '100%' }}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+        }}
+      >
+        {location && <FlyToLocation location={location} />}
+
+        {location && (
+          <Marker
+            position={{ lat: location[0], lng: location[1] }}
+            onClick={() =>
+              setActiveInfo({
+                position: { lat: location[0], lng: location[1] },
+              })
+            }
+          />
+        )}
+
+        {activeInfo && (
+          <InfoWindow
+            position={activeInfo.position}
+            onCloseClick={() => setActiveInfo(null)}
+          >
+            Selected Location
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </LoadScript>
   );
 };
 

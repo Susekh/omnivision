@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Polygon,
-  Popup,
-  useMap,
-} from "react-leaflet";
-import {
   Trash2,
   Edit2,
   Plus,
@@ -20,25 +12,20 @@ import {
   RefreshCw,
   AlertCircle,
 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import {
+  Marker,
+  Polygon,
+  GoogleMap,
+  LoadScript,
+  InfoWindow,
+  useGoogleMap,
+} from "@react-google-maps/api";
 import api from "../api";
 import AdminAuth from "./AdminAuth";
 
-// Fix for default marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
 // MapUpdater with proper validation
 const MapUpdater = ({ center }) => {
-  const map = useMap();
+  const map = useGoogleMap();
   useEffect(() => {
     if (center && Array.isArray(center) && center.length === 2) {
       const [lat, lng] = center;
@@ -50,7 +37,8 @@ const MapUpdater = ({ center }) => {
         lng >= -180 &&
         lng <= 180
       ) {
-        map.setView(center, 13);
+        map.panTo({ lat, lng });
+        map.setZoom(13);
       }
     }
   }, [center, map]);
@@ -64,6 +52,7 @@ const AdminAgencyManager = () => {
   const [editMode, setEditMode] = useState(false);
   const [showPassword, setShowPassword] = useState({});
   const [mapCenter, setMapCenter] = useState([20.2961, 85.8245]);
+  const [activeInfo, setActiveInfo] = useState(null);
   const [fileUploadError, setFileUploadError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1055,37 +1044,50 @@ const AdminAgencyManager = () => {
                 </div>
                 <div className="flex-1 p-2">
                   <div className="rounded-lg overflow-hidden border-2 border-sky-200 h-full">
-                    <MapContainer
-                      center={previewCenter}
-                      zoom={13}
-                      style={{ height: "100%", width: "100%" }}
+                    <LoadScript
+                      googleMapsApiKey={
+                        import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+                      }
                     >
-                      <TileLayer
-                        attribution="&copy; OpenStreetMap"
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
+                      <GoogleMap
+                        center={{ lat: previewCenter[0], lng: previewCenter[1] }}
+                        zoom={13}
+                        mapContainerStyle={{ height: "100%", width: "100%" }}
+                        options={{
+                          streetViewControl: false,
+                          mapTypeControl: false,
+                          fullscreenControl: false,
+                        }}
+                      >
                       <MapUpdater center={previewCenter} />
 
                       {/* Always show location marker */}
                       {formData.latitude && formData.longitude && (
                         <Marker
-                          position={[
-                            parseFloat(formData.latitude),
-                            parseFloat(formData.longitude),
-                          ]}
-                        >
-                          <Popup>
-                            <div className="text-center">
-                              <strong className="text-sky-700">
-                                {formData.AgencyName || "New Agency"}
-                              </strong>
-                              <br />
-                              <span className="text-xs text-gray-600">
-                                Primary Location
-                              </span>
-                            </div>
-                          </Popup>
-                        </Marker>
+                          position={{
+                            lat: parseFloat(formData.latitude),
+                            lng: parseFloat(formData.longitude),
+                          }}
+                          onClick={() =>
+                            setActiveInfo({
+                              position: {
+                                lat: parseFloat(formData.latitude),
+                                lng: parseFloat(formData.longitude),
+                              },
+                              content: (
+                                <div className="text-center">
+                                  <strong className="text-sky-700">
+                                    {formData.AgencyName || "New Agency"}
+                                  </strong>
+                                  <br />
+                                  <span className="text-xs text-gray-600">
+                                    Primary Location
+                                  </span>
+                                </div>
+                              ),
+                            })
+                          }
+                        />
                       )}
 
                       {/* Show jurisdiction polygon if available */}
@@ -1093,27 +1095,46 @@ const AdminAgencyManager = () => {
                         previewPolygon &&
                         previewPolygon.length >= 4 && (
                           <Polygon
-                            positions={previewPolygon}
-                            pathOptions={{
-                              color: "#0284c7",
+                            paths={previewPolygon.map(([lat, lng]) => ({
+                              lat,
+                              lng,
+                            }))}
+                            options={{
+                              strokeColor: "#0284c7",
+                              strokeOpacity: 1,
+                              strokeWeight: 2,
                               fillColor: "#7dd3fc",
                               fillOpacity: 0.4,
                             }}
-                          >
-                            <Popup>
-                              <div className="text-center">
-                                <strong className="text-sky-700">
-                                  {formData.AgencyName || "New Agency"}
-                                </strong>
-                                <br />
-                                <span className="text-xs text-gray-600">
-                                  Jurisdiction Area
-                                </span>
-                              </div>
-                            </Popup>
-                          </Polygon>
+                            onClick={() => {
+                              const [firstLat, firstLng] = previewPolygon[0];
+                              setActiveInfo({
+                                position: { lat: firstLat, lng: firstLng },
+                                content: (
+                                  <div className="text-center">
+                                    <strong className="text-sky-700">
+                                      {formData.AgencyName || "New Agency"}
+                                    </strong>
+                                    <br />
+                                    <span className="text-xs text-gray-600">
+                                      Jurisdiction Area
+                                    </span>
+                                  </div>
+                                ),
+                              });
+                            }}
+                          />
                         )}
-                    </MapContainer>
+                        {activeInfo && (
+                          <InfoWindow
+                            position={activeInfo.position}
+                            onCloseClick={() => setActiveInfo(null)}
+                          >
+                            {activeInfo.content}
+                          </InfoWindow>
+                        )}
+                      </GoogleMap>
+                    </LoadScript>
                   </div>
                 </div>
               </div>
@@ -1351,72 +1372,111 @@ const AdminAgencyManager = () => {
               </div>
               <div className="flex-1 p-2">
                 <div className="h-full rounded-lg overflow-hidden border-2 border-sky-200">
-                  <MapContainer
-                    center={mapCenter}
-                    zoom={13}
-                    style={{ height: "100%", width: "100%" }}
+                  <LoadScript
+                    googleMapsApiKey={
+                      import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+                    }
                   >
-                    <TileLayer
-                      attribution="&copy; OpenStreetMap"
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
+                    <GoogleMap
+                      center={{ lat: mapCenter[0], lng: mapCenter[1] }}
+                      zoom={13}
+                      mapContainerStyle={{ height: "100%", width: "100%" }}
+                      options={{
+                        streetViewControl: false,
+                        mapTypeControl: false,
+                        fullscreenControl: false,
+                      }}
+                    >
                     <MapUpdater center={mapCenter} />
 
-                    {agencies.map((agency) => (
-                      <React.Fragment key={agency._id}>
-                        {agency.jurisdiction &&
-                        agency.jurisdiction.coordinates ? (
+                    {agencies.map((agency) => {
+                      const hasJurisdiction =
+                        agency.jurisdiction && agency.jurisdiction.coordinates;
+
+                      if (hasJurisdiction) {
+                        const paths = agency.jurisdiction.coordinates.map(
+                          (coord) => ({ lat: coord[0], lng: coord[1] }),
+                        );
+
+                        return (
                           <Polygon
-                            positions={agency.jurisdiction.coordinates.map(
-                              (coord) => [coord[0], coord[1]],
-                            )}
-                            pathOptions={{
-                              color: "#0284c7",
+                            key={agency._id}
+                            paths={paths}
+                            options={{
+                              strokeColor: "#0284c7",
+                              strokeOpacity: 1,
+                              strokeWeight: 2,
                               fillColor: "#7dd3fc",
                               fillOpacity: 0.4,
                             }}
-                          >
-                            <Popup>
-                              <div>
-                                <strong className="text-sky-700">
-                                  {agency.AgencyName}
-                                </strong>
-                                <br />
-                                <span className="text-xs text-gray-600">
-                                  Jurisdiction Area
-                                </span>
-                                <br />
-                                <span className="text-xs text-gray-600">
-                                  📱 {agency.mobileNumber}
-                                </span>
-                              </div>
-                            </Popup>
-                          </Polygon>
-                        ) : (
-                          agency.location && (
-                            <Marker
-                              position={[
-                                agency.location.latitude,
-                                agency.location.longitude,
-                              ]}
-                            >
-                              <Popup>
-                                <div>
-                                  <strong className="text-sky-700">
-                                    {agency.AgencyName}
-                                  </strong>
-                                  <br />
-                                  <span className="text-xs text-gray-600">
-                                    📱 {agency.mobileNumber}
-                                  </span>
-                                </div>
-                              </Popup>
-                            </Marker>
-                          )
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </MapContainer>
+                            onClick={() => {
+                              const pos = paths[0];
+                              setActiveInfo({
+                                position: pos,
+                                content: (
+                                  <div>
+                                    <strong className="text-sky-700">
+                                      {agency.AgencyName}
+                                    </strong>
+                                    <br />
+                                    <span className="text-xs text-gray-600">
+                                      Jurisdiction Area
+                                    </span>
+                                    <br />
+                                    <span className="text-xs text-gray-600">
+                                      📱 {agency.mobileNumber}
+                                    </span>
+                                  </div>
+                                ),
+                              });
+                            }}
+                          />
+                        );
+                      }
+
+                      if (agency.location) {
+                        const position = {
+                          lat: agency.location.latitude,
+                          lng: agency.location.longitude,
+                        };
+
+                        return (
+                          <Marker
+                            key={agency._id}
+                            position={position}
+                            onClick={() =>
+                              setActiveInfo({
+                                position,
+                                content: (
+                                  <div>
+                                    <strong className="text-sky-700">
+                                      {agency.AgencyName}
+                                    </strong>
+                                    <br />
+                                    <span className="text-xs text-gray-600">
+                                      📱 {agency.mobileNumber}
+                                    </span>
+                                  </div>
+                                ),
+                              })
+                            }
+                          />
+                        );
+                      }
+
+                      return null;
+                    })}
+
+                    {activeInfo && (
+                      <InfoWindow
+                        position={activeInfo.position}
+                        onCloseClick={() => setActiveInfo(null)}
+                      >
+                        {activeInfo.content}
+                      </InfoWindow>
+                    )}
+                    </GoogleMap>
+                  </LoadScript>
                 </div>
               </div>
             </div>

@@ -3,12 +3,13 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import "../public/assets/css/EventReport.css";
 import api from "../api";
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  InfoWindow,
+  useGoogleMap,
+} from "@react-google-maps/api";
 
 import normalizeImageUrl from "../utils/normalizeMinioImgUrl";
 import Box from "@mui/material/Box";
@@ -22,33 +23,27 @@ import Tooltip from "@mui/material/Tooltip";
 import PersonAdd from "@mui/icons-material/PersonAdd";
 import Loader from "../components/loader";
 
-// Leaflet icon setup
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
 const flagIconUrl = "/images/map-pin.png";
 
 const FlyToLocation = ({ targetLocation }) => {
-  const map = useMap();
+  const map = useGoogleMap();
   useEffect(() => {
-    if (targetLocation) {
-      map.flyTo(targetLocation, 17);
+    if (targetLocation && map) {
+      map.panTo({ lat: targetLocation[0], lng: targetLocation[1] });
+      map.setZoom(17);
     }
   }, [targetLocation, map]);
   return null;
 };
 
-const createFlagIcon = () =>
-  L.icon({
-    iconUrl: flagIconUrl,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -30],
-  });
+const createFlagIcon = () => {
+  const sizeCtor = window?.google?.maps?.Size;
+  if (!sizeCtor) return flagIconUrl;
+  return {
+    url: flagIconUrl,
+    scaledSize: new sizeCtor(32, 32),
+  };
+};
 
 const EventReport = () => {
   const [anchorEl, setAnchorEl] = React.useState();
@@ -68,6 +63,7 @@ const EventReport = () => {
   // Map states for interactive features
   const [markers, setMarkers] = useState([]);
   const [targetLocation, setTargetLocation] = useState([20.2961, 85.8245]);
+  const [activeMarkerInfo, setActiveMarkerInfo] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -377,28 +373,57 @@ const EventReport = () => {
                 </div>
                 <div className="map-container">
                   {mapCoordinates ? (
-                    <MapContainer
-                      center={targetLocation}
-                      zoom={13}
-                      style={{ height: "100%", width: "100%" }}
+                    <LoadScript
+                      googleMapsApiKey={
+                        import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+                      }
                     >
-                      <TileLayer
-                        attribution="&copy; OpenStreetMap contributors"
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      {targetLocation && (
-                        <FlyToLocation targetLocation={targetLocation} />
-                      )}
-                      {markers.map((marker, idx) => (
-                        <Marker
-                          key={idx}
-                          position={marker.position}
-                          icon={marker.icon}
-                        >
-                          <Popup>{marker.name}</Popup>
-                        </Marker>
-                      ))}
-                    </MapContainer>
+                      <GoogleMap
+                        center={{
+                          lat: targetLocation[0],
+                          lng: targetLocation[1],
+                        }}
+                        zoom={13}
+                        mapContainerStyle={{ height: "100%", width: "100%" }}
+                        options={{
+                          streetViewControl: false,
+                          mapTypeControl: false,
+                          fullscreenControl: false,
+                        }}
+                      >
+                        {targetLocation && (
+                          <FlyToLocation targetLocation={targetLocation} />
+                        )}
+                        {markers.map((marker, idx) => {
+                          const position = {
+                            lat: marker.position[0],
+                            lng: marker.position[1],
+                          };
+                          return (
+                            <Marker
+                              key={idx}
+                              position={position}
+                              icon={marker.icon}
+                              onClick={() =>
+                                setActiveMarkerInfo({
+                                  position,
+                                  name: marker.name,
+                                })
+                              }
+                            />
+                          );
+                        })}
+
+                        {activeMarkerInfo && (
+                          <InfoWindow
+                            position={activeMarkerInfo.position}
+                            onCloseClick={() => setActiveMarkerInfo(null)}
+                          >
+                            {activeMarkerInfo.name}
+                          </InfoWindow>
+                        )}
+                      </GoogleMap>
+                    </LoadScript>
                   ) : (
                     <p className="map-placeholder">
                       Click 📍 on an event to view its location.
