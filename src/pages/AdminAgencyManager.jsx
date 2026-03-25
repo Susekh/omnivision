@@ -3,8 +3,6 @@ import {
   Trash2,
   Edit2,
   Plus,
-  Eye,
-  EyeOff,
   Save,
   X,
   MapPin,
@@ -23,34 +21,69 @@ import {
 import api from "../api";
 import AdminAuth from "./AdminAuth";
 
-// MapUpdater with proper validation
+// ── MapUpdater ────────────────────────────────────────────────────────────────
+// Matches Leaflet's map.setView(center, 13) — animated pan + zoom together.
+// Called every time mapCenter state changes (e.g. "View on Map" click).
 const MapUpdater = ({ center }) => {
   const map = useGoogleMap();
   useEffect(() => {
-    if (center && Array.isArray(center) && center.length === 2) {
-      const [lat, lng] = center;
-      if (
-        !isNaN(lat) &&
-        !isNaN(lng) &&
-        lat >= -90 &&
-        lat <= 90 &&
-        lng >= -180 &&
-        lng <= 180
-      ) {
-        map.panTo({ lat, lng });
-        map.setZoom(13);
-      }
-    }
+    if (!center || !Array.isArray(center) || center.length !== 2) return;
+    const [lat, lng] = center;
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    )
+      return;
+    // setCenter + setZoom together mirrors Leaflet setView(center, 13)
+    map.setCenter({ lat, lng });
+    map.setZoom(13);
   }, [center, map]);
   return null;
 };
 
+// ── Shared map options / polygon style ───────────────────────────────────────
+const mapOptions = {
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: false,
+};
+
+const polygonOptions = {
+  strokeColor: "#0284c7",
+  strokeOpacity: 1,
+  strokeWeight: 2,
+  fillColor: "#7dd3fc",
+  fillOpacity: 0.4,
+};
+
+// ── Default form factory ─────────────────────────────────────────────────────
+const defaultForm = () => ({
+  AgencyName: "",
+  mobileNumber: "",
+  password: "",
+  eventResponsibleFor: "",
+  locationType: "location",
+  latitude: "20.2961",
+  longitude: "85.8245",
+  jurisdictionPoints: [
+    { lat: "", lng: "" },
+    { lat: "", lng: "" },
+    { lat: "", lng: "" },
+    { lat: "", lng: "" },
+    { lat: "", lng: "" },
+  ],
+});
+
+// ── Component ─────────────────────────────────────────────────────────────────
 const AdminAgencyManager = () => {
   const [agencies, setAgencies] = useState([]);
   const [view, setView] = useState("list");
   const [selectedAgency, setSelectedAgency] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [showPassword, setShowPassword] = useState({});
   const [mapCenter, setMapCenter] = useState([20.2961, 85.8245]);
   const [activeInfo, setActiveInfo] = useState(null);
   const [fileUploadError, setFileUploadError] = useState("");
@@ -59,62 +92,80 @@ const AdminAgencyManager = () => {
   const [success, setSuccess] = useState("");
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const [formData, setFormData] = useState({
-    AgencyName: "",
-    mobileNumber: "",
-    password: "",
-    eventResponsibleFor: "",
-    locationType: "location",
-    latitude: "20.2961",
-    longitude: "85.8245",
-    jurisdictionPoints: [
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-    ],
-  });
-
+  const [formData, setFormData] = useState(defaultForm());
   const [modelLoading, setModelLoading] = useState(false);
   const [activeModel, setActiveModel] = useState("YOLO");
 
+  // ── Resize listener ──────────────────────────────────────────────────────
   useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Check login status on mount
+  // ── Auth check on mount ──────────────────────────────────────────────────
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get("backend/admin/check-auth");
-        if (response.status === 200) {
-          setIsLoggedIn(true);
-        }
-      } catch (error) {
-        console.error("Authentication check failed:", error);
+        const res = await api.get("backend/admin/check-auth");
+        if (res.status === 200) setIsLoggedIn(true);
+      } catch {
         setIsLoggedIn(false);
       }
     };
     checkAuth();
   }, []);
 
+  // ── Fetch data once logged in ────────────────────────────────────────────
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAgencies();
+      fetchActiveModel();
+    }
+  }, [isLoggedIn]);
+
+  // ── Auto-dismiss notifications ───────────────────────────────────────────
+  useEffect(() => {
+    if (!error && !success) return;
+    const t = setTimeout(() => {
+      setError("");
+      setSuccess("");
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [error, success]);
+
+  // ── API helpers ──────────────────────────────────────────────────────────
+  const fetchAgencies = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await api.get("/backend/agencies");
+      if (res.data.success) setAgencies(res.data.data);
+      else setError("Failed to fetch agencies");
+    } catch (err) {
+      setError(err.response?.data?.message || "Error fetching agencies");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchActiveModel = async () => {
+    try {
+      const res = await api.get("/backend/active-model");
+      if (res.data?.success) setActiveModel(res.data.activeModel);
+    } catch {
+      /* silent */
+    }
+  };
+
   const switchModel = async () => {
     try {
       setModelLoading(true);
       const nextModel = activeModel === "YOLO" ? "VLM" : "YOLO";
-      const response = await api.post("/backend/switch-model", {
-        model: nextModel,
-      });
-      if (!response.data?.success) {
-        throw new Error(response.data?.message || "Failed to switch model");
-      }
-      setActiveModel(response.data.activeModel);
+      const res = await api.post("/backend/switch-model", { model: nextModel });
+      if (!res.data?.success)
+        throw new Error(res.data?.message || "Failed to switch model");
+      setActiveModel(res.data.activeModel);
     } catch (err) {
       console.error("Model switch failed:", err);
       alert("Failed to switch model");
@@ -123,102 +174,27 @@ const AdminAgencyManager = () => {
     }
   };
 
-  const fetchActiveModel = async () => {
-    try {
-      const response = await api.get("/backend/active-model");
-      if (response.data?.success) {
-        setActiveModel(response.data.activeModel);
-      }
-    } catch (err) {
-      console.error("Failed to fetch active model:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchAgencies();
-      fetchActiveModel();
-    }
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    if (error || success) {
-      const timer = setTimeout(() => {
-        setError("");
-        setSuccess("");
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, success]);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
+  const handleLogin = () => setIsLoggedIn(true);
   const handleLogout = async () => {
     try {
       await api.post("/backend/admin/logout");
-      setIsLoggedIn(false);
-    } catch (error) {
-      console.error("Logout error:", error);
-      setIsLoggedIn(false);
+    } catch {
+      /* silent */
+    }
+    setIsLoggedIn(false);
+  };
+
+  // ── handleViewOnMap — identical to Leaflet version ───────────────────────
+  // Leaflet only uses agency.location; MapUpdater does setCenter+setZoom (=setView)
+  const handleViewOnMap = (agency) => {
+    if (agency.location) {
+      setMapCenter([agency.location.latitude, agency.location.longitude]);
     }
   };
 
-  const fetchAgencies = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await api.get("/backend/agencies");
-      if (response.data.success) {
-        setAgencies(response.data.data);
-      } else {
-        setError("Failed to fetch agencies");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Error fetching agencies");
-      console.error("Error fetching agencies:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getPreviewMapCenter = () => {
-    if (formData.latitude && formData.longitude) {
-      return [parseFloat(formData.latitude), parseFloat(formData.longitude)];
-    }
-    return [20.2961, 85.8245];
-  };
-
-  const getPreviewPolygonCoords = () => {
-    if (formData.locationType === "jurisdiction") {
-      const validPoints = formData.jurisdictionPoints
-        .filter((p) => p.lat && p.lng)
-        .map((p) => [parseFloat(p.lat), parseFloat(p.lng)]);
-      if (validPoints.length >= 3) {
-        return [...validPoints, validPoints[0]];
-      }
-    }
-    return null;
-  };
-
+  // ── CRUD ─────────────────────────────────────────────────────────────────
   const handleAddNew = () => {
-    setFormData({
-      AgencyName: "",
-      mobileNumber: "",
-      password: "",
-      eventResponsibleFor: "",
-      locationType: "location",
-      latitude: "20.2961",
-      longitude: "85.8245",
-      jurisdictionPoints: [
-        { lat: "", lng: "" },
-        { lat: "", lng: "" },
-        { lat: "", lng: "" },
-        { lat: "", lng: "" },
-        { lat: "", lng: "" },
-      ],
-    });
+    setFormData(defaultForm());
     setEditMode(false);
     setView("form");
     setError("");
@@ -229,24 +205,22 @@ const AdminAgencyManager = () => {
     const hasJurisdiction =
       agency.jurisdiction && agency.jurisdiction.coordinates;
 
-    let jurisdictionPoints = [
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-      { lat: "", lng: "" },
-    ];
-
+    let jurisdictionPoints = Array.from({ length: 5 }, () => ({
+      lat: "",
+      lng: "",
+    }));
     if (hasJurisdiction && Array.isArray(agency.jurisdiction.coordinates)) {
-      jurisdictionPoints = agency.jurisdiction.coordinates
-        .slice(0, 5)
-        .map((coord) => ({
-          lat: coord[0],
-          lng: coord[1],
-        }));
-      while (jurisdictionPoints.length < 5) {
-        jurisdictionPoints.push({ lat: "", lng: "" });
-      }
+      const parsed = agency.jurisdiction.coordinates.slice(0, 5).map((c) => ({
+        lat: c[0],
+        lng: c[1],
+      }));
+      jurisdictionPoints = [
+        ...parsed,
+        ...Array.from({ length: Math.max(0, 5 - parsed.length) }, () => ({
+          lat: "",
+          lng: "",
+        })),
+      ];
     }
 
     setFormData({
@@ -270,27 +244,23 @@ const AdminAgencyManager = () => {
   };
 
   const handleDelete = async (agencyId) => {
-    if (!window.confirm("Are you sure you want to delete this agency?")) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to delete this agency?")) return;
     setLoading(true);
     setError("");
     try {
-      const response = await api.delete(`/backend/agencies/${agencyId}`);
-      if (response.data.success) {
+      const res = await api.delete(`/backend/agencies/${agencyId}`);
+      if (res.data.success) {
         setSuccess("Agency deleted successfully");
         await fetchAgencies();
-      } else {
-        setError("Failed to delete agency");
-      }
+      } else setError("Failed to delete agency");
     } catch (err) {
       setError(err.response?.data?.message || "Error deleting agency");
-      console.error("Error deleting agency:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // ── Validation ───────────────────────────────────────────────────────────
   const validateForm = () => {
     if (!formData.AgencyName.trim()) {
       setError("Agency name is required");
@@ -304,7 +274,7 @@ const AdminAgencyManager = () => {
       setError("Mobile number must be 10 digits");
       return false;
     }
-    if (!editMode && (!formData.password || !formData.password.trim())) {
+    if (!editMode && !formData.password?.trim()) {
       setError("Password is required");
       return false;
     }
@@ -313,26 +283,21 @@ const AdminAgencyManager = () => {
       return false;
     }
     if (formData.locationType === "jurisdiction") {
-      const validPoints = formData.jurisdictionPoints.filter(
-        (p) => p.lat && p.lng,
-      );
-      if (validPoints.length < 3) {
-        setError(
-          "At least 3 jurisdiction points are required for jurisdiction type",
-        );
+      const valid = formData.jurisdictionPoints.filter((p) => p.lat && p.lng);
+      if (valid.length < 3) {
+        setError("At least 3 jurisdiction points are required");
         return false;
       }
     }
     return true;
   };
 
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setLoading(true);
     setError("");
     setSuccess("");
-
     try {
       const payload = {
         AgencyName: formData.AgencyName,
@@ -340,26 +305,21 @@ const AdminAgencyManager = () => {
         eventResponsibleFor: formData.eventResponsibleFor
           .split(",")
           .map((e) => e.trim())
-          .filter((e) => e),
+          .filter(Boolean),
         lat: parseFloat(formData.latitude),
         lng: parseFloat(formData.longitude),
       };
 
-      if (!editMode || (formData.password && formData.password.trim())) {
+      if (!editMode || formData.password?.trim())
         payload.password = formData.password;
-      }
 
       if (formData.locationType === "jurisdiction") {
         const coords = formData.jurisdictionPoints
           .filter((p) => p.lat && p.lng)
           .map((p) => [parseFloat(p.lat), parseFloat(p.lng)]);
-
         if (coords.length >= 3) {
           coords.push(coords[0]);
-          payload.jurisdiction = {
-            type: "Polygon",
-            coordinates: coords,
-          };
+          payload.jurisdiction = { type: "Polygon", coordinates: coords };
         } else {
           payload.jurisdiction = null;
         }
@@ -367,122 +327,52 @@ const AdminAgencyManager = () => {
         payload.jurisdiction = null;
       }
 
-      let response;
-      if (editMode) {
-        response = await api.put(
-          `/backend/agencies/${selectedAgency.AgencyId}`,
-          payload,
-        );
-      } else {
-        response = await api.post("/backend/agency", payload);
-      }
+      const res = editMode
+        ? await api.put(`/backend/agencies/${selectedAgency.AgencyId}`, payload)
+        : await api.post("/backend/agency", payload);
 
-      if (response.data.success) {
+      if (res.data.success) {
         setSuccess(
           editMode
             ? "Agency updated successfully"
             : "Agency created successfully",
         );
         await fetchAgencies();
-        setTimeout(() => {
-          setView("list");
-        }, 1500);
+        setTimeout(() => setView("list"), 1500);
       } else {
-        setError(response.data.message || "Operation failed");
+        setError(res.data.message || "Operation failed");
       }
     } catch (err) {
       setError(
         err.response?.data?.message ||
           `Error ${editMode ? "updating" : "creating"} agency`,
       );
-      console.error("Error submitting form:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePassword = async (agency) => {
-    const newPassword = prompt("Enter new password:");
-    if (!newPassword) return;
-
-    setLoading(true);
-    setError("");
-    try {
-      const response = await api.put(`/backend/agencies/${agency.AgencyId}`, {
-        password: newPassword,
-      });
-      if (response.data.success) {
-        setSuccess("Password changed successfully");
-        await fetchAgencies();
-      } else {
-        setError("Failed to change password");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Error changing password");
-      console.error("Error changing password:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const togglePasswordVisibility = (agencyId) => {
-    setShowPassword((prev) => ({ ...prev, [agencyId]: !prev[agencyId] }));
-  };
-
-  const handleViewOnMap = (agency) => {
-    if (agency.location) {
-      setMapCenter([agency.location.latitude, agency.location.longitude]);
-      return;
-    }
-    // If no location but has jurisdiction, pan to centroid
-    if (agency.jurisdiction && Array.isArray(agency.jurisdiction.coordinates)) {
-      const paths = agency.jurisdiction.coordinates
-        .filter((c) => Array.isArray(c) && c.length === 2)
-        .map((coord) => ({ lat: coord[0], lng: coord[1] }));
-      if (paths.length > 0) {
-        const sum = paths.reduce(
-          (acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }),
-          { lat: 0, lng: 0 },
-        );
-        const centroid = {
-          lat: sum.lat / paths.length,
-          lng: sum.lng / paths.length,
-        };
-        setMapCenter([centroid.lat, centroid.lng]);
-      }
-    }
-  };
-
+  // ── File upload ──────────────────────────────────────────────────────────
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     setFileUploadError("");
     const reader = new FileReader();
-
     reader.onload = (e) => {
       try {
         const content = e.target.result;
-        const fileExtension = file.name.split(".").pop().toLowerCase();
-
-        if (fileExtension === "json" || fileExtension === "geojson") {
-          handleJSONUpload(content);
-        } else if (fileExtension === "csv") {
-          handleCSVUpload(content);
-        } else {
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (ext === "json" || ext === "geojson") handleJSONUpload(content);
+        else if (ext === "csv") handleCSVUpload(content);
+        else
           setFileUploadError(
             "Unsupported file format. Please upload GeoJSON, JSON, or CSV.",
           );
-        }
-      } catch (error) {
-        setFileUploadError("Error reading file: " + error.message);
+      } catch (err) {
+        setFileUploadError("Error reading file: " + err.message);
       }
     };
-
-    reader.onerror = () => {
-      setFileUploadError("Error reading file");
-    };
-
+    reader.onerror = () => setFileUploadError("Error reading file");
     reader.readAsText(file);
     event.target.value = "";
   };
@@ -490,23 +380,20 @@ const AdminAgencyManager = () => {
   const handleJSONUpload = (content) => {
     try {
       const data = JSON.parse(content);
-
       if (data.type === "FeatureCollection" && data.features) {
         const feature = data.features[0];
         if (feature.geometry.type === "Polygon") {
-          const coords = feature.geometry.coordinates[0].map((coord) => ({
-            lat: coord[1],
-            lng: coord[0],
+          const coords = feature.geometry.coordinates[0].map((c) => ({
+            lat: c[1],
+            lng: c[0],
           }));
-          if (coords.length >= 5) {
+          if (coords.length >= 5)
             setFormData({
               ...formData,
               locationType: "jurisdiction",
               jurisdictionPoints: coords.slice(0, 5),
             });
-          } else {
-            setFileUploadError("Polygon must have at least 5 points");
-          }
+          else setFileUploadError("Polygon must have at least 5 points");
         } else if (feature.geometry.type === "Point") {
           const [lng, lat] = feature.geometry.coordinates;
           setFormData({
@@ -524,18 +411,17 @@ const AdminAgencyManager = () => {
           longitude: data.longitude.toString(),
         });
       } else if (data.coordinates && Array.isArray(data.coordinates)) {
-        const coords = data.coordinates.map((coord) => ({
-          lat: coord[0] || coord.lat || "",
-          lng: coord[1] || coord.lng || coord.lon || "",
+        const coords = data.coordinates.map((c) => ({
+          lat: c[0] || c.lat || "",
+          lng: c[1] || c.lng || c.lon || "",
         }));
         if (coords.length >= 3) {
-          const paddedCoords = [...coords];
-          while (paddedCoords.length < 5)
-            paddedCoords.push({ lat: "", lng: "" });
+          const padded = [...coords];
+          while (padded.length < 5) padded.push({ lat: "", lng: "" });
           setFormData({
             ...formData,
             locationType: "jurisdiction",
-            jurisdictionPoints: paddedCoords.slice(0, 5),
+            jurisdictionPoints: padded.slice(0, 5),
           });
         } else {
           setFileUploadError(
@@ -547,8 +433,8 @@ const AdminAgencyManager = () => {
           "Invalid JSON format. Expected GeoJSON or {latitude, longitude} or {coordinates: [...]}",
         );
       }
-    } catch (error) {
-      setFileUploadError("Invalid JSON format: " + error.message);
+    } catch (err) {
+      setFileUploadError("Invalid JSON format: " + err.message);
     }
   };
 
@@ -559,16 +445,13 @@ const AdminAgencyManager = () => {
         .toLowerCase()
         .split(",")
         .map((h) => h.trim());
-
       if (headers.includes("latitude") && headers.includes("longitude")) {
         const values = lines[1].split(",").map((v) => v.trim());
-        const latIndex = headers.indexOf("latitude");
-        const lngIndex = headers.indexOf("longitude");
         setFormData({
           ...formData,
           locationType: "location",
-          latitude: values[latIndex],
-          longitude: values[lngIndex],
+          latitude: values[headers.indexOf("latitude")],
+          longitude: values[headers.indexOf("longitude")],
         });
       } else if (
         (headers.includes("lat") || headers.includes("latitude")) &&
@@ -576,29 +459,26 @@ const AdminAgencyManager = () => {
           headers.includes("lon") ||
           headers.includes("longitude"))
       ) {
-        const latHeader = headers.find((h) => h === "lat" || h === "latitude");
-        const lngHeader = headers.find(
+        const latH = headers.find((h) => h === "lat" || h === "latitude");
+        const lngH = headers.find(
           (h) => h === "lng" || h === "lon" || h === "longitude",
         );
-        const latIndex = headers.indexOf(latHeader);
-        const lngIndex = headers.indexOf(lngHeader);
-
+        const latIdx = headers.indexOf(latH);
+        const lngIdx = headers.indexOf(lngH);
         const coords = lines
           .slice(1)
-          .map((line) => {
-            const values = line.split(",").map((v) => v.trim());
-            return { lat: values[latIndex] || "", lng: values[lngIndex] || "" };
+          .map((l) => {
+            const v = l.split(",").map((x) => x.trim());
+            return { lat: v[latIdx] || "", lng: v[lngIdx] || "" };
           })
-          .filter((coord) => coord.lat && coord.lng);
-
+          .filter((c) => c.lat && c.lng);
         if (coords.length >= 3) {
-          const paddedCoords = [...coords];
-          while (paddedCoords.length < 5)
-            paddedCoords.push({ lat: "", lng: "" });
+          const padded = [...coords];
+          while (padded.length < 5) padded.push({ lat: "", lng: "" });
           setFormData({
             ...formData,
             locationType: "jurisdiction",
-            jurisdictionPoints: paddedCoords.slice(0, 5),
+            jurisdictionPoints: padded.slice(0, 5),
           });
         } else {
           setFileUploadError(
@@ -610,35 +490,47 @@ const AdminAgencyManager = () => {
           "CSV must have latitude/longitude or lat/lng columns",
         );
       }
-    } catch (error) {
-      setFileUploadError("Error parsing CSV: " + error.message);
+    } catch (err) {
+      setFileUploadError("Error parsing CSV: " + err.message);
     }
   };
 
-  // Notification component
-  const Notification = ({ type, message }) => {
-    if (!message) return null;
-    return (
+  // ── Notification ─────────────────────────────────────────────────────────
+  const Notification = ({ type, message }) =>
+    message ? (
       <div
-        className={`fixed top-4 right-4 z-50 max-w-md px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
-          type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"
-        }`}
+        className={`fixed top-4 right-4 z-50 max-w-md px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}
       >
         <AlertCircle size={18} />
         <span className="text-sm font-medium">{message}</span>
       </div>
-    );
-  };
+    ) : null;
 
+  // ── Derived preview values ────────────────────────────────────────────────
+  // previewCenter: always from formData lat/lng
+  const previewCenter =
+    formData.latitude && formData.longitude
+      ? [parseFloat(formData.latitude), parseFloat(formData.longitude)]
+      : [20.2961, 85.8245];
+
+  // previewPolygonPaths: Google Maps {lat,lng} objects, null if not ready
+  const previewPolygonPaths = (() => {
+    if (formData.locationType !== "jurisdiction") return null;
+    const valid = formData.jurisdictionPoints
+      .filter((p) => p.lat && p.lng)
+      .map((p) => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
+    return valid.length >= 3 ? valid : null;
+  })();
+
+  // ════════════════════════════════════════════════════════════════════════
+  // FORM VIEW
+  // ════════════════════════════════════════════════════════════════════════
   if (view === "form") {
-    const previewCenter = getPreviewMapCenter();
-    const previewPolygon = getPreviewPolygonCoords();
-
     return (
       <div
         className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden"
         style={{
-          backgroundImage: `radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(rgba(14,165,233,0.15) 1px,transparent 1px)`,
           backgroundSize: "20px 20px",
         }}
       >
@@ -647,25 +539,23 @@ const AdminAgencyManager = () => {
 
         {/* Header */}
         <div className="bg-sky-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-3 py-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/images/omnivision-logo.png"
-                  alt="OmniVision Logo"
-                  className="h-14 w-auto"
-                  onError={(e) => (e.target.style.display = "none")}
-                />
-                <p className="text-3xl mt-2 font-bold text-neutral-700">
-                  {editMode ? "Edit Agency" : "Add New Agency"}
-                </p>
-              </div>
-              <div
-                onClick={() => setView("list")}
-                className="px-3 py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all font-medium text-sm"
-              >
-                Back to List
-              </div>
+          <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img
+                src="/images/omnivision-logo.png"
+                alt="OmniVision Logo"
+                className="h-14 w-auto"
+                onError={(e) => (e.target.style.display = "none")}
+              />
+              <p className="text-3xl mt-2 font-bold text-neutral-700">
+                {editMode ? "Edit Agency" : "Add New Agency"}
+              </p>
+            </div>
+            <div
+              onClick={() => setView("list")}
+              className="px-3 py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all font-medium text-sm"
+            >
+              Back to List
             </div>
           </div>
         </div>
@@ -673,7 +563,7 @@ const AdminAgencyManager = () => {
         <div className="flex-1 overflow-hidden">
           <div className="max-w-7xl mx-auto px-3 py-2 h-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
-              {/* Form Section */}
+              {/* ── Form panel ───────────────────────────────────────────── */}
               <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
                 <div className="bg-sky-300 px-3 py-2">
                   <p className="text-2xl font-bold text-sky-800">
@@ -708,6 +598,7 @@ const AdminAgencyManager = () => {
                       <input
                         type="tel"
                         value={formData.mobileNumber}
+                        maxLength={10}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
@@ -716,7 +607,6 @@ const AdminAgencyManager = () => {
                         }
                         className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
                         placeholder="10-digit mobile number"
-                        maxLength={10}
                         disabled={loading}
                       />
                     </div>
@@ -823,42 +713,31 @@ const AdminAgencyManager = () => {
                         Jurisdiction Area (Optional)
                       </label>
                       <div className="flex gap-2 mb-2">
-                        <label className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1">
-                          <input
-                            type="radio"
-                            value="location"
-                            checked={formData.locationType === "location"}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                locationType: e.target.value,
-                              })
-                            }
-                            className="mr-1.5 w-3 h-3 accent-sky-500"
-                            disabled={loading}
-                          />
-                          <span className="text-xs font-medium text-gray-700">
-                            No Jurisdiction
-                          </span>
-                        </label>
-                        <label className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1">
-                          <input
-                            type="radio"
-                            value="jurisdiction"
-                            checked={formData.locationType === "jurisdiction"}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                locationType: e.target.value,
-                              })
-                            }
-                            className="mr-1.5 w-3 h-3 accent-sky-500"
-                            disabled={loading}
-                          />
-                          <span className="text-xs font-medium text-gray-700">
-                            Add Jurisdiction
-                          </span>
-                        </label>
+                        {["location", "jurisdiction"].map((val) => (
+                          <label
+                            key={val}
+                            className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1"
+                          >
+                            <input
+                              type="radio"
+                              value={val}
+                              checked={formData.locationType === val}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  locationType: e.target.value,
+                                })
+                              }
+                              className="mr-1.5 w-3 h-3 accent-sky-500"
+                              disabled={loading}
+                            />
+                            <span className="text-xs font-medium text-gray-700">
+                              {val === "location"
+                                ? "No Jurisdiction"
+                                : "Add Jurisdiction"}
+                            </span>
+                          </label>
+                        ))}
                       </div>
 
                       {formData.locationType === "jurisdiction" && (
@@ -922,13 +801,16 @@ const AdminAgencyManager = () => {
                                       placeholder={`Point ${index + 1} Lat`}
                                       value={point.lat}
                                       onChange={(e) => {
-                                        const newPoints = [
+                                        const pts = [
                                           ...formData.jurisdictionPoints,
                                         ];
-                                        newPoints[index].lat = e.target.value;
+                                        pts[index] = {
+                                          ...pts[index],
+                                          lat: e.target.value,
+                                        };
                                         setFormData({
                                           ...formData,
-                                          jurisdictionPoints: newPoints,
+                                          jurisdictionPoints: pts,
                                         });
                                       }}
                                       className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
@@ -940,13 +822,16 @@ const AdminAgencyManager = () => {
                                       placeholder={`Point ${index + 1} Lng`}
                                       value={point.lng}
                                       onChange={(e) => {
-                                        const newPoints = [
+                                        const pts = [
                                           ...formData.jurisdictionPoints,
                                         ];
-                                        newPoints[index].lng = e.target.value;
+                                        pts[index] = {
+                                          ...pts[index],
+                                          lng: e.target.value,
+                                        };
                                         setFormData({
                                           ...formData,
-                                          jurisdictionPoints: newPoints,
+                                          jurisdictionPoints: pts,
                                         });
                                       }}
                                       className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
@@ -992,11 +877,13 @@ const AdminAgencyManager = () => {
                 </div>
               </div>
 
-              {/* ── Form Map Preview ─────────────────────────────────────────
-                  Mirrors Leaflet form preview:
-                  • jurisdiction selected  → Polygon only  (no vertex markers)
-                  • location selected      → single Marker only
-              ───────────────────────────────────────────────────────────── */}
+              {/* ── Form Map Preview ──────────────────────────────────────────
+                  Matches Leaflet form preview EXACTLY:
+                  • Location Marker is ALWAYS visible (lat/lng always provided)
+                  • Jurisdiction Polygon is shown ON TOP of the marker when
+                    locationType="jurisdiction" and >= 3 valid points exist.
+                  Both can appear simultaneously, just like Leaflet.
+              ──────────────────────────────────────────────────────────── */}
               <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
                 <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
                   <MapPin size={18} className="text-sky-800" />
@@ -1018,34 +905,23 @@ const AdminAgencyManager = () => {
                         }}
                         zoom={13}
                         mapContainerStyle={{ height: "100%", width: "100%" }}
-                        options={{
-                          streetViewControl: false,
-                          mapTypeControl: false,
-                          fullscreenControl: false,
-                        }}
+                        options={mapOptions}
                       >
                         <MapUpdater center={previewCenter} />
 
-                        {/* jurisdiction selected → show Polygon only (matches Leaflet) */}
-                        {formData.locationType === "jurisdiction" &&
-                        previewPolygon &&
-                        previewPolygon.length >= 4 ? (
-                          <Polygon
-                            paths={previewPolygon.map(([lat, lng]) => ({
-                              lat,
-                              lng,
-                            }))}
-                            options={{
-                              strokeColor: "#0284c7",
-                              strokeOpacity: 1,
-                              strokeWeight: 2,
-                              fillColor: "#7dd3fc",
-                              fillOpacity: 0.4,
+                        {/* ① Always show location marker (Leaflet does this too) */}
+                        {formData.latitude && formData.longitude && (
+                          <Marker
+                            position={{
+                              lat: parseFloat(formData.latitude),
+                              lng: parseFloat(formData.longitude),
                             }}
-                            onClick={() => {
-                              const [firstLat, firstLng] = previewPolygon[0];
+                            onClick={() =>
                               setActiveInfo({
-                                position: { lat: firstLat, lng: firstLng },
+                                position: {
+                                  lat: parseFloat(formData.latitude),
+                                  lng: parseFloat(formData.longitude),
+                                },
                                 content: (
                                   <div className="text-center">
                                     <strong className="text-sky-700">
@@ -1053,28 +929,24 @@ const AdminAgencyManager = () => {
                                     </strong>
                                     <br />
                                     <span className="text-xs text-gray-600">
-                                      Jurisdiction Area
+                                      Primary Location
                                     </span>
                                   </div>
                                 ),
-                              });
-                            }}
+                              })
+                            }
                           />
-                        ) : (
-                          /* location selected → show single Marker only (matches Leaflet) */
-                          formData.latitude &&
-                          formData.longitude && (
-                            <Marker
-                              position={{
-                                lat: parseFloat(formData.latitude),
-                                lng: parseFloat(formData.longitude),
-                              }}
+                        )}
+
+                        {/* ② Show jurisdiction polygon ON TOP when ready (Leaflet does this too) */}
+                        {formData.locationType === "jurisdiction" &&
+                          previewPolygonPaths && (
+                            <Polygon
+                              paths={previewPolygonPaths}
+                              options={polygonOptions}
                               onClick={() =>
                                 setActiveInfo({
-                                  position: {
-                                    lat: parseFloat(formData.latitude),
-                                    lng: parseFloat(formData.longitude),
-                                  },
+                                  position: previewPolygonPaths[0],
                                   content: (
                                     <div className="text-center">
                                       <strong className="text-sky-700">
@@ -1082,15 +954,14 @@ const AdminAgencyManager = () => {
                                       </strong>
                                       <br />
                                       <span className="text-xs text-gray-600">
-                                        Primary Location
+                                        Jurisdiction Area
                                       </span>
                                     </div>
                                   ),
                                 })
                               }
                             />
-                          )
-                        )}
+                          )}
 
                         {activeInfo && (
                           <InfoWindow
@@ -1112,6 +983,7 @@ const AdminAgencyManager = () => {
     );
   }
 
+  // ── Desktop guard ─────────────────────────────────────────────────────────
   if (!isDesktop) {
     return (
       <div
@@ -1121,7 +993,7 @@ const AdminAgencyManager = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+          background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
           color: "#fff",
           textAlign: "center",
           padding: "20px",
@@ -1142,15 +1014,17 @@ const AdminAgencyManager = () => {
     );
   }
 
-  if (!isLoggedIn) {
-    return <AdminAuth onLogin={handleLogin} />;
-  }
+  // ── Auth guard ────────────────────────────────────────────────────────────
+  if (!isLoggedIn) return <AdminAuth onLogin={handleLogin} />;
 
+  // ════════════════════════════════════════════════════════════════════════
+  // LIST VIEW
+  // ════════════════════════════════════════════════════════════════════════
   return (
     <div
       className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col"
       style={{
-        backgroundImage: `radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px)`,
+        backgroundImage: `radial-gradient(rgba(14,165,233,0.15) 1px,transparent 1px)`,
         backgroundSize: "20px 20px",
       }}
     >
@@ -1216,7 +1090,7 @@ const AdminAgencyManager = () => {
       <div className="flex-1 overflow-hidden">
         <div className="container mx-auto px-3 py-2 h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
-            {/* Agencies List */}
+            {/* ── Agencies List ─────────────────────────────────────────── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
               <div className="bg-sky-300 px-3 py-1 flex items-center justify-between">
                 <p className="text-2xl font-bold text-sky-800">Agencies List</p>
@@ -1291,15 +1165,14 @@ const AdminAgencyManager = () => {
                           <p className="text-xs font-semibold text-gray-700 mb-1">
                             Events:
                           </p>
-                          {agency.eventResponsibleFor &&
-                          agency.eventResponsibleFor.length > 0 ? (
+                          {agency.eventResponsibleFor?.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
-                              {agency.eventResponsibleFor.map((event, idx) => (
+                              {agency.eventResponsibleFor.map((ev, idx) => (
                                 <span
                                   key={idx}
                                   className="text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full font-medium"
                                 >
-                                  {event}
+                                  {ev}
                                 </span>
                               ))}
                             </div>
@@ -1313,10 +1186,11 @@ const AdminAgencyManager = () => {
                         <div className="text-xs">
                           <p className="font-semibold text-gray-700 mb-1 flex items-center gap-1">
                             <MapPin size={14} className="text-sky-600" />
-                            {agency.type === "jurisdiction"
+                            {agency.jurisdiction?.coordinates
                               ? "Jurisdiction Area"
                               : "Location Point"}
                           </p>
+                          {/* "View on Map" pans+zooms to agency.location via MapUpdater */}
                           <button
                             onClick={() => handleViewOnMap(agency)}
                             className="text-sky-600 hover:text-sky-700 font-semibold transition-colors"
@@ -1332,10 +1206,11 @@ const AdminAgencyManager = () => {
             </div>
 
             {/* ── Main Map View ─────────────────────────────────────────────
-                Mirrors Leaflet list map exactly:
-                • agency has jurisdiction  → Polygon only  (no extra markers)
-                • agency has no jurisdiction, has location → Marker only
-            ───────────────────────────────────────────────────────────── */}
+                Matches Leaflet list map exactly:
+                • Has jurisdiction  → Polygon only  (click = InfoWindow popup)
+                • No jurisdiction   → Marker only   (click = InfoWindow popup)
+                • "View on Map" updates mapCenter → MapUpdater animates to it
+            ──────────────────────────────────────────────────────────── */}
             <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
               <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
                 <MapPin size={18} className="text-sky-800" />
@@ -1352,41 +1227,29 @@ const AdminAgencyManager = () => {
                       center={{ lat: mapCenter[0], lng: mapCenter[1] }}
                       zoom={13}
                       mapContainerStyle={{ height: "100%", width: "100%" }}
-                      options={{
-                        streetViewControl: false,
-                        mapTypeControl: false,
-                        fullscreenControl: false,
-                      }}
+                      options={mapOptions}
                     >
+                      {/* Animates pan+zoom when mapCenter changes ("View on Map") */}
                       <MapUpdater center={mapCenter} />
 
                       {agencies.map((agency) => (
                         <React.Fragment key={agency._id}>
                           {agency.jurisdiction &&
                           agency.jurisdiction.coordinates ? (
-                            /* Has jurisdiction → Polygon only (matches Leaflet) */
+                            /* ── Has jurisdiction → Polygon only ─────────────── */
                             <Polygon
                               paths={agency.jurisdiction.coordinates.map(
                                 (coord) => ({
-                                  lat: coord[0],
-                                  lng: coord[1],
+                                  lat: coord[0], // coord[0] = lat (DB format)
+                                  lng: coord[1], // coord[1] = lng (DB format)
                                 }),
                               )}
-                              options={{
-                                strokeColor: "#0284c7",
-                                strokeOpacity: 1,
-                                strokeWeight: 2,
-                                fillColor: "#7dd3fc",
-                                fillOpacity: 0.4,
-                              }}
+                              options={polygonOptions}
                               onClick={() => {
-                                const firstCoord =
+                                const first =
                                   agency.jurisdiction.coordinates[0];
                                 setActiveInfo({
-                                  position: {
-                                    lat: firstCoord[0],
-                                    lng: firstCoord[1],
-                                  },
+                                  position: { lat: first[0], lng: first[1] },
                                   content: (
                                     <div>
                                       <strong className="text-sky-700">
@@ -1406,7 +1269,7 @@ const AdminAgencyManager = () => {
                               }}
                             />
                           ) : (
-                            /* No jurisdiction, has location → Marker only (matches Leaflet) */
+                            /* ── No jurisdiction → Marker only ───────────────── */
                             agency.location && (
                               <Marker
                                 position={{
