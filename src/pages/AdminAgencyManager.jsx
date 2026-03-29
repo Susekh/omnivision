@@ -21,43 +21,59 @@ import {
 import api from "../api";
 import AdminAuth from "./AdminAuth";
 
-// ── MapUpdater ────────────────────────────────────────────────────────────────
-// Matches Leaflet's map.setView(center, 13) — animated pan + zoom together.
-// Called every time mapCenter state changes (e.g. "View on Map" click).
-const MapUpdater = ({ center }) => {
+// ── MapUpdater for Premium Smooth Panning & Bound Fitting ─────────────────────
+const MapUpdater = ({ target }) => {
   const map = useGoogleMap();
   useEffect(() => {
-    if (!center || !Array.isArray(center) || center.length !== 2) return;
-    const [lat, lng] = center;
-    if (
-      isNaN(lat) ||
-      isNaN(lng) ||
-      lat < -90 ||
-      lat > 90 ||
-      lng < -180 ||
-      lng > 180
-    )
-      return;
-    // setCenter + setZoom together mirrors Leaflet setView(center, 13)
-    map.setCenter({ lat, lng });
-    map.setZoom(13);
-  }, [center, map]);
+    if (!target || !map) return;
+    
+    if (target.type === 'polygon' && target.paths && target.paths.length > 0) {
+      // Create bounds strictly to the active polygon for optimal framing
+      const bounds = new window.google.maps.LatLngBounds();
+      target.paths.forEach(p => bounds.extend(p));
+      map.fitBounds(bounds);
+    } else if (target.type === 'point' && target.lat && target.lng) {
+      // panTo triggers Google Map's built-in smooth scrolling animation
+      map.panTo({ lat: target.lat, lng: target.lng });
+      map.setZoom(16);
+    }
+  }, [target, map]);
   return null;
 };
 
-// ── Shared map options / polygon style ───────────────────────────────────────
+// ── Shared Map Options & Premium Dark Styling ────────────────────────────────
 const mapOptions = {
   streetViewControl: false,
   mapTypeControl: false,
   fullscreenControl: false,
+  styles: [
+    { elementType: 'geometry', stylers: [{ color: '#1e293b' }] }, // slate-800
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#1e293b' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
+    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
+    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1e293b' }] },
+    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#475569' }] },
+    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#334155' }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#334155' }] },
+    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
+    { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#1e293b' }] }
+  ]
 };
 
 const polygonOptions = {
-  strokeColor: "#0284c7",
-  strokeOpacity: 1,
+  strokeColor: "#38bdf8", // sky-400 equivalent for neon accent
+  strokeOpacity: 0.9,
   strokeWeight: 2,
-  fillColor: "#7dd3fc",
-  fillOpacity: 0.4,
+  fillColor: "#0ea5e9", // sky-500
+  fillOpacity: 0.25,
 };
 
 // ── Default form factory ─────────────────────────────────────────────────────
@@ -84,7 +100,7 @@ const AdminAgencyManager = () => {
   const [view, setView] = useState("list");
   const [selectedAgency, setSelectedAgency] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [mapCenter, setMapCenter] = useState([20.2961, 85.8245]);
+  const [mapTarget, setMapTarget] = useState({ type: 'point', lat: 20.2961, lng: 85.8245 });
   const [activeInfo, setActiveInfo] = useState(null);
   const [fileUploadError, setFileUploadError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -184,11 +200,14 @@ const AdminAgencyManager = () => {
     setIsLoggedIn(false);
   };
 
-  // ── handleViewOnMap — identical to Leaflet version ───────────────────────
-  // Leaflet only uses agency.location; MapUpdater does setCenter+setZoom (=setView)
+  // ── handleViewOnMap ──────────────────────────────────────────────────────
+  // Triggers smooth pan to location or fitBounds to jurisdiction polygon
   const handleViewOnMap = (agency) => {
-    if (agency.location) {
-      setMapCenter([agency.location.latitude, agency.location.longitude]);
+    if (agency.jurisdiction?.coordinates && agency.jurisdiction.coordinates.length > 0) {
+      const paths = agency.jurisdiction.coordinates.map(c => ({ lat: parseFloat(c[0]), lng: parseFloat(c[1]) }));
+      setMapTarget({ type: 'polygon', paths });
+    } else if (agency.location?.latitude && agency.location?.longitude) {
+      setMapTarget({ type: 'point', lat: parseFloat(agency.location.latitude), lng: parseFloat(agency.location.longitude) });
     }
   };
 
@@ -511,20 +530,20 @@ const AdminAgencyManager = () => {
     ) : null;
 
   // ── Derived preview values ────────────────────────────────────────────────
-  // previewCenter: always from formData lat/lng
-  const previewCenter =
-    formData.latitude && formData.longitude
-      ? [parseFloat(formData.latitude), parseFloat(formData.longitude)]
-      : [20.2961, 85.8245];
+  const previewTarget = React.useMemo(() => {
+    if (formData.locationType === "jurisdiction") {
+      const valid = formData.jurisdictionPoints
+        .filter((p) => p.lat && p.lng)
+        .map((p) => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
+      if (valid.length >= 3) return { type: 'polygon', paths: valid };
+    }
+    if (formData.latitude && formData.longitude) {
+      return { type: 'point', lat: parseFloat(formData.latitude), lng: parseFloat(formData.longitude) };
+    }
+    return { type: 'point', lat: 20.2961, lng: 85.8245 };
+  }, [formData]);
 
-  // previewPolygonPaths: Google Maps {lat,lng} objects, null if not ready
-  const previewPolygonPaths = (() => {
-    if (formData.locationType !== "jurisdiction") return null;
-    const valid = formData.jurisdictionPoints
-      .filter((p) => p.lat && p.lng)
-      .map((p) => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
-    return valid.length >= 3 ? valid : null;
-  })();
+  const previewPolygonPaths = previewTarget.type === 'polygon' ? previewTarget.paths : null;
 
   // ════════════════════════════════════════════════════════════════════════
   // FORM VIEW
@@ -577,168 +596,123 @@ const AdminAgencyManager = () => {
                   </h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Agency Name <span className="text-red-500">*</span>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">
+                        Agency Name <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.AgencyName}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            AgencyName: e.target.value,
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
-                        placeholder="Enter agency name"
+                        onChange={(e) => setFormData({ ...formData, AgencyName: e.target.value })}
+                        className="w-full px-4 py-3 border border-slate-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-500 shadow-inner"
+                        placeholder="Enter agency moniker"
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Mobile Number <span className="text-red-500">*</span>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">
+                        Mobile Number <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="tel"
                         value={formData.mobileNumber}
                         maxLength={10}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            mobileNumber: e.target.value,
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
+                        onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                        className="w-full px-4 py-3 border border-slate-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-500 shadow-inner tracking-wider"
                         placeholder="10-digit mobile number"
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between">
-                        <span>Password {editMode ? "" : <span className="text-red-500">*</span>}</span>
-                        {editMode && <span className="text-xs font-normal text-slate-400">(leave blank to keep current)</span>}
+                      <label className="block text-sm font-semibold text-slate-300 mb-2 flex justify-between">
+                        <span>Authentication Key {editMode ? "" : <span className="text-rose-500">*</span>}</span>
+                        {editMode && <span className="text-xs font-normal text-slate-500 italic">(leave blank to preserve)</span>}
                       </label>
                       <input
                         type="password"
                         value={formData.password}
-                        onChange={(e) =>
-                          setFormData({ ...formData, password: e.target.value })
-                        }
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
-                        placeholder={
-                          editMode
-                            ? "Leave blank to keep current password"
-                            : "Enter password"
-                        }
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full px-4 py-3 border border-slate-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-500 shadow-inner"
+                        placeholder={editMode ? "Keep current secure key" : "Assign secure key"}
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Events Responsible For
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">
+                        Managed Incident Types
                       </label>
                       <input
                         type="text"
                         value={formData.eventResponsibleFor}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            eventResponsibleFor: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Road Damage, Street Light"
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
+                        onChange={(e) => setFormData({ ...formData, eventResponsibleFor: e.target.value })}
+                        placeholder="e.g. Infrastructure, Street Lights"
+                        className="w-full px-4 py-3 border border-slate-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-500 shadow-inner"
                         disabled={loading}
                       />
-                      <p className="text-xs text-slate-500 mt-1 pl-1">
-                        Separate multiple events with commas
-                      </p>
+                      <p className="text-xs text-slate-500 mt-2 pl-1 font-medium">Use commas to assign multiple incident categories</p>
                     </div>
 
                     <div>
-                      <div className="p-4 bg-sky-50/50 rounded-xl border border-sky-100">
-                        <label className="block text-sm font-semibold text-slate-700 mb-3">
-                          Location Coordinates <span className="text-red-500">*</span>
+                      <div className="p-5 bg-blue-900/10 rounded-xl border border-blue-500/20 shadow-inner">
+                        <label className="block text-sm font-semibold text-slate-200 mb-4">
+                          Location Coordinates <span className="text-rose-500">*</span>
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1">
-                              Latitude
-                            </label>
+                            <label className="block text-xs font-semibold text-blue-400 mb-1.5 tracking-wide uppercase">Latitude</label>
                             <input
                               type="number"
                               step="any"
                               value={formData.latitude}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  latitude: e.target.value,
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-sky-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all bg-white text-sm text-slate-800 placeholder-slate-400 shadow-sm"
+                              onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                              className="w-full px-3 py-2.5 border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-600 shadow-inner font-mono"
                               placeholder="20.2961"
                               disabled={loading}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1">
-                              Longitude
-                            </label>
+                            <label className="block text-xs font-semibold text-blue-400 mb-1.5 tracking-wide uppercase">Longitude</label>
                             <input
                               type="number"
                               step="any"
                               value={formData.longitude}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  longitude: e.target.value,
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-sky-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all bg-white text-sm text-slate-800 placeholder-slate-400 shadow-sm"
+                              onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                              className="w-full px-3 py-2.5 border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all bg-[#0f172a]/50 text-sm text-white placeholder-slate-600 shadow-inner font-mono"
                               placeholder="85.8245"
                               disabled={loading}
                             />
                           </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                          <MapPin size={12} className="text-sky-500" />
-                          Primary map location
+                        <p className="text-[11px] text-blue-400/80 mt-3 flex items-center gap-1.5 font-medium uppercase tracking-wider">
+                          <MapPin size={12} /> Primary map pin anchor
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="block text-sm font-semibold text-slate-700 mb-3">
-                        Jurisdiction Area <span className="text-slate-400 font-normal ml-1">(Optional)</span>
+                      <h3 className="block text-sm font-semibold text-slate-200 mb-4">
+                        Jurisdiction Area <span className="text-slate-500 font-normal ml-1 italic">(Optional bounded zone)</span>
                       </h3>
-                      <div className="flex gap-3 mb-4">
+                      <div className="flex gap-4 mb-5">
                         {["location", "jurisdiction"].map((val) => (
                           <label
                             key={val}
-                            className={`flex items-center cursor-pointer px-4 py-3 rounded-xl border-2 transition-all flex-1 ${formData.locationType === val ? 'bg-sky-50 border-sky-500 shadow-sm' : 'bg-white border-slate-200 hover:border-sky-300 hover:bg-sky-50/50'}`}
+                            className={`flex items-center cursor-pointer px-4 py-3.5 rounded-xl border transition-all flex-1 ${formData.locationType === val ? 'bg-blue-600/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'bg-[#0f172a]/40 border-slate-700/50 hover:border-slate-600'}`}
                           >
                             <input
                               type="radio"
                               value={val}
                               checked={formData.locationType === val}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  locationType: e.target.value,
-                                })
-                              }
-                              className="mr-2 w-4 h-4 accent-sky-600 cursor-pointer"
+                              onChange={(e) => setFormData({ ...formData, locationType: e.target.value })}
+                              className="mr-3 w-4 h-4 accent-blue-500 cursor-pointer"
                               disabled={loading}
                             />
-                            <span className={`text-sm font-semibold ${formData.locationType === val ? 'text-sky-800' : 'text-slate-600'}`}>
-                              {val === "location"
-                                ? "Single Location"
-                                : "Define Area Polygon"}
+                            <span className={`text-sm font-semibold tracking-wide ${formData.locationType === val ? 'text-blue-400' : 'text-slate-400'}`}>
+                              {val === "location" ? "Single Location" : "Define Area Polygon"}
                             </span>
                           </label>
                         ))}
@@ -746,135 +720,111 @@ const AdminAgencyManager = () => {
 
                       {formData.locationType === "jurisdiction" && (
                         <>
-                          <div className="bg-sky-50 border border-sky-200 rounded-md p-2 mb-2">
-                            <div className="flex items-start gap-2 mb-2">
-                              <Upload
-                                size={16}
-                                className="text-sky-600 mt-0.5 shrink-0"
-                              />
+                          <div className="bg-[#0f172a]/60 border border-slate-700/50 rounded-xl p-4 mb-4 shadow-inner">
+                            <div className="flex items-start gap-4 mb-3">
+                              <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                                <Upload size={18} />
+                              </div>
                               <div className="flex-1 min-w-0">
-                                <h5 className="font-semibold text-gray-800 mb-0.5 text-xs">
-                                  Import from File
+                                <h5 className="font-bold text-slate-200 mb-1 text-sm tracking-wide">
+                                  Import Geometry
                                 </h5>
-                                <p className="text-xs text-gray-600 mb-1.5">
-                                  Upload polygon coordinates
+                                <p className="text-xs text-slate-400 mb-2.5">
+                                  Upload coordinates payload
                                 </p>
                                 <input
                                   type="file"
                                   accept=".json,.geojson,.csv"
                                   onChange={handleFileUpload}
-                                  className="block w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:cursor-pointer cursor-pointer"
+                                  className="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600 file:cursor-pointer cursor-pointer file:transition-all"
                                   disabled={loading}
                                 />
                                 {fileUploadError && (
-                                  <p className="text-xs text-red-600 mt-1 font-medium">
+                                  <p className="text-[11px] text-rose-400 mt-2 font-semibold">
                                     {fileUploadError}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            <div className="text-xs text-gray-600 space-y-0.5 pl-5">
-                              <p className="font-semibold text-gray-700">
-                                Formats:
-                              </p>
-                              <p>
-                                • JSON: {`{"coordinates": [[lat, lng], ...]}`}
-                              </p>
-                              <p>• CSV: lat/lng columns with multiple rows</p>
+                            <div className="text-[11px] text-slate-500 space-y-1 pl-[3.25rem] font-mono leading-relaxed">
+                              <p className="font-bold text-slate-400 tracking-wider">SUPPORTED FORMATS</p>
+                              <p>• JSON Geo - {`{"coordinates": [[lat, lng], ...]}`}</p>
+                              <p>• CSV Data - lat/lng headers</p>
                             </div>
                           </div>
 
-                          <div className="text-center text-xs font-medium text-gray-500 my-1">
-                            OR
+                          <div className="flex items-center gap-4 my-6">
+                            <div className="h-px bg-slate-700/50 flex-1"></div>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">or manually plot</span>
+                            <div className="h-px bg-slate-700/50 flex-1"></div>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Jurisdiction Points (minimum 3 points)
+                            <label className="block text-sm font-semibold text-slate-300 mb-3">
+                              Jurisdictional Nodes (Minimum 3 points)
                             </label>
-                            <div className="space-y-1.5">
-                              {formData.jurisdictionPoints.map(
-                                (point, index) => (
-                                  <div
-                                    key={index}
-                                    className="grid grid-cols-2 mb-1 gap-1.5"
-                                  >
-                                    <input
-                                      type="number"
-                                      step="any"
-                                      placeholder={`Point ${index + 1} Lat`}
-                                      value={point.lat}
-                                      onChange={(e) => {
-                                        const pts = [
-                                          ...formData.jurisdictionPoints,
-                                        ];
-                                        pts[index] = {
-                                          ...pts[index],
-                                          lat: e.target.value,
-                                        };
-                                        setFormData({
-                                          ...formData,
-                                          jurisdictionPoints: pts,
-                                        });
-                                      }}
-                                      className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
-                                      disabled={loading}
-                                    />
-                                    <input
-                                      type="number"
-                                      step="any"
-                                      placeholder={`Point ${index + 1} Lng`}
-                                      value={point.lng}
-                                      onChange={(e) => {
-                                        const pts = [
-                                          ...formData.jurisdictionPoints,
-                                        ];
-                                        pts[index] = {
-                                          ...pts[index],
-                                          lng: e.target.value,
-                                        };
-                                        setFormData({
-                                          ...formData,
-                                          jurisdictionPoints: pts,
-                                        });
-                                      }}
-                                      className="px-2 py-1 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 text-xs transition-all"
-                                      disabled={loading}
-                                    />
-                                  </div>
-                                ),
-                              )}
+                            <div className="space-y-2">
+                              {formData.jurisdictionPoints.map((point, index) => (
+                                <div key={index} className="grid grid-cols-2 mb-1 gap-2 border border-slate-800/50 p-1.5 rounded-lg bg-[#0f172a]/30">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={`Node ${index + 1} Lat`}
+                                    value={point.lat}
+                                    onChange={(e) => {
+                                      const pts = [...formData.jurisdictionPoints];
+                                      pts[index] = { ...pts[index], lat: e.target.value };
+                                      setFormData({ ...formData, jurisdictionPoints: pts });
+                                    }}
+                                    className="px-3 py-2 bg-[#0b1120] border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500/50 font-mono text-xs text-slate-300 transition-all placeholder-slate-600"
+                                    disabled={loading}
+                                  />
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={`Node ${index + 1} Lng`}
+                                    value={point.lng}
+                                    onChange={(e) => {
+                                      const pts = [...formData.jurisdictionPoints];
+                                      pts[index] = { ...pts[index], lng: e.target.value };
+                                      setFormData({ ...formData, jurisdictionPoints: pts });
+                                    }}
+                                    className="px-3 py-2 bg-[#0b1120] border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500/50 font-mono text-xs text-slate-300 transition-all placeholder-slate-600"
+                                    disabled={loading}
+                                  />
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </>
                       )}
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                    <div className="flex gap-4 pt-6 border-t border-white/10 mt-6">
                       <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="flex-1 px-4 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-xl hover:from-sky-700 hover:to-sky-600 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed border border-sky-600/20"
+                        className="flex-1 px-5 py-3.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 shadow-[0_4px_14px_0_rgb(37,99,235,0.39)] transition-all flex items-center justify-center gap-2 font-bold text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loading ? (
                           <>
                             <RefreshCw size={18} className="animate-spin" />
-                            Processing...
+                            Processing Configuration...
                           </>
                         ) : (
                           <>
                             <Save size={18} />
-                            {editMode ? "Save Changes" : "Create Agency"}
+                            {editMode ? "Save Configuration" : "Deploy Agency Profile"}
                           </>
                         )}
                       </button>
                       <button
                         onClick={() => setView("list")}
                         disabled={loading}
-                        className="px-5 py-3 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 transition-all flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-3.5 bg-[#0f172a] border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                       >
                         <X size={18} />
-                        Cancel
+                        Abort
                       </button>
                     </div>
                   </div>
@@ -888,32 +838,32 @@ const AdminAgencyManager = () => {
                     locationType="jurisdiction" and >= 3 valid points exist.
                   Both can appear simultaneously, just like Leaflet.
               ──────────────────────────────────────────────────────────── */}
-              <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center gap-3">
-                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
-                    <MapPin size={18} />
+              <div className="bg-[#1e293b]/50 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-2xl relative">
+                <div className="border-b border-white/5 bg-white/5 px-6 py-5 flex items-center justify-between z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2.5 bg-purple-500/20 rounded-xl text-purple-400 border border-purple-500/30">
+                      <MapPin size={20} />
+                    </div>
+                    <h3 className="text-base font-bold text-white tracking-wider uppercase">
+                      Geographical Preview
+                    </h3>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">
-                    Location Preview
-                  </h3>
                 </div>
-                <div className="flex-1 p-3 bg-slate-50/50">
-                  <div className="rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-slate-200 h-full relative">
+                <div className="flex-1 p-3 bg-[#0b1120]/50 relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b1120] to-transparent pointer-events-none z-10 opacity-20" />
+                  <div className="rounded-xl overflow-hidden border border-slate-700/50 shadow-inner h-full w-full relative z-0">
                     <LoadScript
                       googleMapsApiKey={
                         import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
                       }
                     >
                       <GoogleMap
-                        center={{
-                          lat: previewCenter[0],
-                          lng: previewCenter[1],
-                        }}
+                        center={{ lat: previewTarget.lat || 20.2961, lng: previewTarget.lng || 85.8245 }}
                         zoom={13}
                         mapContainerStyle={{ height: "100%", width: "100%" }}
                         options={mapOptions}
                       >
-                        <MapUpdater center={previewCenter} />
+                        <MapUpdater target={previewTarget} />
 
                         {/* ① Always show location marker (Leaflet does this too) */}
                         {formData.latitude && formData.longitude && (
@@ -929,13 +879,13 @@ const AdminAgencyManager = () => {
                                   lng: parseFloat(formData.longitude),
                                 },
                                 content: (
-                                  <div className="text-center">
-                                    <strong className="text-sky-700">
-                                      {formData.AgencyName || "New Agency"}
+                                  <div className="text-center font-sans tracking-wide">
+                                    <strong className="text-blue-500 font-black uppercase text-xs">
+                                      {formData.AgencyName || "Unassigned"}
                                     </strong>
                                     <br />
-                                    <span className="text-xs text-gray-600">
-                                      Primary Location
+                                    <span className="text-[10px] text-slate-500 font-bold">
+                                      Primary Node
                                     </span>
                                   </div>
                                 ),
@@ -954,13 +904,13 @@ const AdminAgencyManager = () => {
                                 setActiveInfo({
                                   position: previewPolygonPaths[0],
                                   content: (
-                                    <div className="text-center">
-                                      <strong className="text-sky-700">
-                                        {formData.AgencyName || "New Agency"}
+                                    <div className="text-center font-sans tracking-wide">
+                                      <strong className="text-purple-500 font-black uppercase text-xs">
+                                        {formData.AgencyName || "Unassigned"}
                                       </strong>
                                       <br />
-                                      <span className="text-xs text-gray-600">
-                                        Jurisdiction Area
+                                      <span className="text-[10px] text-slate-500 font-bold">
+                                        Jurisdiction Perimeter
                                       </span>
                                     </div>
                                   ),
@@ -1027,58 +977,58 @@ const AdminAgencyManager = () => {
   // LIST VIEW
   // ════════════════════════════════════════════════════════════════════════
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex flex-col relative">
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-sky-200/30 blur-[120px] pointer-events-none" />
+    <div className="h-screen overflow-hidden bg-[#0b1120] text-slate-200 flex flex-col relative font-sans">
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none" />
 
       <Notification type="error" message={error} />
       <Notification type="success" message={success} />
 
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm sticky top-0 z-10">
-        <div className="w-full max-w-[1800px] mx-auto px-4 py-3">
+      <div className="bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-10 shadow-2xl">
+        <div className="w-full max-w-[1800px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <img
                 src="/images/omnivision-logo.png"
                 alt="OmniVision Logo"
-                className="h-12 w-auto object-contain drop-shadow-sm"
+                className="h-10 w-auto object-contain brightness-0 invert opacity-90"
                 onError={(e) => (e.target.style.display = "none")}
               />
-              <div className="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
-              <p className="font-black text-xl sm:text-2xl bg-gradient-to-r from-sky-800 to-cyan-700 bg-clip-text text-transparent">
-                Super Admin
+              <div className="h-6 w-[1px] bg-slate-800 hidden sm:block"></div>
+              <p className="font-bold text-lg sm:text-xl tracking-wide text-white drop-shadow-md">
+                Admin Station
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={fetchAgencies}
                 disabled={loading}
-                className="hidden md:flex px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all items-center gap-2 font-bold text-sm disabled:opacity-50"
+                className="hidden md:flex px-4 py-2 bg-[#1e293b]/50 border border-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-800 hover:text-white transition-all items-center gap-2 font-semibold text-sm disabled:opacity-50 shadow-inner"
               >
-                <RefreshCw size={16} className={loading ? "animate-spin text-sky-500" : "text-slate-500"} />
-                Refresh
+                <RefreshCw size={16} className={loading ? "animate-spin text-blue-400" : "text-slate-400"} />
+                Sync Mode
               </button>
               <button
                 onClick={switchModel}
                 disabled={modelLoading}
-                className="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 shadow-sm transition-all flex items-center gap-2 font-bold text-sm disabled:opacity-50"
+                className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all flex items-center gap-2 font-bold text-sm disabled:opacity-50 shadow-inner tracking-wide"
               >
                 <RefreshCw size={16} className={modelLoading ? "animate-spin" : ""} />
-                {activeModel === "YOLO" ? "Switch to VLM" : "Switch to YOLO"}
+                {activeModel === "YOLO" ? "VLM Engine Active" : "YOLO Engine Active"}
               </button>
               <button
                 onClick={handleAddNew}
-                className="px-4 py-2 cursor-pointer bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-xl hover:from-sky-700 hover:to-sky-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-bold text-sm border border-sky-600/20"
+                className="px-5 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgb(37,99,235,0.39)] flex items-center gap-2 font-bold text-sm tracking-wide"
               >
                 <Plus size={18} />
-                Add Agency
+                Deploy Agency
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 cursor-pointer bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2 font-bold text-sm ml-1"
+                className="px-4 py-2 cursor-pointer bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg hover:bg-rose-500/20 transition-all flex items-center gap-2 font-bold text-sm ml-2 shadow-inner uppercase tracking-wider text-[11px]"
               >
-                Logout
+                Terminate
               </button>
             </div>
           </div>
@@ -1089,118 +1039,121 @@ const AdminAgencyManager = () => {
         <div className="container mx-auto px-3 py-2 h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
             {/* ── Agencies List ─────────────────────────────────────────── */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-              <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
-                    <MapPin size={18} />
+            <div className="bg-[#1e293b]/60 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full shadow-2xl">
+              <div className="border-b border-white/5 bg-white/5 px-6 py-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 bg-blue-500/20 rounded-xl text-blue-400 border border-blue-500/30">
+                    <MapPin size={20} />
                   </div>
-                  <h2 className="text-lg font-bold text-slate-800">Agencies List</h2>
+                  <h2 className="text-base font-bold text-white tracking-wider uppercase">Active Network</h2>
                 </div>
-                <span className="text-sm text-sky-700 font-medium">
-                  {agencies.length}{" "}
-                  {agencies.length === 1 ? "agency" : "agencies"}
+                <span className="text-xs bg-blue-900/50 text-blue-300 px-3 py-1.5 rounded-full font-bold border border-blue-700/50">
+                  {agencies.length} NODES
                 </span>
               </div>
-              <div className="flex-1 overflow-y-auto p-3">
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 {loading && agencies.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
                       <RefreshCw
                         size={32}
-                        className="animate-spin text-sky-500 mx-auto mb-2"
+                        className="animate-spin text-blue-500 mx-auto mb-3"
                       />
-                      <p className="text-gray-600">Loading agencies...</p>
+                      <p className="text-slate-400 text-sm tracking-wide font-medium">Syncing Network Database...</p>
                     </div>
                   </div>
                 ) : agencies.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <p className="text-gray-600 mb-2">No agencies found</p>
+                      <p className="text-slate-500 mb-3 text-sm">Network structure uninitialized</p>
                       <button
                         onClick={handleAddNew}
-                        className="text-sky-600 hover:text-sky-700 font-semibold"
+                        className="text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest text-xs tracking-wider border-b border-blue-400/30 pb-1 transition-colors"
                       >
-                        Create your first agency
+                        Deploy Initial Node
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {agencies.map((agency) => (
                       <div
                         key={agency._id}
-                        className="group border mb-3 border-slate-200 rounded-2xl p-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-sky-300 transition-all bg-white relative overflow-hidden"
+                        className="group border mb-3 border-slate-700/50 rounded-2xl p-5 hover:bg-[#0f172a]/60 hover:border-blue-500/50 transition-all bg-[#0f172a]/40 relative overflow-hidden shadow-inner flex flex-col"
                       >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-sky-50 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform"></div>
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1 min-w-0 pr-2">
-                            <h3 className="font-bold text-lg text-slate-800 truncate mb-1">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-900/20 rounded-bl-full -z-10 group-hover:scale-125 transition-transform duration-500"></div>
+                        
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1 min-w-0 pr-3">
+                            <h3 className="font-bold text-lg text-slate-100 truncate mb-1">
                               {agency.AgencyName}
                             </h3>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium pb-2 border-b border-slate-50">
-                              <p className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
-                                <span className="opacity-70">ID:</span> <span className="text-slate-700 font-mono">{agency.AgencyId}</span>
+                            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium pb-2 border-b border-slate-700/50">
+                              <p className="flex items-center gap-1.5 text-xs bg-[#0b1120] px-2.5 py-1 rounded border border-slate-800 tracking-wider">
+                                <span className="opacity-60 text-blue-400">UID:</span> <span className="text-slate-300 font-mono">{agency.AgencyId}</span>
                               </p>
-                              <p className="flex items-center gap-1">
-                                <span className="opacity-70">📱</span> <span className="text-slate-700">{agency.mobileNumber}</span>
+                              <p className="flex items-center gap-1.5 opacity-80">
+                                📱 <span className="text-slate-300 font-mono">{agency.mobileNumber}</span>
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 shrink-0">
                             <button
                               onClick={() => handleEdit(agency)}
                               disabled={loading}
-                              className="p-2 text-sky-600 bg-white border border-sky-100 hover:bg-sky-50 rounded-xl transition-all shadow-sm disabled:opacity-50"
-                              title="Edit"
+                              className="p-2.5 text-blue-400 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 rounded-lg transition-all shadow-inner disabled:opacity-50"
+                              title="Reconfigure"
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(agency.AgencyId)}
                               disabled={loading}
-                              className="p-2 text-red-500 bg-white border border-red-100 hover:bg-red-50 rounded-xl transition-all shadow-sm disabled:opacity-50"
-                              title="Delete"
+                              className="p-2.5 text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 rounded-lg transition-all shadow-inner disabled:opacity-50"
+                              title="Terminate"
                             >
                               <Trash2 size={16} />
                             </button>
                           </div>
                         </div>
 
-                        <div className="mb-3 mt-2">
-                          <p className="text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Events Responsible For
+                        <div className="mb-4 mt-1">
+                          <p className="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest px-0.5">
+                            Target Classifications
                           </p>
                           {agency.eventResponsibleFor?.length > 0 ? (
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-2">
                               {agency.eventResponsibleFor.map((ev, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-[11px] bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-lg font-bold tracking-wide"
+                                  className="text-[10px] bg-slate-800 text-slate-300 border border-slate-700/50 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase shadow-inner"
                                 >
                                   {ev}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-400 italic">
-                              No events assigned
+                            <span className="text-xs text-slate-600 italic px-0.5">
+                              Unclassified assignment
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-100">
-                          <p className="font-semibold text-slate-600 flex items-center gap-1.5">
-                            <MapPin size={14} className="text-emerald-500" />
-                            {agency.jurisdiction?.coordinates
-                              ? "Jurisdiction Area Defined"
-                              : "Location Point Pin"}
-                          </p>
+                        <div className="mt-auto pt-4 border-t border-slate-700/30 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-emerald-500/10 rounded-full border border-emerald-500/30">
+                              <MapPin size={12} className="text-emerald-400" />
+                            </div>
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                              {agency.jurisdiction?.coordinates ? "POLYGON" : "POINT"}
+                            </span>
+                          </div>
+                          
                           <button
                             onClick={() => handleViewOnMap(agency)}
-                            className="flex items-center gap-1 text-sky-600 hover:text-sky-800 font-bold transition-colors bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-100"
+                            className="text-[11px] uppercase tracking-widest font-bold text-blue-400 hover:text-white transition-all bg-blue-500/10 hover:bg-blue-500 hover:scale-105 hover:-translate-y-0.5 shadow-inner hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] px-4 py-2 rounded border border-blue-500/30"
                           >
-                            View on Map →
+                            Trace Signal
                           </button>
                         </div>
                       </div>
@@ -1216,30 +1169,31 @@ const AdminAgencyManager = () => {
                 • No jurisdiction   → Marker only   (click = InfoWindow popup)
                 • "View on Map" updates mapCenter → MapUpdater animates to it
             ──────────────────────────────────────────────────────────── */}
-            <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-              <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
-                    <MapPin size={18} />
+            <div className="bg-[#1e293b]/50 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full shadow-2xl relative">
+              <div className="border-b border-white/5 bg-white/5 px-6 py-5 flex items-center justify-between z-10 w-full">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 bg-purple-500/20 rounded-xl text-purple-400 border border-purple-500/30">
+                    <MapPin size={20} />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Map View Overview</h3>
+                  <h3 className="text-base font-bold text-white tracking-wider uppercase">Regional Surveillance Map</h3>
                 </div>
               </div>
-              <div className="flex-1 p-3 bg-slate-50/50">
-                <div className="h-full rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-slate-200 relative">
+              <div className="flex-1 p-3 bg-[#0b1120]/50 relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b1120] to-transparent pointer-events-none z-10 opacity-20" />
+                <div className="h-full rounded-xl overflow-hidden border border-slate-700/50 relative z-0 shadow-inner w-full">
                   <LoadScript
                     googleMapsApiKey={
                       import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
                     }
                   >
                     <GoogleMap
-                      center={{ lat: mapCenter[0], lng: mapCenter[1] }}
+                      center={{ lat: mapTarget.lat || 20.2961, lng: mapTarget.lng || 85.8245 }}
                       zoom={13}
                       mapContainerStyle={{ height: "100%", width: "100%" }}
                       options={mapOptions}
                     >
                       {/* Animates pan+zoom when mapCenter changes ("View on Map") */}
-                      <MapUpdater center={mapCenter} />
+                      <MapUpdater target={mapTarget} />
 
                       {agencies.map((agency) => (
                         <React.Fragment key={agency._id}>
@@ -1260,19 +1214,19 @@ const AdminAgencyManager = () => {
                                 setActiveInfo({
                                   position: { lat: first[0], lng: first[1] },
                                   content: (
-                                    <div>
-                                      <strong className="text-sky-700">
-                                        {agency.AgencyName}
-                                      </strong>
-                                      <br />
-                                      <span className="text-xs text-gray-600">
-                                        Jurisdiction Area
-                                      </span>
-                                      <br />
-                                      <span className="text-xs text-gray-600">
-                                        📱 {agency.mobileNumber}
-                                      </span>
-                                    </div>
+                                  <div className="text-center font-sans tracking-wide">
+                                    <strong className="text-purple-500 font-black uppercase text-xs">
+                                      {agency.AgencyName}
+                                    </strong>
+                                    <br />
+                                    <span className="text-[10px] text-slate-500 font-bold">
+                                      Jurisdiction Perimeter
+                                    </span>
+                                    <br />
+                                    <span className="text-[10px] text-slate-400 font-mono">
+                                      LINK: {agency.mobileNumber}
+                                    </span>
+                                  </div>
                                   ),
                                 });
                               }}
@@ -1292,13 +1246,17 @@ const AdminAgencyManager = () => {
                                       lng: agency.location.longitude,
                                     },
                                     content: (
-                                      <div>
-                                        <strong className="text-sky-700">
+                                      <div className="text-center font-sans tracking-wide">
+                                        <strong className="text-blue-500 font-black uppercase text-xs">
                                           {agency.AgencyName}
                                         </strong>
                                         <br />
-                                        <span className="text-xs text-gray-600">
-                                          📱 {agency.mobileNumber}
+                                        <span className="text-[10px] text-slate-500 font-bold">
+                                          Primary Node
+                                        </span>
+                                        <br />
+                                        <span className="text-[10px] text-slate-400 font-mono">
+                                          LINK: {agency.mobileNumber}
                                         </span>
                                       </div>
                                     ),
