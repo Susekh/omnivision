@@ -499,10 +499,14 @@ const AdminAgencyManager = () => {
   const Notification = ({ type, message }) =>
     message ? (
       <div
-        className={`fixed top-4 right-4 z-50 max-w-md px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}
+        className={`fixed top-6 right-6 z-50 min-w-[320px] px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-md border flex items-center gap-3 transition-all ${
+          type === "error"
+            ? "bg-red-500/95 border-red-400 text-white"
+            : "bg-emerald-500/95 border-emerald-400 text-white"
+        }`}
       >
-        <AlertCircle size={18} />
-        <span className="text-sm font-medium">{message}</span>
+        <AlertCircle size={20} className="shrink-0" />
+        <span className="text-sm font-semibold tracking-wide drop-shadow-sm">{message}</span>
       </div>
     ) : null;
 
@@ -527,36 +531,35 @@ const AdminAgencyManager = () => {
   // ════════════════════════════════════════════════════════════════════════
   if (view === "form") {
     return (
-      <div
-        className="h-screen flex flex-col bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 overflow-hidden"
-        style={{
-          backgroundImage: `radial-gradient(rgba(14,165,233,0.15) 1px,transparent 1px)`,
-          backgroundSize: "20px 20px",
-        }}
-      >
+      <div className="h-screen flex flex-col bg-slate-50 overflow-hidden relative">
+        <div className="absolute top-[-15%] left-[-15%] w-[50%] h-[50%] rounded-full bg-sky-200/30 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[-15%] right-[-15%] w-[50%] h-[50%] rounded-full bg-cyan-200/30 blur-[100px] pointer-events-none" />
+
         <Notification type="error" message={error} />
         <Notification type="success" message={success} />
 
         {/* Header */}
-        <div className="bg-sky-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <img
                 src="/images/omnivision-logo.png"
                 alt="OmniVision Logo"
-                className="h-14 w-auto"
+                className="h-12 w-auto object-contain drop-shadow-sm"
                 onError={(e) => (e.target.style.display = "none")}
               />
-              <p className="text-3xl mt-2 font-bold text-neutral-700">
+              <div className="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+              <p className="text-xl sm:text-2xl font-black bg-gradient-to-r from-sky-800 to-cyan-700 bg-clip-text text-transparent">
                 {editMode ? "Edit Agency" : "Add New Agency"}
               </p>
             </div>
-            <div
+            <button
               onClick={() => setView("list")}
-              className="px-3 py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all font-medium text-sm"
+              className="px-5 py-2 cursor-pointer bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all font-semibold text-sm flex items-center gap-2"
             >
-              Back to List
-            </div>
+              <X size={16} className="text-slate-500" />
+              Cancel
+            </button>
           </div>
         </div>
 
@@ -564,17 +567,20 @@ const AdminAgencyManager = () => {
           <div className="max-w-7xl mx-auto px-3 py-2 h-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
               {/* ── Form panel ───────────────────────────────────────────── */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
-                <div className="bg-sky-300 px-3 py-2">
-                  <p className="text-2xl font-bold text-sky-800">
+              <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center gap-3">
+                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
+                    <Edit2 size={18} />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-800">
                     Agency Details
-                  </p>
+                  </h2>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3">
-                  <div className="space-y-2.5">
+                <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Agency Name *
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Agency Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -585,15 +591,15 @@ const AdminAgencyManager = () => {
                             AgencyName: e.target.value,
                           })
                         }
-                        className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
                         placeholder="Enter agency name"
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Mobile Number *
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Mobile Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -605,16 +611,16 @@ const AdminAgencyManager = () => {
                             mobileNumber: e.target.value,
                           })
                         }
-                        className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
                         placeholder="10-digit mobile number"
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Password{" "}
-                        {editMode ? "(leave blank to keep current)" : "*"}
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between">
+                        <span>Password {editMode ? "" : <span className="text-red-500">*</span>}</span>
+                        {editMode && <span className="text-xs font-normal text-slate-400">(leave blank to keep current)</span>}
                       </label>
                       <input
                         type="password"
@@ -622,7 +628,7 @@ const AdminAgencyManager = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, password: e.target.value })
                         }
-                        className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
                         placeholder={
                           editMode
                             ? "Leave blank to keep current password"
@@ -630,15 +636,10 @@ const AdminAgencyManager = () => {
                         }
                         disabled={loading}
                       />
-                      {editMode && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Only fill this if you want to change the password
-                        </p>
-                      )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                         Events Responsible For
                       </label>
                       <input
@@ -651,72 +652,75 @@ const AdminAgencyManager = () => {
                           })
                         }
                         placeholder="e.g., Road Damage, Street Light"
-                        className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all bg-slate-50 hover:bg-white text-sm text-slate-800 placeholder-slate-400"
                         disabled={loading}
                       />
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-slate-500 mt-1 pl-1">
                         Separate multiple events with commas
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Location Coordinates *
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Latitude *
-                          </label>
-                          <input
-                            type="number"
-                            step="any"
-                            value={formData.latitude}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                latitude: e.target.value,
-                              })
-                            }
-                            className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                            placeholder="20.2961"
-                            disabled={loading}
-                          />
+                      <div className="p-4 bg-sky-50/50 rounded-xl border border-sky-100">
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                          Location Coordinates <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">
+                              Latitude
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={formData.latitude}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  latitude: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-2 border border-sky-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all bg-white text-sm text-slate-800 placeholder-slate-400 shadow-sm"
+                              placeholder="20.2961"
+                              disabled={loading}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">
+                              Longitude
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={formData.longitude}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  longitude: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-2 border border-sky-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all bg-white text-sm text-slate-800 placeholder-slate-400 shadow-sm"
+                              placeholder="85.8245"
+                              disabled={loading}
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Longitude *
-                          </label>
-                          <input
-                            type="number"
-                            step="any"
-                            value={formData.longitude}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                longitude: e.target.value,
-                              })
-                            }
-                            className="w-full px-2.5 py-1.5 border border-sky-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-400 transition-all bg-white text-sm"
-                            placeholder="85.8245"
-                            disabled={loading}
-                          />
-                        </div>
+                        <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                          <MapPin size={12} className="text-sky-500" />
+                          Primary map location
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Primary location coordinates (always required)
-                      </p>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Jurisdiction Area (Optional)
-                      </label>
-                      <div className="flex gap-2 mb-2">
+                      <h3 className="block text-sm font-semibold text-slate-700 mb-3">
+                        Jurisdiction Area <span className="text-slate-400 font-normal ml-1">(Optional)</span>
+                      </h3>
+                      <div className="flex gap-3 mb-4">
                         {["location", "jurisdiction"].map((val) => (
                           <label
                             key={val}
-                            className="flex items-center cursor-pointer bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-300 hover:bg-sky-100 transition-all flex-1"
+                            className={`flex items-center cursor-pointer px-4 py-3 rounded-xl border-2 transition-all flex-1 ${formData.locationType === val ? 'bg-sky-50 border-sky-500 shadow-sm' : 'bg-white border-slate-200 hover:border-sky-300 hover:bg-sky-50/50'}`}
                           >
                             <input
                               type="radio"
@@ -728,13 +732,13 @@ const AdminAgencyManager = () => {
                                   locationType: e.target.value,
                                 })
                               }
-                              className="mr-1.5 w-3 h-3 accent-sky-500"
+                              className="mr-2 w-4 h-4 accent-sky-600 cursor-pointer"
                               disabled={loading}
                             />
-                            <span className="text-xs font-medium text-gray-700">
+                            <span className={`text-sm font-semibold ${formData.locationType === val ? 'text-sky-800' : 'text-slate-600'}`}>
                               {val === "location"
-                                ? "No Jurisdiction"
-                                : "Add Jurisdiction"}
+                                ? "Single Location"
+                                : "Define Area Polygon"}
                             </span>
                           </label>
                         ))}
@@ -846,30 +850,30 @@ const AdminAgencyManager = () => {
                       )}
                     </div>
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
                       <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="flex-1 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-4 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-xl hover:from-sky-700 hover:to-sky-600 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed border border-sky-600/20"
                       >
                         {loading ? (
                           <>
-                            <RefreshCw size={16} className="animate-spin" />
+                            <RefreshCw size={18} className="animate-spin" />
                             Processing...
                           </>
                         ) : (
                           <>
-                            <Save size={16} />
-                            {editMode ? "Update" : "Create"}
+                            <Save size={18} />
+                            {editMode ? "Save Changes" : "Create Agency"}
                           </>
                         )}
                       </button>
                       <button
                         onClick={() => setView("list")}
                         disabled={loading}
-                        className="px-3 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-all flex items-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-5 py-3 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 transition-all flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <X size={16} />
+                        <X size={18} />
                         Cancel
                       </button>
                     </div>
@@ -884,15 +888,17 @@ const AdminAgencyManager = () => {
                     locationType="jurisdiction" and >= 3 valid points exist.
                   Both can appear simultaneously, just like Leaflet.
               ──────────────────────────────────────────────────────────── */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
-                <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
-                  <MapPin size={18} className="text-sky-800" />
-                  <h4 className="text-base font-bold text-sky-800">
+              <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center gap-3">
+                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
+                    <MapPin size={18} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">
                     Location Preview
-                  </h4>
+                  </h3>
                 </div>
-                <div className="flex-1 p-2">
-                  <div className="rounded-lg overflow-hidden border-2 border-sky-200 h-full">
+                <div className="flex-1 p-3 bg-slate-50/50">
+                  <div className="rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-slate-200 h-full relative">
                     <LoadScript
                       googleMapsApiKey={
                         import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
@@ -1021,64 +1027,56 @@ const AdminAgencyManager = () => {
   // LIST VIEW
   // ════════════════════════════════════════════════════════════════════════
   return (
-    <div
-      className="h-screen overflow-hidden bg-linear-to-br from-sky-100 via-cyan-50 to-blue-100 flex flex-col"
-      style={{
-        backgroundImage: `radial-gradient(rgba(14,165,233,0.15) 1px,transparent 1px)`,
-        backgroundSize: "20px 20px",
-      }}
-    >
+    <div className="h-screen overflow-hidden bg-slate-50 flex flex-col relative">
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-sky-200/30 blur-[120px] pointer-events-none" />
+
       <Notification type="error" message={error} />
       <Notification type="success" message={success} />
 
       {/* Header */}
-      <div className="bg-sky-200 shadow-sm">
-        <div className="container mx-auto px-3 py-2.5">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm sticky top-0 z-10">
+        <div className="w-full max-w-[1800px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <img
                 src="/images/omnivision-logo.png"
                 alt="OmniVision Logo"
-                className="h-14 w-auto"
+                className="h-12 w-auto object-contain drop-shadow-sm"
                 onError={(e) => (e.target.style.display = "none")}
               />
-              <p className="mt-2 font-bold text-3xl text-neutral-700">
+              <div className="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+              <p className="font-black text-xl sm:text-2xl bg-gradient-to-r from-sky-800 to-cyan-700 bg-clip-text text-transparent">
                 Super Admin
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={fetchAgencies}
                 disabled={loading}
-                className="px-3 py-2 bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all flex items-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hidden md:flex px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all items-center gap-2 font-bold text-sm disabled:opacity-50"
               >
-                <RefreshCw
-                  size={18}
-                  className={loading ? "animate-spin" : ""}
-                />
+                <RefreshCw size={16} className={loading ? "animate-spin text-sky-500" : "text-slate-500"} />
                 Refresh
               </button>
               <button
                 onClick={switchModel}
                 disabled={modelLoading}
-                className="px-3 py-2 bg-white text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all flex items-center gap-1.5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 shadow-sm transition-all flex items-center gap-2 font-bold text-sm disabled:opacity-50"
               >
-                <RefreshCw
-                  size={18}
-                  className={modelLoading ? "animate-spin" : ""}
-                />
+                <RefreshCw size={16} className={modelLoading ? "animate-spin" : ""} />
                 {activeModel === "YOLO" ? "Switch to VLM" : "Switch to YOLO"}
               </button>
               <button
                 onClick={handleAddNew}
-                className="px-3 py-2 cursor-pointer bg-white text-sky-600 rounded-lg hover:bg-sky-50 transition-all flex items-center gap-1.5 font-medium text-sm"
+                className="px-4 py-2 cursor-pointer bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-xl hover:from-sky-700 hover:to-sky-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-bold text-sm border border-sky-600/20"
               >
                 <Plus size={18} />
                 Add Agency
               </button>
               <button
                 onClick={handleLogout}
-                className="px-3 py-2 cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all flex items-center gap-1.5 font-medium text-sm"
+                className="px-4 py-2 cursor-pointer bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2 font-bold text-sm ml-1"
               >
                 Logout
               </button>
@@ -1091,9 +1089,14 @@ const AdminAgencyManager = () => {
         <div className="container mx-auto px-3 py-2 h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
             {/* ── Agencies List ─────────────────────────────────────────── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
-              <div className="bg-sky-300 px-3 py-1 flex items-center justify-between">
-                <p className="text-2xl font-bold text-sky-800">Agencies List</p>
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+              <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
+                    <MapPin size={18} />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-800">Agencies List</h2>
+                </div>
                 <span className="text-sm text-sky-700 font-medium">
                   {agencies.length}{" "}
                   {agencies.length === 1 ? "agency" : "agencies"}
@@ -1127,25 +1130,28 @@ const AdminAgencyManager = () => {
                     {agencies.map((agency) => (
                       <div
                         key={agency._id}
-                        className="border mb-2 border-sky-200 rounded-lg p-3 hover:shadow-md hover:border-sky-300 transition-all bg-white"
+                        className="group border mb-3 border-slate-200 rounded-2xl p-4 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-sky-300 transition-all bg-white relative overflow-hidden"
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-base text-sky-700 truncate">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-sky-50 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform"></div>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1 min-w-0 pr-2">
+                            <h3 className="font-bold text-lg text-slate-800 truncate mb-1">
                               {agency.AgencyName}
                             </h3>
-                            <p className="text-xs text-gray-600">
-                              ID: {agency.AgencyId}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              📱 {agency.mobileNumber}
-                            </p>
+                            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium pb-2 border-b border-slate-50">
+                              <p className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
+                                <span className="opacity-70">ID:</span> <span className="text-slate-700 font-mono">{agency.AgencyId}</span>
+                              </p>
+                              <p className="flex items-center gap-1">
+                                <span className="opacity-70">📱</span> <span className="text-slate-700">{agency.mobileNumber}</span>
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex gap-1.5">
+                          <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(agency)}
                               disabled={loading}
-                              className="btn p-1.5 text-sky-600 hover:bg-sky-100 rounded-md transition-all disabled:opacity-50"
+                              className="p-2 text-sky-600 bg-white border border-sky-100 hover:bg-sky-50 rounded-xl transition-all shadow-sm disabled:opacity-50"
                               title="Edit"
                             >
                               <Edit2 size={16} />
@@ -1153,7 +1159,7 @@ const AdminAgencyManager = () => {
                             <button
                               onClick={() => handleDelete(agency.AgencyId)}
                               disabled={loading}
-                              className="btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-all disabled:opacity-50"
+                              className="p-2 text-red-500 bg-white border border-red-100 hover:bg-red-50 rounded-xl transition-all shadow-sm disabled:opacity-50"
                               title="Delete"
                             >
                               <Trash2 size={16} />
@@ -1161,39 +1167,38 @@ const AdminAgencyManager = () => {
                           </div>
                         </div>
 
-                        <div className="mb-2">
-                          <p className="text-xs font-semibold text-gray-700 mb-1">
-                            Events:
+                        <div className="mb-3 mt-2">
+                          <p className="text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                            Events Responsible For
                           </p>
                           {agency.eventResponsibleFor?.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1.5">
                               {agency.eventResponsibleFor.map((ev, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full font-medium"
+                                  className="text-[11px] bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-lg font-bold tracking-wide"
                                 >
                                   {ev}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-500 italic">
+                            <span className="text-xs text-slate-400 italic">
                               No events assigned
                             </span>
                           )}
                         </div>
 
-                        <div className="text-xs">
-                          <p className="font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                            <MapPin size={14} className="text-sky-600" />
+                        <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-100">
+                          <p className="font-semibold text-slate-600 flex items-center gap-1.5">
+                            <MapPin size={14} className="text-emerald-500" />
                             {agency.jurisdiction?.coordinates
-                              ? "Jurisdiction Area"
-                              : "Location Point"}
+                              ? "Jurisdiction Area Defined"
+                              : "Location Point Pin"}
                           </p>
-                          {/* "View on Map" pans+zooms to agency.location via MapUpdater */}
                           <button
                             onClick={() => handleViewOnMap(agency)}
-                            className="text-sky-600 hover:text-sky-700 font-semibold transition-colors"
+                            className="flex items-center gap-1 text-sky-600 hover:text-sky-800 font-bold transition-colors bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-100"
                           >
                             View on Map →
                           </button>
@@ -1211,13 +1216,17 @@ const AdminAgencyManager = () => {
                 • No jurisdiction   → Marker only   (click = InfoWindow popup)
                 • "View on Map" updates mapCenter → MapUpdater animates to it
             ──────────────────────────────────────────────────────────── */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-sky-200 overflow-hidden flex flex-col">
-              <div className="bg-sky-300 px-3 py-2 flex items-center gap-1.5">
-                <MapPin size={18} className="text-sky-800" />
-                <h3 className="text-base font-bold text-sky-800">Map View</h3>
+            <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+              <div className="border-b border-slate-100 bg-white/50 px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-sky-50 rounded-xl text-sky-600">
+                    <MapPin size={18} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Map View Overview</h3>
+                </div>
               </div>
-              <div className="flex-1 p-2">
-                <div className="h-full rounded-lg overflow-hidden border-2 border-sky-200">
+              <div className="flex-1 p-3 bg-slate-50/50">
+                <div className="h-full rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-slate-200 relative">
                   <LoadScript
                     googleMapsApiKey={
                       import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
