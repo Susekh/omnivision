@@ -10,7 +10,6 @@
     "@mui/icons-material": "^6.4.5",
     "@mui/material": "^6.4.5",
     "@popperjs/core": "^2.11.8",
-    "@react-google-maps/api": "^2.20.6",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.8",

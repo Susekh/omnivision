@@ -3,7 +3,7 @@ const INTERNAL_BASES = [
   "http://localhost:9000",
 ];
 
-const IMAGE_BASE_PUBLIC = "https://assets.omnivision.neuradyne.in";
+const IMAGE_BASE_PUBLIC = "https://34.122.183.16:9000";
 
 const normalizeImageUrl = (url) => {
   if (!url || typeof url !== "string") return null;

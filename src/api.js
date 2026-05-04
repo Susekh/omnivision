@@ -14,7 +14,7 @@ const isLocalhost = window.location.hostname === "localhost";
 const api = axios.create({
   baseURL: isLocalhost
     ? "http://localhost:5000/" // Local development backend
-    : "https://backend.omnivision.neuradyne.in/", // Production backend
+    : "https://34.122.183.16/backend/", // Production backend
   timeout: 10000000,
   withCredentials: true, // Enable sending cookies
 });
